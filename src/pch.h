@@ -28,6 +28,8 @@ static const int		LEFT = 0;
 static const int		RIGHT = 1;
 static const int		LEFTRIGHT = 2;
 static const int		LR = 2;
+static const int		CENTER = 2;
+static const int		LRC = 3;
 
 static const int		UP = 0;
 static const int		DOWN = 1;
@@ -56,7 +58,10 @@ static const int		WEST = 0;
 static const int		EAST = 1;
 static const int		NORTH = 2;
 static const int		SOUTH = 3;
+static const int		BOT= 4;
+static const int		TOP = 5;
 static const int		NEWS = 4;
+static const int		NEWSBT = 6;
 static const int	    NEWS2XY[NEWS] = { XDIR, XDIR, YDIR, YDIR};
 
 static const int		NDIVREG = 8;
