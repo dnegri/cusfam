@@ -58,7 +58,13 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalCompilerOptions>
       </AdditionalCompilerOptions>
+      <Runtime>MTd</Runtime>
     </CudaCompile>
+    <Lib>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalDependencies>cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CudaToolkitLibDir);</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -80,14 +86,14 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="../src/const.cuh" />
-    <CudaCompile Include="../src/drivesanm2n.cu" />
     <CudaCompile Include="../src/kernel.cu" />
     <CudaCompile Include="../src/Nodal.cu" />
     <CudaCompile Include="../src/pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
+    <ClInclude Include="..\src\helper_cuda.h" />
+    <ClInclude Include="..\src\helper_string.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

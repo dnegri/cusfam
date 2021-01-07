@@ -79,7 +79,5 @@ using namespace std;
 
 static const int    NTHREADSPERBLOCK = 64;
 
-#define ptr3(var,ig,l,k)			(var[k*(nxy*ng)+l*ng+ig])
-#define ptr4(var,ig,l,k,idir)	(var[NDIRMAX*(nz*nxy*ng)+k*(nxy*ng)+l*ng+ig])
 
 #endif /* PCH_H_ */
