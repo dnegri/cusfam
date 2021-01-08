@@ -2,6 +2,7 @@
 #include "Nodal.h"
 #include "helper_cuda.h"
 
+
 Nodal sanm2n;
 
 __global__ void initGeometry(int* d_neib) {
@@ -34,6 +35,10 @@ extern "C" void initNodal(int* ng, int* nxy, int* nz, int* nsurf, int* neibr, do
 	sanm2n.d_nxy = *nxy;
 	sanm2n.d_nxyz = *nxy * *nz;
 	sanm2n.d_nsurf = *nsurf * *nz + (*nz + 1) * *nxy;
+
+	int* neib = new int[]
+
+
 	sanm2n.init();
 	checkCudaErrors(cudaMalloc((void**)&sanm2n.d_neib, sizeof(int) * NEWSBT * sanm2n.d_nxyz));
 

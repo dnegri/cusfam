@@ -1,18 +1,12 @@
 ﻿#pragma once
 
 #include "pch.h"
-#include <cuda_runtime.h>
 
-#define d_neib(lr,idir,lk)	  (d_neib[lk*NEWSBT + idir*LR + lr])
-#define d_lktosfc(lr,idir,lk) (d_lktosfc[lk*NEWSBT + idir*LR + lr])
+
 #define d_jnet(ig,lks)	    (d_jnet[lks*d_ng + ig])
 #define d_trlcff0(ig,lkd)	(d_trlcff0[lkd*d_ng + ig])
 #define d_trlcff1(ig,lkd)	(d_trlcff1[lkd*d_ng + ig])
 #define d_trlcff2(ig,lkd)	(d_trlcff2[lkd*d_ng + ig])
-#define d_hmesh(idir,lk)		(d_hmesh[lk*NDIRMAX + idir])
-#define d_lkg3(ig,l,k)		(k*(d_nxy*d_ng)+l*d_ng+ig)
-#define d_lkg2(ig,lk)			(lk*d_ng+ig)
-
 #define d_eta1(ig,lkd)	(d_eta1[lkd*d_ng + ig])
 #define d_eta2(ig,lkd)	(d_eta2[lkd*d_ng + ig])
 #define d_m260(ig,lkd)	(d_m260[lkd*d_ng + ig])
@@ -37,36 +31,9 @@
 #define d_dsncff6(ig,lkd) (d_dsncff6[lkd*d_ng + ig])
 
 
-__constant__ extern float m011 = 2. / 3.;
-__constant__ extern float m022 = 2. / 5.;
-__constant__ extern float m033 = 2. / 7.;
-__constant__ extern float m044 = 2. / 9.;
-__constant__ extern float m220 = 6.;
-__constant__ extern float rm220 = 1 / 6.;
-__constant__ extern float m240 = 20.;
-__constant__ extern float m231 = 10.;
-__constant__ extern float m242 = 14.;
-
-__constant__ extern int		d_ng = 2;
-__constant__ extern int		d_ng2 = 4;
-__constant__ extern float	d_rng = 0.5;
-
-
 
 class Nodal {
 public:
-	int		d_nxy;
-	int		d_nz;
-	int		d_nxyz;
-	int		d_nsurf;
-	int*	d_neib;
-	float*	d_hmesh;
-
-	int* d_lklr;
-	int* d_idirlr;
-	int* d_sgnlr;
-	int* d_lktosfc;
-
 	float* d_trlcff0;
 	float* d_trlcff1;
 	float* d_trlcff2;
@@ -102,10 +69,6 @@ public:
 	float* d_dsncff6;
 
 	double* d_reigv;
-
-	dim3 _blocks, _blocks_sfc;
-	dim3 _threads, _threads_sfc;
-
 
 public:
 	int nmaxswp;

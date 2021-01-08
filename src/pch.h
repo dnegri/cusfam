@@ -1,11 +1,4 @@
-﻿/*
- * pch.h
- *
- *  Created on: Oct 15, 2014
- *      Author: jiyoon
- */
-
-#ifndef PCH_H_
+﻿#ifndef PCH_H_
 #define PCH_H_
 
 #include <array>

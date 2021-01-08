@@ -48,6 +48,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -87,13 +90,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="../src/kernel.cu" />
-    <CudaCompile Include="../src/Nodal.cu" />
+    <CudaCompile Include="..\src\NodalCuda.cu" />
     <CudaCompile Include="../src/pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
+    <ClInclude Include="..\src\Geometry.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
     <ClInclude Include="..\src\helper_string.h" />
+    <ClInclude Include="..\src\NodalCuda.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\Geometry.cpp" />
+    <ClCompile Include="..\src\Nodal.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
