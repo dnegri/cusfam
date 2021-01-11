@@ -51,6 +51,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -89,18 +90,20 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="../src/kernel.cu" />
+    <CudaCompile Include="..\src\sanm2n.cu" />
     <CudaCompile Include="..\src\NodalCuda.cu" />
     <CudaCompile Include="../src/pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
+    <ClInclude Include="..\src\CrossSection.h" />
     <ClInclude Include="..\src\Geometry.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
     <ClInclude Include="..\src\helper_string.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\CrossSection.cpp" />
     <ClCompile Include="..\src\Geometry.cpp" />
     <ClCompile Include="..\src\Nodal.cpp" />
   </ItemGroup>

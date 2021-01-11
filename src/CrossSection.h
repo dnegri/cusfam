@@ -2,7 +2,7 @@
 #include "pch.h"
 
 #ifndef XS_PRECISION
-    #define XS_PRECISION float
+    #define XS_PRECISION double
 #endif
 
 class CrossSection {
@@ -15,15 +15,29 @@ private:
     XS_PRECISION* _xstf;
     XS_PRECISION* _xskf;
     XS_PRECISION* _chif;
-
+    XS_PRECISION* _xsadf;
 public:
+    CrossSection(const int& ng, const int& nxyz, XS_PRECISION* xsdf, XS_PRECISION* xstf, XS_PRECISION* xsnf, XS_PRECISION* xssf, XS_PRECISION* xschif, XS_PRECISION* xsadf) {
+        _ng = ng;
+        _nxyz = nxyz;
+        _xsnf = xsnf;
+        _xsdf = xsdf;
+        _xstf = xstf;
+        _chif = xschif;
+        _xssf = xssf;
+        _xsadf = xsadf;
+    };
+
     CrossSection(int ng, int nxyz) {
+        _ng = ng;
+        _nxyz = nxyz;
         _xsnf = new XS_PRECISION[_ng*_nxyz]();
         _xsdf = new XS_PRECISION[_ng*_nxyz]();
         _xstf = new XS_PRECISION[_ng*_nxyz]();
         _xskf = new XS_PRECISION[_ng*_nxyz]();
         _chif = new XS_PRECISION[_ng*_nxyz]();
         _xssf = new XS_PRECISION[_ng*_ng*_nxyz]();
+        _xsadf = new XS_PRECISION[_ng * _nxyz]();
     };
     
     virtual ~CrossSection() {
@@ -41,5 +55,6 @@ public:
     inline XS_PRECISION& xstf(const int & ig, const int & l) {return _xstf[l*_ng+ig];};
     inline XS_PRECISION& xskf(const int & ig, const int & l) {return _xskf[l*_ng+ig];};
     inline XS_PRECISION& chif(const int & ig, const int & l) {return _chif[l*_ng+ig];};
+    inline XS_PRECISION& xsadf(const int& ig, const int& l) { return _xsadf[l * _ng + ig]; };
 
 };
