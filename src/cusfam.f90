@@ -1,9 +1,15 @@
-module Cusfam
+module cusfam
     use iso_c_binding
     implicit none
     
     
 interface
+    subroutine setBoundaryCondtition(symopt, symang, albedo) bind(C,name="setBoundaryCondtition")
+        use iso_c_binding
+        integer         :: symopt, symang
+        real            :: albedo(*)
+    end subroutine
+
     subroutine initGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh) bind(C,name="initGeometry")
         use iso_c_binding
         integer         :: ng, nxy, nz, nx, ny, nsurf
@@ -19,8 +25,10 @@ interface
     
     subroutine initSANM2N() bind(C, name="initSANM2N")
     end subroutine
-    subroutine resetSANM2N() bind(C, name="resetSANM2N")
+    subroutine resetSANM2N(reigv, jnet, phif) bind(C, name="resetSANM2N")
+        real        :: reigv, jnet(*), phif(*)
     end subroutine
+    
     subroutine runSANM2N() bind(C, name="runSANM2N")
     end subroutine
 end interface

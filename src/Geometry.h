@@ -60,6 +60,10 @@ private:
 	int*	_sgnlr;
 	int*	_lktosfc;
 
+	int _symopt;
+	int _symang;
+	float* _albedo;
+
 	float* _hmesh;
 
 
@@ -67,6 +71,7 @@ public:
 	Geometry();
 	virtual ~Geometry();
 
+	void setBoudnaryCondition(int* symopt, int* symang, double* albedo);
 	void init(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int* nxe, int* nys, int* nye, int* nsurf_, int* ijtol, int* neibr, double* hmesh);
 
 	inline int& ng() { return _ng; };
@@ -90,5 +95,9 @@ public:
 	inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir)*LR + lr]; };
 
 	inline float& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+	inline int& symopt() { return _symopt; };
+	inline int& symang() { return _symang; };
+	inline float& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+
 };
 

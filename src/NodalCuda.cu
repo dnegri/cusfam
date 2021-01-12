@@ -14,6 +14,7 @@ __device__ const int		d_ng = 2;
 __device__ const int		d_ng2 = 4;
 __device__ const float	d_rng = 0.5;
 
+static float* temp;
 
 #define d_jnet(ig,lks)	    (d_jnet[lks*d_ng + ig])
 #define d_trlcff0(ig,lkd)	(d_trlcff0[lkd*d_ng + ig])
@@ -42,12 +43,16 @@ __device__ const float	d_rng = 0.5;
 #define d_dsncff4(ig,lkd) (d_dsncff4[lkd*d_ng + ig])
 #define d_dsncff6(ig,lkd) (d_dsncff6[lkd*d_ng + ig])
 
-#define d_hmesh(idir,lk)	(d_hmesh[lk*NDIRMAX+idir])
+#define d_hmesh(idir,lk)		(d_hmesh[lk*NDIRMAX+idir])
 #define d_lktosfc(lr,idir,lk)	(d_lktosfc[(lk*NDIRMAX+idir)*LR + lr])
+#define d_idirlr(lr,ls)			(d_idirlr[ls*LR + lr])
 #define d_neib(lr, idir, lk)	(d_neib[(lk*NDIRMAX+idir)*LR + lr])
+#define d_albedo(lr,idir)		(d_albedo[idir*LR + lr])
 
-__global__ void reset(float* d_hmesh, XS_PRECISION* d_xstf, XS_PRECISION* d_xsdf, float* d_eta1, float* d_eta2, float* d_m260, float* d_m251, float* d_m253, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI) {
+__global__ void reset(int& d_nxyz, float* d_hmesh, XS_PRECISION* d_xstf, XS_PRECISION* d_xsdf, float* d_eta1, float* d_eta2, float* d_m260, float* d_m251, float* d_m253, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI) {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+	if (lk >= d_nxyz) return;
+
 	int lkd0 = lk * NDIRMAX;
 	int lkg0 = lk * d_ng;
 
@@ -99,23 +104,32 @@ __global__ void reset(float* d_hmesh, XS_PRECISION* d_xstf, XS_PRECISION* d_xsdf
 	}
 }
 
-__global__ void resetMatrix(double& d_reigv, XS_PRECISION* d_xstf, XS_PRECISION* d_xsnff, XS_PRECISION* d_xschif, XS_PRECISION* d_xssf, float* d_matMs, float* d_matMf, float* d_matM) {
+__global__ void resetMatrix(int& d_nxyz, double& d_reigv, XS_PRECISION* d_xstf, XS_PRECISION* d_xsnff, XS_PRECISION* d_xschif, XS_PRECISION* d_xssf, float* d_matMs, float* d_matMf, float* d_matM) {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (lk >= d_nxyz) return;
 	int lkg0 = lk * d_ng;
 
-	for (size_t igd = 0; igd < d_ng; igd++)
+	for (size_t ige = 0; ige < d_ng; ige++)
 	{
 		for (size_t igs = 0; igs < d_ng; igs++)
 		{
-			d_matMs(igs, igd, lk) = -d_xssf(igs, igd, lk);
-			d_matMf(igs, igd, lk) = d_xschif[lkg0 + igd] * d_xsnff[lkg0 + igs];
+			d_matMs(igs, ige, lk) = -d_xssf(igs, ige, lk);
+			d_matMf(igs, ige, lk) = d_xschif[lkg0 + ige] * d_xsnff[lkg0 + igs];
 		}
-		d_matMs(igd, igd, lk) += d_xstf[lkg0 + igd];
+		d_matMs(ige, ige, lk) += d_xstf[lkg0 + ige];
+
+		for (size_t igs = 0; igs < d_ng; igs++)
+		{
+			d_matM(igs, ige, lk) = d_matMs(igs, ige, lk) - d_reigv * d_matMf(igs, ige, lk);
+		}
 	}
+
 }
 
-__global__ void prepareMatrix(float* d_m251, float* d_m253, float* d_diagD, float* d_diagDI, float* d_matM, float* d_matMI, float* d_tau, float* d_mu) {
+__global__ void prepareMatrix(int& d_nxyz, float* d_m251, float* d_m253, float* d_diagD, float* d_diagDI, float* d_matM, float* d_matMI, float* d_tau, float* d_mu) {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+	if (lk >= d_nxyz) return;
 	int lkd0 = lk * NDIRMAX;
 
 	auto det = d_matM(0, 0, lk) * d_matM(1, 1, lk) - d_matM(1, 0, lk) * d_matM(0, 1, lk);
@@ -176,11 +190,11 @@ __global__ void prepareMatrix(float* d_m251, float* d_m253, float* d_diagD, floa
 __device__ void trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2) {
 	float sh[4];
 
-	auto rh = (1 / ((hmesh3[1] + hmesh3[0] + hmesh3[2]) * (hmesh3[1] + hmesh3[0]) * (hmesh3[0] + hmesh3[2])));
-	sh[1] = (2 * hmesh3[1] + hmesh3[0]) * (hmesh3[1] + hmesh3[0]);
-	sh[2] = hmesh3[1] + hmesh3[0];
-	sh[3] = (hmesh3[0] + 2 * hmesh3[2]) * (hmesh3[0] + hmesh3[2]);
-	sh[4] = hmesh3[0] + hmesh3[2];
+	float rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[CENTER] + hmesh3[RIGHT])));
+	sh[0] = (2 * hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[LEFT] + hmesh3[CENTER]);
+	sh[1] = hmesh3[LEFT] + hmesh3[CENTER];
+	sh[2] = (hmesh3[CENTER] + 2 * hmesh3[RIGHT]) * (hmesh3[CENTER] + hmesh3[RIGHT]);
+	sh[3] = hmesh3[CENTER] + hmesh3[RIGHT];
 
 	if (hmesh3[LEFT] == 0.0) {
 		trlcff1 = 0.125 * (5. * avgtrl3[CENTER] + avgtrl3[RIGHT]);
@@ -191,28 +205,28 @@ __device__ void trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, floa
 		trlcff2 = 0.125 * (-3. * avgtrl3[CENTER] + avgtrl3[LEFT]);
 	}
 	else {
-		trlcff1 = 0.5 * rh * hmesh3[0] * ((avgtrl3[CENTER] - avgtrl3[LEFT]) * sh[3] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[1]);
-		trlcff2 = 0.5 * rh * (hmesh3[0] * hmesh3[0]) * ((avgtrl3[LEFT] - avgtrl3[CENTER]) * sh[4] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[2]);
+		trlcff1 = 0.5 * rh * hmesh3[CENTER] * ((avgtrl3[CENTER] - avgtrl3[LEFT]) * sh[2] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[0]);
+		trlcff2 = 0.5 * rh * (hmesh3[CENTER] * hmesh3[CENTER]) * ((avgtrl3[LEFT] - avgtrl3[CENTER]) * sh[3] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[1]);
 	}
-
 }
 
-__global__ void calculateTransverseLeakage(int* d_lktosfc, int* d_neib, float* d_hmesh, float* d_jnet, float* d_trlcff0, float* d_trlcff1, float* d_trlcff2)
+__global__ void calculateTransverseLeakage(int& d_nxyz, int* d_lktosfc, int* d_idirlr, int* d_neib, float* d_hmesh, float* d_albedo, float* d_jnet, float* d_trlcff0, float* d_trlcff1, float* d_trlcff2)
 {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+	if (lk >= d_nxyz) return;
+
 	int lkd0 = lk * NDIRMAX;
 
 	float avgjnet[NDIRMAX];
 
 	for (size_t ig = 0; ig < d_ng; ig++)
 	{
-
 		for (size_t idir = 0; idir < NDIRMAX; idir++)
 		{
-			auto lksl = d_lktosfc(LEFT, idir, lk);
-			auto lksr = d_lktosfc(RIGHT, idir, lk);
+			auto lsl = d_lktosfc(LEFT, idir, lk);
+			auto lsr = d_lktosfc(RIGHT, idir, lk);
 
-			avgjnet[idir] = (d_jnet(ig, lksr) - d_jnet(ig, lksl)) * d_hmesh(idir, lk);
+			avgjnet[idir] = (d_jnet(ig, lsr) - d_jnet(ig, lsl)) * d_hmesh(idir, lk);
 
 			d_trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
 			d_trlcff0(ig, lkd0 + YDIR) = avgjnet[XDIR] + avgjnet[ZDIR];
@@ -224,29 +238,52 @@ __global__ void calculateTransverseLeakage(int* d_lktosfc, int* d_neib, float* d
 	{
 		int lkd = lkd0 + idir;
 
-		float avgtrl3[LRC] = { 0.0 }, hmesh3[LRC] = { 0.0 };
-
-		hmesh3[CENTER] = d_hmesh(idir, lk);
-
-		for (size_t lr = 0; lr < LR; lr++)
+		for (size_t ig = 0; ig < d_ng; ig++)
 		{
-			auto lnk = d_neib(lr, idir, lk);
-			int lnkd = lnk * NDIRMAX + idir;
-			hmesh3[lr] = d_hmesh(idir, lnk);
+			float avgtrl3[LRC] = { 0.0 };
+			float hmesh3[LRC] = { 0.0 };
+			hmesh3[CENTER] = d_hmesh(idir, lk);
+			avgtrl3[CENTER] = d_trlcff0(ig, lkd);
 
-			for (size_t ig = 0; ig < d_ng; ig++)
-			{
-				avgtrl3[CENTER] = d_trlcff0(ig, lkd);
-				avgtrl3[lr] = d_trlcff0(ig, lnkd);
-				trlcffbyintg(avgtrl3, hmesh3, d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
+			int lkl = d_neib(LEFT, idir, lk);
+			int lsl = d_lktosfc(LEFT, idir, lk);
+			int idirl = d_idirlr(LEFT, lsl);
+
+			if (lkl < 0 && d_albedo(LEFT, idir) == 0) {
+				hmesh3[LEFT] = hmesh3[CENTER];
+				avgtrl3[LEFT] = avgtrl3[CENTER];
 			}
+			else {
+				hmesh3[LEFT] = d_hmesh(idirl,lkl);
+				avgtrl3[LEFT] = d_trlcff0(ig, lkd0+idirl);
+			}
+
+			int lkr = d_neib(RIGHT, idir, lk);
+			int lsr = d_lktosfc(RIGHT, idir, lk);
+			int idirr = d_idirlr(RIGHT, lsr);
+
+			if (lkr < 0 && d_albedo(RIGHT, idir) == 0) {
+				hmesh3[RIGHT] = hmesh3[CENTER];
+				avgtrl3[RIGHT] = avgtrl3[CENTER];
+			}
+			else {
+				hmesh3[RIGHT] = d_hmesh(idirr, lkr);
+				avgtrl3[RIGHT] = d_trlcff0(ig, lkd0 + idirr);
+			}
+
+
+			trlcffbyintg(avgtrl3, hmesh3, d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
+			//printf("trlcff12: %e %e \n", d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
 		}
+
 	}
 }
 
-__global__ void calculateEven(float* d_m260, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI, float* d_matM, double* d_flux, float* d_trlcff0, float* d_trlcff2, float* d_dsncff2, float* d_dsncff4, float* d_dsncff6)
+__global__ void calculateEven(int& d_nxyz, float* d_m260, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI, float* d_matM, double* d_flux, float* d_trlcff0, float* d_trlcff2, float* d_dsncff2, float* d_dsncff4, float* d_dsncff6)
 {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+	if (lk >= d_nxyz) return;
+
 	int lkd0 = lk * NDIRMAX;
 
 	for (size_t idir = 0; idir < NDIRMAX; idir++)
@@ -266,6 +303,8 @@ __global__ void calculateEven(float* d_m260, float* d_m262, float* d_m264, float
 			at2[igd][igd] += m022 * rm220 * m240;
 		}
 
+		printf("at2 : %e %e %e %e\n", at2[0][0], at2[1][0], at2[0][1], at2[1][1]);
+
 		for (size_t igd = 0; igd < d_ng; igd++)
 		{
 			auto mu1 = rm4464[igd] * d_m262(igd, lkd);
@@ -277,6 +316,7 @@ __global__ void calculateEven(float* d_m260, float* d_m262, float* d_m264, float
 			bt2[igd] = 2 * (d_matM(0, igd, lk) * d_flux(0, lk) + d_matM(1, igd, lk) * d_flux(0, lk) + d_trlcff0(igd, lkd));
 			bt1[igd] = m022 * rm220 * d_diagDI(igd, lkd) * bt2[igd];
 		}
+		printf("bt1 bt2 : %e %e %e %e\n", bt1[0], bt1[1], bt2[0], bt2[1]);
 
 		for (size_t ig = 0; ig < d_ng; ig++)
 		{
@@ -295,10 +335,12 @@ __global__ void calculateEven(float* d_m260, float* d_m262, float* d_m264, float
 	}
 }
 
-__global__ void calculateJnet(int* lklr, int* idirlr, int* sgnlr, float* d_hmesh, XS_PRECISION* d_xsadf, float* d_m260, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI, float* d_matM, float* d_matMI, double* d_flux, float* d_trlcff0, float* d_trlcff1, float* d_trlcff2, float* d_mu, float* d_tau, float* d_eta1, float* d_eta2, float* d_dsncff2, float* d_dsncff4, float* d_dsncff6, float* d_jnet)
+__global__ void calculateJnet(int& d_nsurf, int* lklr, int* idirlr, int* sgnlr, float* d_hmesh, XS_PRECISION* d_xsadf, float* d_m260, float* d_m262, float* d_m264, float* d_diagD, float* d_diagDI, float* d_matM, float* d_matMI, double* d_flux, float* d_trlcff0, float* d_trlcff1, float* d_trlcff2, float* d_mu, float* d_tau, float* d_eta1, float* d_eta2, float* d_dsncff2, float* d_dsncff4, float* d_dsncff6, float* d_jnet)
 {
-	int lsfc = threadIdx.x + blockIdx.x * blockDim.x;
-	int lsfclr = lsfc * LR;
+	int ls = threadIdx.x + blockIdx.x * blockDim.x;
+	if (ls >= d_nsurf) return;
+
+	int lsfclr = ls * LR;
 
 	int lkl = lklr[lsfclr + LEFT];
 	int lkr = lklr[lsfclr + RIGHT];
@@ -407,7 +449,7 @@ __global__ void calculateJnet(int* lklr, int* idirlr, int* sgnlr, float* d_hmesh
 
 	for (size_t ig = 0; ig < d_ng; ig++)
 	{
-		d_jnet(ig, lsfc) = sgnr * d_hmesh(idirr, lkr) * 0.5 * d_diagD(ig, lkdr) * (
+		d_jnet(ig, ls) = sgnr * d_hmesh(idirr, lkr) * 0.5 * d_diagD(ig, lkdr) * (
 			-1.0 * oddcff[0][ig] + 3 * d_dsncff2(ig, lkdr) - 6 * oddcff[1][ig] + 10 * d_dsncff4(ig, lkdr)
 			- d_eta1(ig, lkdr) * oddcff[2][ig] + d_eta2(ig, lkdr) * d_dsncff6(ig, lkdr));
 	}
@@ -421,65 +463,78 @@ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
 	_nxyz = _g.nxyz();
 	_nsurf = _g.nsurf();
 
-	_blocks = dim3(_nxyz / NTHREADSPERBLOCK + 1, 1, 1);
-	_threads = dim3(NTHREADSPERBLOCK, 1, 1);
+	_d_blocks = dim3(_nxyz / NTHREADSPERBLOCK + 1, 1, 1);
+	_d_threads = dim3(NTHREADSPERBLOCK, 1, 1);
 
-	_blocks_sfc = dim3(_nsurf / NTHREADSPERBLOCK + 1, 1, 1);
-	_threads_sfc = dim3(NTHREADSPERBLOCK, 1, 1);
+	_d_blocks_sfc = dim3(_nsurf / NTHREADSPERBLOCK + 1, 1, 1);
+	_d_threads_sfc = dim3(NTHREADSPERBLOCK, 1, 1);
 
-	checkCudaErrors(cudaMalloc((void**)&_neib, sizeof(int) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_lktosfc, sizeof(int) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_hmesh, sizeof(float) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_idirlr, sizeof(int) * LR* _nsurf));
-	checkCudaErrors(cudaMalloc((void**)&_sgnlr, sizeof(int) * LR * _nsurf));
-	checkCudaErrors(cudaMalloc((void**)&_lklr, sizeof(int) * LR * _nsurf));
-
-	checkCudaErrors(cudaMemcpy(_neib	, &_g.neib(0, 0)	, sizeof(int) * NEWSBT * _nxyz	, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_lktosfc	, &_g.lktosfc(0,0,0), sizeof(int) * NEWSBT * _nxyz	, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_hmesh	, &_g.hmesh(0, 0)	, sizeof(float) * NEWSBT * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_idirlr	, &_g.idirlr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_sgnlr	, &_g.sgnlr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_lklr	, &_g.lklr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
+	_jnet = new float[_nsurf * _ng];
+	_flux = new double[_nxyz * _ng];
 
 
-	checkCudaErrors(cudaMalloc((void**)&_trlcff0, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_trlcff1, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_trlcff2, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_jnet, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_eta1, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_eta2, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_mu, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_tau, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_m260, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_m251, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_m253, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_m262, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_m264, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_diagDI, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_diagD, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_dsncff2, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_dsncff4, sizeof(float) * _nxyz * NDIRMAX * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_dsncff6, sizeof(float) * _nxyz * NDIRMAX * _ng));
-
-	checkCudaErrors(cudaMalloc((void**)&_xstf, sizeof(XS_PRECISION) * _nxyz * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_xsdf, sizeof(XS_PRECISION) * _nxyz * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_xsnff, sizeof(XS_PRECISION) * _nxyz * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_xschif, sizeof(XS_PRECISION) * _nxyz * _ng));
-	checkCudaErrors(cudaMalloc((void**)&_xsadf, sizeof(XS_PRECISION) * _nxyz * _ng));
-
-	checkCudaErrors(cudaMalloc((void**)&_xssf, sizeof(XS_PRECISION) * _nxyz * _ng2));
-	checkCudaErrors(cudaMalloc((void**)&_matM, sizeof(float) * _nxyz * _ng2));
-	checkCudaErrors(cudaMalloc((void**)&_matMI, sizeof(float) * _nxyz * _ng2));
-	checkCudaErrors(cudaMalloc((void**)&_matMs, sizeof(float) * _nxyz * _ng2));
-	checkCudaErrors(cudaMalloc((void**)&_matMf, sizeof(float) * _nxyz * _ng2));
+	checkCudaErrors(cudaMalloc((void**)&_d_symopt, sizeof(int)));
+	checkCudaErrors(cudaMalloc((void**)&_d_symang, sizeof(int)));
+	checkCudaErrors(cudaMalloc((void**)&_d_albedo, sizeof(float)*NDIRMAX*LR));
+	checkCudaErrors(cudaMemcpy(_d_symopt, &_g.symopt(), sizeof(int), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_symopt, &_g.symang(), sizeof(int), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_albedo, &_g.albedo(0,0), sizeof(float) * NDIRMAX * LR, cudaMemcpyHostToDevice));
 
 
-	checkCudaErrors(cudaMalloc((void**)&_neib, sizeof(int) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_lktosfc, sizeof(int) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_hmesh, sizeof(float) * NEWSBT * _nxyz));
-	checkCudaErrors(cudaMalloc((void**)&_idirlr, sizeof(int) * LR * _nsurf));
-	checkCudaErrors(cudaMalloc((void**)&_sgnlr, sizeof(int) * LR * _nsurf));
-	checkCudaErrors(cudaMalloc((void**)&_lklr, sizeof(int) * LR * _nsurf));
+	checkCudaErrors(cudaMalloc((void**)&_d_nxyz, sizeof(int)));
+	checkCudaErrors(cudaMalloc((void**)&_d_nsurf, sizeof(int)));
+	checkCudaErrors(cudaMemcpy(_d_nxyz, &_nxyz, sizeof(int), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_nsurf, &_nsurf, sizeof(int), cudaMemcpyHostToDevice));
+
+	checkCudaErrors(cudaMalloc((void**)&_d_neib, sizeof(int) * NEWSBT * _nxyz));
+	checkCudaErrors(cudaMalloc((void**)&_d_lktosfc, sizeof(int) * NEWSBT * _nxyz));
+	checkCudaErrors(cudaMalloc((void**)&_d_hmesh, sizeof(float) * NEWSBT * _nxyz));
+	checkCudaErrors(cudaMalloc((void**)&_d_idirlr, sizeof(int) * LR* _nsurf));
+	checkCudaErrors(cudaMalloc((void**)&_d_sgnlr, sizeof(int) * LR * _nsurf));
+	checkCudaErrors(cudaMalloc((void**)&_d_lklr, sizeof(int) * LR * _nsurf));
+
+	checkCudaErrors(cudaMemcpy(_d_neib	, &_g.neib(0, 0)	, sizeof(int) * NEWSBT * _nxyz	, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_lktosfc	, &_g.lktosfc(0,0,0), sizeof(int) * NEWSBT * _nxyz	, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_hmesh	, &_g.hmesh(0, 0)	, sizeof(float) * NEWSBT * _nxyz, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_idirlr	, &_g.idirlr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_sgnlr	, &_g.sgnlr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_lklr	, &_g.lklr(0, 0)	, sizeof(int) * LR * _nsurf		, cudaMemcpyHostToDevice));
+
+
+	checkCudaErrors(cudaMalloc((void**)&_d_reigv, sizeof(double)));
+	checkCudaErrors(cudaMalloc((void**)&_d_jnet, sizeof(float) * _nsurf * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_flux, sizeof(double) * _nxyz * _ng));
+
+	checkCudaErrors(cudaMalloc((void**)&_d_trlcff0, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_trlcff1, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_trlcff2, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_eta1, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_eta2, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_mu, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_tau, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_m260, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_m251, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_m253, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_m262, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_m264, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_diagDI, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_diagD, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_dsncff2, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_dsncff4, sizeof(float) * _nxyz * NDIRMAX * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_dsncff6, sizeof(float) * _nxyz * NDIRMAX * _ng));
+
+	checkCudaErrors(cudaMalloc((void**)&_d_xstf, sizeof(XS_PRECISION) * _nxyz * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_xsdf, sizeof(XS_PRECISION) * _nxyz * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_xsnff, sizeof(XS_PRECISION) * _nxyz * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_xschif, sizeof(XS_PRECISION) * _nxyz * _ng));
+	checkCudaErrors(cudaMalloc((void**)&_d_xsadf, sizeof(XS_PRECISION) * _nxyz * _ng));
+
+	checkCudaErrors(cudaMalloc((void**)&_d_xssf, sizeof(XS_PRECISION) * _nxyz * _ng2));
+	checkCudaErrors(cudaMalloc((void**)&_d_matM, sizeof(float) * _nxyz * _ng2));
+	checkCudaErrors(cudaMalloc((void**)&_d_matMI, sizeof(float) * _nxyz * _ng2));
+	checkCudaErrors(cudaMalloc((void**)&_d_matMs, sizeof(float) * _nxyz * _ng2));
+	checkCudaErrors(cudaMalloc((void**)&_d_matMf, sizeof(float) * _nxyz * _ng2));
+
 
 }
 
@@ -489,29 +544,100 @@ NodalCuda::~NodalCuda()
 
 void NodalCuda::init()
 {
+	temp = new float[10000];
 }
 
-void NodalCuda::reset(CrossSection& xs)
+void NodalCuda::reset(CrossSection& xs, double* reigv, double* jnet, double* phif)
 {
-	checkCudaErrors(cudaMemcpy(_xsnff, &xs.xsnf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsdf, &xs.xsdf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xstf, &xs.xstf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xschif, &xs.chif(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsadf,&xs.xsadf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xssf, &xs.xssf(0, 0, 0), sizeof(XS_PRECISION) * _nxyz * _ng2, cudaMemcpyHostToDevice));
+
+	for (size_t ls = 0; ls < _nsurf; ls++)
+	{
+		int idirl = _g.idirlr(LEFT, ls);
+		int idirr = _g.idirlr(RIGHT, ls);
+		int lkl   = _g.lklr(LEFT, ls);
+		int lkr   = _g.lklr(RIGHT, ls);
+		int kl = lkl / _g.nxy();
+		int ll = lkl % _g.nxy();
+		int kr = lkr / _g.nxy();
+		int lr = lkr % _g.nxy();
+
+
+		for (size_t ig = 0; ig < _ng; ig++)
+		{
+			if (lkr < 0) {
+				int idx =
+					idirl * (_g.nz() * _g.nxy() * _g.ng() * LR)
+					+ kl * (_g.nxy() * _g.ng() * LR)
+					+ ll * (_g.ng() * LR)
+					+ ig * LR
+					+ RIGHT;
+					this->jnet(ig, ls) = jnet[idx];
+			}
+			else {
+				int idx =
+					idirr * (_g.nz() * _g.nxy() * _g.ng() * LR)
+					+ kr * (_g.nxy() * _g.ng() * LR)
+					+ lr * (_g.ng() * LR)
+					+ ig * LR
+					+ LEFT;
+				this->jnet(ig, ls) = jnet[idx];
+			}
+		}
+	}
+
+	int lk = -1;
+	for (size_t k = 0; k < _g.nz(); k++)
+	{
+		for (size_t l = 0; l < _g.nxy(); l++)
+		{
+			lk++;
+			for (size_t ig = 0; ig < _g.ng(); ig++)
+			{
+				int idx = (k + 1) *(_g.nxy()+1) * _g.ng() + (l + 1) * _g.ng() + ig;
+				this->flux(ig, lk) = phif[idx];
+			}
+		}
+	}
+
+	_reigv = *reigv;
+	checkCudaErrors(cudaMemcpy(_d_reigv, &_reigv, sizeof(double), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_flux, _flux, sizeof(double) * _nxyz * _ng, cudaMemcpyHostToDevice));
+
+	checkCudaErrors(cudaMemcpy(_d_xsnff, &xs.xsnf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_xsdf, &xs.xsdf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_xstf, &xs.xstf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_xschif, &xs.chif(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_xsadf,&xs.xsadf(0, 0), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_d_xssf, &xs.xssf(0, 0, 0), sizeof(XS_PRECISION) * _nxyz * _ng2, cudaMemcpyHostToDevice));
 
 }
 
 void NodalCuda::drive()
 {
-	::reset << <_blocks, _threads >> > (_hmesh, _xstf, _xsdf, _eta1, _eta2, _m260, _m251, _m253, _m262, _m264, _diagD, _diagDI);
-	::calculateTransverseLeakage << <_blocks, _threads >> > (_lktosfc, _neib, _hmesh, _jnet, _trlcff0, _trlcff1, _trlcff2);
-	::resetMatrix << <_blocks, _threads >> > (_reigv, _xstf, _xsnff, _xschif, _xssf, _matMs, _matMf, _matM);
-	::prepareMatrix << <_blocks, _threads >> > (_m251, _m253, _diagD, _diagDI, _matM, _matMI, _tau, _mu);
+	::reset << <_d_blocks, _d_threads >> > (*_d_nxyz, _d_hmesh, _d_xstf, _d_xsdf, _d_eta1, _d_eta2, _d_m260, _d_m251, _d_m253, _d_m262, _d_m264, _d_diagD, _d_diagDI);
+	::calculateTransverseLeakage << <_d_blocks, _d_threads >> > (*_d_nxyz, _d_lktosfc, _d_idirlr, _d_neib, _d_hmesh, _d_albedo, _d_jnet, _d_trlcff0, _d_trlcff1, _d_trlcff2);
+	checkCudaErrors(cudaMemcpy(temp, _d_trlcff0, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _d_trlcff1, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _d_trlcff2, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
 
-	::calculateEven << <_blocks, _threads >> > (_m260, _m262, _m264, _diagD, _diagDI, _matM, _flux,
-		_trlcff0, _trlcff2, _dsncff2, _dsncff4, _dsncff6);
-	::calculateJnet << <_blocks_sfc, _threads_sfc >> > (_lklr, _idirlr, _sgnlr, _hmesh, _xsadf, _m260, _m262, _m264,
-		_diagD, _diagDI, _matM, _matMI, _flux, _trlcff0, _trlcff1,
-		_trlcff2, _mu, _tau, _eta1, _eta2, _dsncff2, _dsncff4, _dsncff6, _jnet);
+	::resetMatrix << <_d_blocks, _d_threads >> > (*_d_nxyz, *_d_reigv, _d_xstf, _d_xsnff, _d_xschif, _d_xssf, _d_matMs, _d_matMf, _d_matM);
+
+	checkCudaErrors(cudaMemcpy(temp, _d_matM, sizeof(float) * _nxyz * _ng2, cudaMemcpyDeviceToHost));
+
+	::prepareMatrix << <_d_blocks, _d_threads >> > (*_d_nxyz, _d_m251, _d_m253, _d_diagD, _d_diagDI, _d_matM, _d_matMI, _d_tau, _d_mu);
+
+	checkCudaErrors(cudaMemcpy(temp, _d_mu, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+
+
+	::calculateEven << <_d_blocks, _d_threads >> > (*_d_nxyz, _d_m260, _d_m262, _d_m264, _d_diagD, _d_diagDI, _d_matM, _d_flux, _d_trlcff0, _d_trlcff2, _d_dsncff2, _d_dsncff4, _d_dsncff6);
+
+	checkCudaErrors(cudaMemcpy(temp, _d_dsncff4, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _d_dsncff6, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _d_dsncff2, sizeof(float) * _nxyz * NDIRMAX * _ng, cudaMemcpyDeviceToHost));
+
+	::calculateJnet << <_d_blocks_sfc, _d_threads_sfc >> > (*_d_nsurf, _d_lklr, _d_idirlr, _d_sgnlr, _d_hmesh, _d_xsadf, _d_m260, _d_m262, _d_m264,
+		_d_diagD, _d_diagDI, _d_matM, _d_matMI, _d_flux, _d_trlcff0, _d_trlcff1,
+		_d_trlcff2, _d_mu, _d_tau, _d_eta1, _d_eta2, _d_dsncff2, _d_dsncff4, _d_dsncff6, _d_jnet);
+
+	checkCudaErrors(cudaMemcpy(_jnet, _d_jnet,sizeof(float) * _nsurf * _ng, cudaMemcpyDeviceToHost));
 }

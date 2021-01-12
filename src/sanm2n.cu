@@ -19,6 +19,12 @@ void initCuda() {
 		deviceProp.multiProcessorCount, deviceProp.major, deviceProp.minor);
 }
 
+extern "C" void setBoundaryCondtition(int* symopt, int* symang, double* albedo)
+{
+	g->setBoudnaryCondition(symopt, symang, albedo);
+}
+
+
 extern "C" void initGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int*nxe, 
 							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, double* hmesh)
 {
@@ -39,9 +45,9 @@ extern "C" void initSANM2N()
 	sanm2n->init();
 }
 
-extern "C" void resetSANM2N()
+extern "C" void resetSANM2N(double* reigv, double* jnet, double* phif)
 {
-	sanm2n->reset(*xs);
+	sanm2n->reset(*xs, reigv, jnet,phif);
 }
 
 extern "C" void runSANM2N()

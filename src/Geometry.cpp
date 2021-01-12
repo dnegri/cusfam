@@ -8,6 +8,20 @@ Geometry::~Geometry()
 {
 }
 
+void Geometry::setBoudnaryCondition(int* symopt, int* symang, double* albedo)
+{
+	_symopt = *symopt;
+	_symang = *symang;
+	_albedo = new float[LR*NDIRMAX];
+	for (size_t idir = 0; idir < NDIRMAX; idir++)
+	{
+		for (size_t l = 0; l < LR; l++)
+		{
+			_albedo[idir * LR + l] = albedo[idir * LR + l];
+		}
+	}
+}
+
 void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_, int* nxe_, int* nys_, int* nye_, int* nsurf_, int * ijtol_, int* neibr_, double* hmesh_)
 {
 	_ng = *ng_;
@@ -94,7 +108,7 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 	_lklr = new int[_nsurf * LR];
 
 
-	int is = -1;
+	int ls = -1;
 
 	for (size_t k = 0; k < _nz; k++)
 	{
@@ -103,88 +117,88 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 		for (size_t j = 0; j < _ny; j++)
 		{
 			int ij0 =  j * _nx;
-			++is;
-			idirlr(LEFT,is) = YDIR;
-			idirlr(RIGHT,is) = XDIR;
-			sgnlr(LEFT,is) = MINUS;
-			sgnlr(RIGHT,is) = PLUS;
+			++ls;
+			idirlr(LEFT,ls) = YDIR;
+			idirlr(RIGHT,ls) = XDIR;
+			sgnlr(LEFT,ls) = MINUS;
+			sgnlr(RIGHT,ls) = PLUS;
 			int l = ijtol(_nxs[j],j);
 			int lk = lk0 + l;
-			lklr(LEFT, is) = neib(WEST, lk);
-			lklr(RIGHT, is) = lk;
+			lklr(LEFT, ls) = neib(WEST, lk);
+			lklr(RIGHT, ls) = lk;
 
 			for (size_t i = nxs(j); i < nye(j); i++)
 			{
 				int l = ijtol(i,j);
 
 				int lk = lk0 + l;
-				lktosfc(LEFT, XDIR, lk) = is;
-				lktosfc(RIGHT, XDIR, lk) = ++is;
-				lklr(LEFT, is) = lk;
-				lklr(RIGHT, is) = neib(EAST, lk);
-				idirlr(LEFT,is) = XDIR;
-				idirlr(RIGHT,is) = XDIR;
-				sgnlr(LEFT,is) = PLUS;
-				sgnlr(RIGHT,is) = PLUS;
+				lktosfc(LEFT, XDIR, lk) = ls;
+				lktosfc(RIGHT, XDIR, lk) = ++ls;
+				lklr(LEFT, ls) = lk;
+				lklr(RIGHT, ls) = neib(EAST, lk);
+				idirlr(LEFT,ls) = XDIR;
+				idirlr(RIGHT,ls) = XDIR;
+				sgnlr(LEFT,ls) = PLUS;
+				sgnlr(RIGHT,ls) = PLUS;
 			}
 		}
 
 		for (size_t i = 0; i < _nx; i++)
 		{
 			int ij0 = i * _ny;
-			++is;
+			++ls;
 			int l = ijtol(i,nys(i));
 			int lk = lk0 + l;
 
-			idirlr(LEFT,is) = XDIR;
-			idirlr(RIGHT,is) = YDIR;
-			sgnlr(LEFT,is) = MINUS;
-			sgnlr(RIGHT,is) = PLUS;
-			lklr(LEFT, is) = neib(NORTH, lk);
-			lklr(RIGHT, is) = lk;
+			idirlr(LEFT,ls) = XDIR;
+			idirlr(RIGHT,ls) = YDIR;
+			sgnlr(LEFT,ls) = MINUS;
+			sgnlr(RIGHT,ls) = PLUS;
+			lklr(LEFT, ls) = neib(NORTH, lk);
+			lklr(RIGHT, ls) = lk;
 
 			for (size_t j = nys(i); j < nye(i); j++)
 			{
 				int l = ijtol(i,j);
 
 				int lk = lk0 + l;
-				lktosfc(LEFT, YDIR, lk) = is;
-				lktosfc(RIGHT, YDIR, lk) = ++is;
-				lklr(LEFT, is) = lk;
-				lklr(RIGHT, is) = neib(SOUTH, lk);
-				idirlr(LEFT,is) = YDIR;
-				idirlr(RIGHT,is) = YDIR;
-				sgnlr(LEFT,is) = PLUS;
-				sgnlr(RIGHT,is) = PLUS;
+				lktosfc(LEFT, YDIR, lk) = ls;
+				lktosfc(RIGHT, YDIR, lk) = ++ls;
+				lklr(LEFT, ls) = lk;
+				lklr(RIGHT, ls) = neib(SOUTH, lk);
+				idirlr(LEFT,ls) = YDIR;
+				idirlr(RIGHT,ls) = YDIR;
+				sgnlr(LEFT,ls) = PLUS;
+				sgnlr(RIGHT,ls) = PLUS;
 			}
 		}
 	}
 
 	for (size_t l = 0; l < _nxy; l++)
 	{
-		++is;
-		idirlr(LEFT,is) = ZDIR;
-		idirlr(RIGHT,is) = ZDIR;
-		sgnlr(LEFT,is) = PLUS;
-		sgnlr(RIGHT,is) = PLUS;
+		++ls;
+		idirlr(LEFT,ls) = ZDIR;
+		idirlr(RIGHT,ls) = ZDIR;
+		sgnlr(LEFT,ls) = PLUS;
+		sgnlr(RIGHT,ls) = PLUS;
 
 		int lk0 = l;
-		lklr(LEFT, is) = -1;
+		lklr(LEFT, ls) = -1;
 		for (size_t k = 0; k < _nz; k++)
 		{
 			int lk = k*_nxy+l;
-			lktosfc(LEFT, ZDIR, lk) = is;
-			lklr(RIGHT, is) = lk;
+			lktosfc(LEFT, ZDIR, lk) = ls;
+			lklr(RIGHT, ls) = lk;
 
-			lktosfc(RIGHT, ZDIR, lk) = ++is;
-			lklr(LEFT, is) = lk;
+			lktosfc(RIGHT, ZDIR, lk) = ++ls;
+			lklr(LEFT, ls) = lk;
 
-			idirlr(LEFT,is) = ZDIR;
-			idirlr(RIGHT,is) = ZDIR;
-			sgnlr(LEFT,is) = PLUS;
-			sgnlr(RIGHT,is) = PLUS;
+			idirlr(LEFT,ls) = ZDIR;
+			idirlr(RIGHT,ls) = ZDIR;
+			sgnlr(LEFT,ls) = PLUS;
+			sgnlr(RIGHT,ls) = PLUS;
 		}
-		lklr(LEFT, is) = -1;
+		lklr(RIGHT, ls) = -1;
 	}
-	_nsurf = is+1;
+	_nsurf = ls+1;
 }

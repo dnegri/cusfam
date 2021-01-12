@@ -51,7 +51,7 @@ public:
 
     inline XS_PRECISION& xsnf(const int & ig, const int & l) {return _xsnf[l*_ng+ig];};
     inline XS_PRECISION& xsdf(const int & ig, const int & l) {return _xsdf[l*_ng+ig];};
-    inline XS_PRECISION& xssf(const int & igs, const int & ige, const int & l) {return _xsnf[l*_ng*_ng+igs*_ng+ige];};
+    inline XS_PRECISION& xssf(const int & igs, const int & ige, const int & l) {return _xssf[l*_ng*_ng+ige*_ng+igs];};
     inline XS_PRECISION& xstf(const int & ig, const int & l) {return _xstf[l*_ng+ig];};
     inline XS_PRECISION& xskf(const int & ig, const int & l) {return _xskf[l*_ng+ig];};
     inline XS_PRECISION& chif(const int & ig, const int & l) {return _chif[l*_ng+ig];};
