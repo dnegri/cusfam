@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(cusfam)
 set(CMAKE_CXX_STANDARD 14)
+add_compile_definitions(CPU)
 
 file(GLOB SOURCES
         ../src/pch.h
@@ -10,10 +11,14 @@ file(GLOB SOURCES
         ../src/CrossSection.cpp
         ../src/Geometry.cpp
         ../src/Geometry.h
-        ../src/main.cpp)
+        ../src/main.cpp
+        ../src/sanm2n.h
+        ../src/sanm2n.cpp
+        ../src/Nodal.*
+        ../src/NodalCPU.*)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
  
 add_library(L${PROJECT_NAME} ${SOURCES} )
-add_executable(${PROJECT_NAME} ${SOURCES} )
+add_executable(${PROJECT_NAME} ${SOURCES})
 

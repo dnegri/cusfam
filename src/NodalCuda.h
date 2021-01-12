@@ -1,5 +1,4 @@
 #pragma once
-#include <cuda_runtime.h>
 #include "Nodal.h"
 #include "CrossSection.h"
 

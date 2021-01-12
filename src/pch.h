@@ -8,6 +8,15 @@
 #include <algorithm>
 #include <iostream>
 
+#ifndef CPU
+    #include "helper_cuda.h"
+    #include <cuda_runtime.h>
+#else
+    #define __global__
+    #define __device__
+#endif
+
+
 static const int		PLUS = 1;
 static const int		MINUS = -1;
 

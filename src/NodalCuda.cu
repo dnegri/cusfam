@@ -1,5 +1,4 @@
 ﻿#include "NodalCuda.h"
-#include "helper_cuda.h"
 
 __device__ const float m011 = 2. / 3.;
 __device__ const float m022 = 2. / 5.;
@@ -187,7 +186,7 @@ __global__ void prepareMatrix(int& d_nxyz, float* d_m251, float* d_m253, float* 
 
 
 
-__device__ void trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2) {
+__device__ void sanm2n_trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2) {
 	float sh[4];
 
 	float rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[CENTER] + hmesh3[RIGHT])));
@@ -272,7 +271,7 @@ __global__ void calculateTransverseLeakage(int& d_nxyz, int* d_lktosfc, int* d_i
 			}
 
 
-			trlcffbyintg(avgtrl3, hmesh3, d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
+            sanm2n_trlcffbyintg(avgtrl3, hmesh3, d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
 			//printf("trlcff12: %e %e \n", d_trlcff1(ig, lkd), d_trlcff2(ig, lkd));
 		}
 
