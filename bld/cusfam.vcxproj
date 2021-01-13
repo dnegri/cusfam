@@ -63,6 +63,7 @@
       <AdditionalCompilerOptions>
       </AdditionalCompilerOptions>
       <Runtime>MTd</Runtime>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
     <Lib>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -90,9 +91,9 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="..\src\sanm2n.cu" />
-    <CudaCompile Include="..\src\NodalCuda.cu" />
     <CudaCompile Include="../src/pch.h" />
+    <CudaCompile Include="..\src\NodalCuda.cu" />
+    <CudaCompile Include="..\src\sanm2n.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
@@ -100,12 +101,16 @@
     <ClInclude Include="..\src\Geometry.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
     <ClInclude Include="..\src\helper_string.h" />
+    <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
+    <ClInclude Include="..\src\sanm2n.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\CrossSection.cpp" />
     <ClCompile Include="..\src\Geometry.cpp" />
     <ClCompile Include="..\src\Nodal.cpp" />
+    <ClCompile Include="..\src\cuda.cpp" />
+    <ClCompile Include="..\src\NodalCPU.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

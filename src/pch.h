@@ -9,8 +9,9 @@
 #include <iostream>
 
 #ifndef CPU
-    #include "helper_cuda.h"
     #include <cuda_runtime.h>
+    #include "helper_string.h"
+    #include "helper_cuda.h"
 #else
     #define __global__
     #define __device__

@@ -70,6 +70,9 @@ public:
 
     virtual ~NodalCPU();
 
+    inline float& jnet(const int& ig, const int& lks) { return _jnet[lks * _ng + ig]; };
+    inline double& flux(const int& ig, const int& lk) { return _flux[lk * _ng + ig]; };
+
     void init();
     void reset(CrossSection& xs, double* reigv, double* jnet, double* phif);
     void drive();
