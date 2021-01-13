@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "sanm2n.cuh"
+#include "sanm2n.h"
 
 #define jnet(ig,lks)      (jnet[lks*ng + ig])
 #define trlcff0(ig,lkd)   (trlcff0[lkd*ng + ig])
@@ -312,11 +312,13 @@ __host__ __device__ void sanm2n_calculateJnet(const int& ls, const int& ng, cons
     int lkl = lklr[lsfclr + LEFT];
     int lkr = lklr[lsfclr + RIGHT];
 
-    if (lkl < -1) {
-        sanm2n_calculateJnet1n(ls, 0, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo, xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
+    if (lkl < 0) {
+        int idirr = idirlr[lsfclr + RIGHT];
+        sanm2n_calculateJnet1n(ls, RIGHT, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(LEFT, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
     }
-    else if (lkr < -1) {
-        sanm2n_calculateJnet1n(ls, 1, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo, xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
+    else if (lkr < 0) {
+        int idirr = idirlr[lsfclr + LEFT];
+        sanm2n_calculateJnet1n(ls, LEFT, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(RIGHT, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
     }
     else {
         sanm2n_calculateJnet2n(ls, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, xsadf, m260, m262, m264, diagD, diagDI, matM, matMI, flux, trlcff0, trlcff1, trlcff2, mu, tau, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
@@ -444,7 +446,7 @@ __host__ __device__ void sanm2n_calculateJnet2n(const int& ls, const int& ng, co
 
 }
 
-__host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, const int& ng, const int& ng2, int& nsurf, int* lklr, int* idirlr, int* sgnlr, float* hmesh, float* albedo, XS_PRECISION* xsadf, float* m251, float* m253, float* diagD, float* matM, double* flux, float* trlcff1, float* eta1, float* eta2, float* dsncff2, float* dsncff4, float* dsncff6, float* jnet)
+__host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, const int& ng, const int& ng2, int& nsurf, int* lklr, int* idirlr, int* sgnlr, float* hmesh, const float& alb, XS_PRECISION* xsadf, float* m251, float* m253, float* diagD, float* matM, double* flux, float* trlcff1, float* eta1, float* eta2, float* dsncff2, float* dsncff4, float* dsncff6, float* jnet)
 {
     int lsfclr = ls * LR;
 
@@ -513,16 +515,16 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
     irow = 2;  icol = 0;
     for (size_t ig = 0; ig < ng; ig++)
     {
-        a31[ig] = diagDj[ig] + albedo(lr, idir);
-        mat3g[ng * icol + ig][ng * irow + ig] = diagDj[ig] + albedo(lr, idir);
+        a31[ig] = diagDj[ig] + alb;
+        mat3g[ng * icol + ig][ng * irow + ig] = diagDj[ig] + alb;
     }
 
     //3,2
     irow = 2;  icol = 1;
     for (size_t ig = 0; ig < ng; ig++)
     {
-        a32[ig] = 6 * diagDj[ig] + albedo(lr, idir);
-        mat3g[ng * icol + ig][ng * irow + ig] = 6 * diagDj[ig] + albedo(lr, idir);
+        a32[ig] = 6 * diagDj[ig] + alb;
+        mat3g[ng * icol + ig][ng * irow + ig] = 6 * diagDj[ig] + alb;
     }
 
 
@@ -530,8 +532,8 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
     irow = 2;  icol = 2;
     for (size_t ig = 0; ig < ng; ig++)
     {
-        a33[ig] = diagDj[ig] * eta1(ig, lkd) + albedo(lr, idir);
-        mat3g[ng * icol + ig][ng * irow + ig] = diagDj[ig] * eta1(ig, lkd) + albedo(lr, idir);
+        a33[ig] = diagDj[ig] * eta1(ig, lkd) + alb;
+        mat3g[ng * icol + ig][ng * irow + ig] = diagDj[ig] * eta1(ig, lkd) + alb;
     }
 
 
@@ -546,9 +548,9 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
 
     for (size_t ig = 0; ig < d_ng; ig++)
     {
-        b2[ig] = -sgn * (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) + albedo(lr, idir) * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
+        b2[ig] = -sgn * (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) + alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
 
-        vec3g[ng * irow + ig] = -sgn * (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) + albedo(lr, idir) * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
+        vec3g[ng * irow + ig] = -sgn * (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) + alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
     }
 
 
@@ -601,7 +603,7 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
     for (size_t ig = 0; ig < ng; ig++)
     {
         jnet(ig, ls) = - hmesh(idir, lk) * 0.5 * diagD(ig, lkd) * (
-            oddcff[0][ig] + 6 * oddcff[1][ig] + eta1(ig, lkd) * oddcff[1][ig] 
-            + sgn * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)));
+                oddcff[0][ig] + 6 * oddcff[1][ig] + eta1(ig, lkd) * oddcff[1][ig]
+                + sgn * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)));
     }
 }

@@ -15,6 +15,7 @@
 #else
     #define __global__
     #define __device__
+    #define __host__
 #endif
 
 

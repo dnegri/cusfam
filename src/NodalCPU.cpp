@@ -1,5 +1,5 @@
 #include "NodalCPU.h"
-#include "sanm2n.cuh"
+#include "sanm2n.h"
 
 NodalCPU::~NodalCPU() {
 

@@ -28,7 +28,7 @@ public:
         _xsadf = xsadf;
     };
 
-    CrossSection(int ng, int nxyz) {
+    CrossSection(const int& ng, const int& nxyz) {
         _ng = ng;
         _nxyz = nxyz;
         _xsnf = new XS_PRECISION[_ng*_nxyz]();

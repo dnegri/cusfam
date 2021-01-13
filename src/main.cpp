@@ -3,11 +3,58 @@
 
 int main() {
 
-    int ng=8;
-    int nx=16*30;
-    int ny=16*30;
-    int nz=300;
+    int ng=2;
+    int nx=2;
+    int ny=2;
+    int nz=1;
     int nxy=nx*ny;
+    int nxyz = nxy * nz;
+    int lsurf = 12;
+
+    int* nxs = new int[ny]{1,1};
+    int* nxe = new int[ny]{2,2};
+    int* nys = new int[nx]{1,1};
+    int* nye = new int[nx]{2,2};
+    int* ijtol = new int[nx*ny]{};
+    ijtol[0] = 1;ijtol[1] = 2;ijtol[2] = 3;ijtol[3] = 4;
+    int* neibr = new int[NEWS*nxy];
+    neibr[0]=0;neibr[1]=2;neibr[2]=0;neibr[3]=3;
+    neibr[4]=1;neibr[5]=0;neibr[6]=0;neibr[7]=4;
+    neibr[8]=0;neibr[9]=4;neibr[10]=1;neibr[11]=0;
+    neibr[12]=3;neibr[13]=0;neibr[14]=2;neibr[15]=0;
+    double reigv = 1.0;
+
+    double* hmesh = new double[(NDIRMAX+1)*nxyz]{1};
+    double * jnet = new double[LR*ng*NDIRMAX*nxyz]{0.0};
+    double * phif  = new double[ng*nxyz]{1.0};
+
+
+    for (int l = 0; l < nxyz; ++l) {
+        for (int idir = 0; idir < NDIRMAX; ++idir) {
+            hmesh[l*(NDIRMAX+1)+idir+1] = 1.0;
+            for (int ig = 0; ig < ng; ++ig) {
+                *jnet++ = 0.0;
+                *jnet++ = 0.0;
+            }
+        }
+        for (int ig = 0; ig < ng; ++ig) {
+            *phif++ = 1.0;
+        }
+    }
+
+    jnet = jnet-LR*ng*NDIRMAX*nxyz;
+    phif = phif-ng*nxyz;
+
+    Geometry g;
+    g.init(&ng, &nxy, &nz, &nx, &ny, nxs, nxe, nys, nye, &lsurf, ijtol, neibr, hmesh);
+    CrossSection xs(ng, nxyz);
+
+    NodalCPU cpu(g, xs);
+
+    cpu.init();
+    cpu.reset(xs, &reigv, jnet, phif);
+    cpu.drive();
+
 
 
 
