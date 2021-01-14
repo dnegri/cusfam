@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "NodalCuda.h"
-#include "sanm2n.cuh"
+#include "sanm2n.h"
 
 static float* temp;
 

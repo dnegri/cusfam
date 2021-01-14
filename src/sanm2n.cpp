@@ -314,11 +314,11 @@ __host__ __device__ void sanm2n_calculateJnet(const int& ls, const int& ng, cons
 
     if (lkl < 0) {
         int idirr = idirlr[lsfclr + RIGHT];
-        sanm2n_calculateJnet1n(ls, RIGHT, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(LEFT, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
+        sanm2n_calculateJnet1n(ls, 1, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(0, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
     }
     else if (lkr < 0) {
         int idirr = idirlr[lsfclr + LEFT];
-        sanm2n_calculateJnet1n(ls, LEFT, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(RIGHT, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
+        sanm2n_calculateJnet1n(ls, 0, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, albedo(1, idirr), xsadf, m251, m253, diagD, matM, flux, trlcff1, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
     }
     else {
         sanm2n_calculateJnet2n(ls, ng, ng2, nsurf, lklr, idirlr, sgnlr, hmesh, xsadf, m260, m262, m264, diagD, diagDI, matM, matMI, flux, trlcff0, trlcff1, trlcff2, mu, tau, eta1, eta2, dsncff2, dsncff4, dsncff6, jnet);
@@ -455,7 +455,7 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
     int sgn = sgnlr[lsfclr + lr];
     int lkd = lk * NDIRMAX + idir;
 
-    float mat3g[6][6], vec3g[6], cffodd[6], diagDj[2];
+    float mat3g[6][6]{}, vec3g[6]{}, cffodd[6]{}, diagDj[2]{};
 
     float a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
     float b1[2], b2[2];
@@ -559,21 +559,23 @@ __host__ __device__ void sanm2n_calculateJnet1n(const int& ls, const int& lr, co
         for (size_t igs = 0; igs < ng; igs++)
         {
             a22[igs][ige] = 1 / a23[ige] * a22[igs][ige];
+            a11[igs][ige] = a11[igs][ige] / a31[igs];
         }
-        a13[ige] = a13[ige] / a33[ige];
     }
 
     float a[2][2] = {0.0};
     for (size_t ige = 0; ige < ng; ige++)
     {
-        a[ige][ige] = - a13[ige] * a31[ige];
+        a[ige][ige] = a12[ige] ;
 
         for (size_t igs = 0; igs < ng; igs++)
         {
-            a[igs][ige] = a11[igs][ige]+a12[ige]*a22[igs][ige]+a13[ige]*a32[ige]*a22[igs][ige];
+            a[igs][ige] += -a13[ige]*a22[igs][ige];
+            a[igs][ige] += -a11[igs][ige] * a32[igs];
+            a[igs][ige] +=  a11[0][ige] * a32[0] * a11[0][igs]+ a11[1][ige] * a32[1] * a11[1][igs];
         }
 
-        b1[ige] = b1[ige] - a13[ige] * b2[ige];
+        b1[ige] = b1[ige] - (a11[0][ige] * b2[0]+ a11[1][ige] * b2[1]);
     }
 
     float oddcff[3][2];

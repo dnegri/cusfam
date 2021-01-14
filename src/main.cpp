@@ -22,11 +22,11 @@ int main() {
     neibr[4]=1;neibr[5]=0;neibr[6]=0;neibr[7]=4;
     neibr[8]=0;neibr[9]=4;neibr[10]=1;neibr[11]=0;
     neibr[12]=3;neibr[13]=0;neibr[14]=2;neibr[15]=0;
-    double reigv = 1.0;
+    double reigv = 0.742138228032457;
 
-    double* hmesh = new double[(NDIRMAX+1)*nxyz]{1};
-    double * jnet = new double[LR*ng*NDIRMAX*nxyz]{0.0};
-    double * phif  = new double[ng*nxyz]{1.0};
+    double* hmesh = new double[(NDIRMAX+1)*nxyz]{ 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000 };
+    double* jnet = new double[LR * ng * NDIRMAX * nxyz]{};
+    double * phif  = new double[ng*nxyz]{0.803122708205631,0.164597288693038,0.802536075765036,0.175546129329372,0.802536062402559,0.175546126476501,0.803122301848942,0.164597207588429};
 
 
     for (int l = 0; l < nxyz; ++l) {
@@ -37,10 +37,6 @@ int main() {
                 *jnet++ = 0.0;
             }
         }
-        for (int ig = 0; ig < ng; ++ig) {
-            *phif++ = 1.0;
-        }
-    }
 
     jnet = jnet-LR*ng*NDIRMAX*nxyz;
     phif = phif-ng*nxyz;

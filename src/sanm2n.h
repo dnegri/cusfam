@@ -2,18 +2,18 @@
 #include "pch.h"
 #include "CrossSection.h"
 
-__device__ const float m011 = 2. / 3.;
-__device__ const float m022 = 2. / 5.;
-__device__ const float m033 = 2. / 7.;
-__device__ const float m044 = 2. / 9.;
-__device__ const float m220 = 6.;
-__device__ const float rm220 = 1 / 6.;
-__device__ const float m240 = 20.;
-__device__ const float m231 = 10.;
-__device__ const float m242 = 14.;
-__device__ const int d_ng = 2;
-__device__ const int d_ng2 = 4;
-__device__ const float d_rng = 0.5;
+#define m011   0.666666667
+#define m022   0.4
+#define m033   0.285714286
+#define m044   0.222222222
+#define m220   6.
+#define rm220  0.166666667
+#define m240   20.
+#define m231   10.
+#define m242   14.
+#define d_ng   2
+#define d_ng2  4
+#define d_rng  0.5
 
 
 __host__ __device__ void
