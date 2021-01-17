@@ -1,7 +1,3 @@
-//
-// Created by JOO IL YOON on 2021/01/12.
-//
-
 #pragma once
 #include "Nodal.h"
 #include "CrossSection.h"

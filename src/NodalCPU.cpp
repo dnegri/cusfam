@@ -19,8 +19,6 @@ NodalCPU::NodalCPU(Geometry &g, CrossSection& xs) : Nodal(g), xs(xs) {
     _trlcff2 = new float[ _nxyz * NDIRMAX * _ng];
     _eta1 = new float[ _nxyz * NDIRMAX * _ng];
     _eta2 = new float[ _nxyz * NDIRMAX * _ng];
-    _mu = new float[ _nxyz * NDIRMAX * _ng];
-    _tau = new float[ _nxyz * NDIRMAX * _ng];
     _m260 = new float[ _nxyz * NDIRMAX * _ng];
     _m251 = new float[ _nxyz * NDIRMAX * _ng];
     _m253 = new float[ _nxyz * NDIRMAX * _ng];
@@ -31,6 +29,8 @@ NodalCPU::NodalCPU(Geometry &g, CrossSection& xs) : Nodal(g), xs(xs) {
     _dsncff2 = new float[ _nxyz * NDIRMAX * _ng];
     _dsncff4 = new float[ _nxyz * NDIRMAX * _ng];
     _dsncff6 = new float[ _nxyz * NDIRMAX * _ng];
+    _mu = new float[ _nxyz * NDIRMAX * _ng2];
+    _tau = new float[ _nxyz * NDIRMAX * _ng2];
     _matM = new float[ _nxyz * _ng2];
     _matMI = new float[ _nxyz * _ng2];
     _matMs = new float[ _nxyz * _ng2];

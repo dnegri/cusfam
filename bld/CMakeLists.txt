@@ -15,7 +15,9 @@ file(GLOB SOURCES
         ../src/sanm2n.h
         ../src/sanm2n.cpp
         ../src/Nodal.*
-        ../src/NodalCPU.*)
+        ../src/NodalCPU.*
+        ../src/mat2g.h
+        )
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
  
