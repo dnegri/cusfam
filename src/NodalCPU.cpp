@@ -1,45 +1,50 @@
 #include "NodalCPU.h"
-#include "sanm2n.h"
 
 NodalCPU::~NodalCPU() {
 
 }
 
 NodalCPU::NodalCPU(Geometry &g, CrossSection& xs) : Nodal(g), xs(xs) {
-    _ng = _g.ng();
-    _ng2 = _ng * _ng;
-    _nxyz = _g.nxyz();
-    _nsurf = _g.nsurf();
 
-    _jnet = new float[_nsurf * _ng];
-    _flux = new double[_nxyz * _ng];
+	
+	_ng = new int();
+    _ng2 = new int();
+    _nxyz = new int();
+    _nsurf = new int();
+	*_ng = _g.ng();
+	*_ng2 = *_ng * *_ng;
+	*_nxyz = _g.nxyz();
+	*_nsurf = _g.nsurf();
 
-    _trlcff0 = new float[ _nxyz * NDIRMAX * _ng];
-    _trlcff1 = new float[ _nxyz * NDIRMAX * _ng];
-    _trlcff2 = new float[ _nxyz * NDIRMAX * _ng];
-    _eta1 = new float[ _nxyz * NDIRMAX * _ng];
-    _eta2 = new float[ _nxyz * NDIRMAX * _ng];
-    _m260 = new float[ _nxyz * NDIRMAX * _ng];
-    _m251 = new float[ _nxyz * NDIRMAX * _ng];
-    _m253 = new float[ _nxyz * NDIRMAX * _ng];
-    _m262 = new float[ _nxyz * NDIRMAX * _ng];
-    _m264 = new float[ _nxyz * NDIRMAX * _ng];
-    _diagDI = new float[ _nxyz * NDIRMAX * _ng];
-    _diagD = new float[ _nxyz * NDIRMAX * _ng];
-    _dsncff2 = new float[ _nxyz * NDIRMAX * _ng];
-    _dsncff4 = new float[ _nxyz * NDIRMAX * _ng];
-    _dsncff6 = new float[ _nxyz * NDIRMAX * _ng];
-    _mu = new float[ _nxyz * NDIRMAX * _ng2];
-    _tau = new float[ _nxyz * NDIRMAX * _ng2];
-    _matM = new float[ _nxyz * _ng2];
-    _matMI = new float[ _nxyz * _ng2];
-    _matMs = new float[ _nxyz * _ng2];
-    _matMf = new float[ _nxyz * _ng2];
+	_jnet = new float[nsurf() * ng()];
+	_flux = new double[nxyz() * ng()];
 
-	_xsnff = &xs.xsnf(0, 0);
+	_trlcff0 = new float[nxyz() * NDIRMAX * ng()];
+	_trlcff1 = new float[nxyz() * NDIRMAX * ng()];
+	_trlcff2 = new float[nxyz() * NDIRMAX * ng()];
+	_eta1 = new float[nxyz() * NDIRMAX * ng()];
+	_eta2 = new float[nxyz() * NDIRMAX * ng()];
+	_m260 = new float[nxyz() * NDIRMAX * ng()];
+	_m251 = new float[nxyz() * NDIRMAX * ng()];
+	_m253 = new float[nxyz() * NDIRMAX * ng()];
+	_m262 = new float[nxyz() * NDIRMAX * ng()];
+	_m264 = new float[nxyz() * NDIRMAX * ng()];
+	_diagDI = new float[nxyz() * NDIRMAX * ng()];
+	_diagD = new float[nxyz() * NDIRMAX * ng()];
+	_dsncff2 = new float[nxyz() * NDIRMAX * ng()];
+	_dsncff4 = new float[nxyz() * NDIRMAX * ng()];
+	_dsncff6 = new float[nxyz() * NDIRMAX * ng()];
+	_mu = new float[nxyz() * NDIRMAX * ng2()];
+	_tau = new float[nxyz() * NDIRMAX * ng2()];
+	_matM = new float[nxyz() * ng2()];
+	_matMI = new float[nxyz() * ng2()];
+	_matMs = new float[nxyz() * ng2()];
+	_matMf = new float[nxyz() * ng2()];
+
+	_xsnf = &xs.xsnf(0, 0);
 	_xsdf = &xs.xsdf(0, 0);
 	_xstf = &xs.xstf(0, 0);
-	_xschif = &xs.chif(0, 0);
+	_chif = &xs.chif(0, 0);
 	_xsadf = &xs.xsadf(0, 0);
 	_xssf = &xs.xssf(0, 0, 0);
 	_neib = &g.neib(0, 0);
@@ -57,8 +62,8 @@ void NodalCPU::init() {
 
 }
 
-void NodalCPU::reset(CrossSection &xs, double *reigv, double *jnet, double *phif) {
-	for (size_t ls = 0; ls < _nsurf; ls++)
+void NodalCPU::reset(CrossSection& xs, double* reigv, double* jnet, double* phif) {
+	for (size_t ls = 0; ls < nsurf(); ls++)
 	{
 		int idirl = _g.idirlr(LEFT, ls);
 		int idirr = _g.idirlr(RIGHT, ls);
@@ -70,7 +75,7 @@ void NodalCPU::reset(CrossSection &xs, double *reigv, double *jnet, double *phif
 		int lr = lkr % _g.nxy();
 
 
-		for (size_t ig = 0; ig < _ng; ig++)
+		for (size_t ig = 0; ig < ng(); ig++)
 		{
 			if (lkr < 0) {
 				int idx =
@@ -112,15 +117,14 @@ void NodalCPU::reset(CrossSection &xs, double *reigv, double *jnet, double *phif
 
 void NodalCPU::drive() {
 
-    for (int lk = 0; lk < _nxyz; ++lk) {
-        ::sanm2n_reset (lk, _ng, _ng2, _nxyz, _hmesh, _xstf, _xsdf, _eta1, _eta2, _m260, _m251, _m253, _m262, _m264, _diagD, _diagDI);
-        ::sanm2n_calculateTransverseLeakage(lk, _ng, _ng2, _nxyz, _lktosfc, _idirlr, _neib, _hmesh, _albedo, _jnet, _trlcff0, _trlcff1, _trlcff2);
-        ::sanm2n_resetMatrix (lk, _ng, _ng2, _nxyz, _reigv, _xstf, _xsnff, _xschif, _xssf, _matMs, _matMf, _matM);
-        ::sanm2n_prepareMatrix (lk, _ng, _ng2, _nxyz, _m251, _m253, _diagD, _diagDI, _matM, _matMI, _tau, _mu);
-        ::sanm2n_calculateEven (lk, _ng, _ng2, _nxyz, _m260, _m262, _m264, _diagD, _diagDI, _matM, _flux, _trlcff0, _trlcff2, _dsncff2, _dsncff4, _dsncff6);
-    }
+	for (int lk = 0; lk < nxyz(); ++lk) {
+		updateConstant(lk);
+		calculateTransverseLeakage(lk);
+		updateMatrix(lk);
+		calculateEven(lk);
+	}
 
-    for (int ls = 0; ls < _nsurf; ++ls) {
-        ::sanm2n_calculateJnet (ls, _ng, _ng2, _nsurf, _lklr, _idirlr, _sgnlr, _albedo, _hmesh, _xsadf, _m251,_m253, _m260, _m262, _m264,_diagD, _diagDI, _matM, _matMI, _flux, _trlcff0, _trlcff1,_trlcff2, _mu, _tau, _eta1, _eta2, _dsncff2, _dsncff4, _dsncff6, _jnet);
-    }    
+	for (int ls = 0; ls < nsurf(); ++ls) {
+		calculateJnet(ls);
+	}
 }

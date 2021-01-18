@@ -54,12 +54,12 @@ extern "C" void initSANM2N()
 
 extern "C" void resetSANM2N(double* reigv, double* jnet, double* phif)
 {
-	nodal_cpu->reset(*xs, reigv, jnet, phif);
+	//nodal_cpu->reset(*xs, reigv, jnet, phif);
 	sanm2n->reset(*xs, reigv, jnet,phif);
 }
 
 extern "C" void runSANM2N()
 {
-	nodal_cpu->drive();
+	//nodal_cpu->drive();
 	sanm2n->drive();
 }

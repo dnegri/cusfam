@@ -2,38 +2,38 @@
 #include "sanm2n.h"
 #include "mat2g.h"
 
-#define jnet(ig, lks)      (jnet[lks*ng + ig])
-#define trlcff0(ig, lkd)   (trlcff0[lkd*ng + ig])
-#define trlcff1(ig, lkd)   (trlcff1[lkd*ng + ig])
-#define trlcff2(ig, lkd)   (trlcff2[lkd*ng + ig])
-#define eta1(ig, lkd)  (eta1[lkd*ng + ig])
-#define eta2(ig, lkd)  (eta2[lkd*ng + ig])
-#define m260(ig, lkd)  (m260[lkd*ng + ig])
-#define m251(ig, lkd)  (m251[lkd*ng + ig])
-#define m253(ig, lkd)  (m253[lkd*ng + ig])
-#define m262(ig, lkd)  (m262[lkd*ng + ig])
-#define m264(ig, lkd)  (m264[lkd*ng + ig])
-#define diagD(ig, lkd) (diagD[lkd*ng + ig])
-#define diagDI(ig, lkd)    (diagDI[lkd*ng + ig])
-#define mu(i, j, lkd)   (mu[lkd*ng2 + j*ng + i])
-#define tau(i, j, lkd)  (tau[lkd*ng2 + j*ng + i])
-#define matM(i, j, lk)  (matM[lk*ng2 + j*ng + i])
-#define matMI(i, j, lk) (matMI[lk*ng2 + j*ng + i])
-#define matMs(i, j, lk) (matMs[lk*ng2 + j*ng + i])
-#define matMf(i, j, lk) (matMf[lk*ng2 + j*ng + i])
-#define xssf(i, j, lk)  (xssf[lk*ng2 + j*ng + i])
-#define xsadf(ig, lk)  (xsadf[lk*ng + ig])
-#define flux(ig, lk)   (flux[lk*ng+ig])
+#define jnet(ig, lks)      (jnet[(lks)*ng + ig])
+#define trlcff0(ig, lkd)   (trlcff0[(lkd)*ng + ig])
+#define trlcff1(ig, lkd)   (trlcff1[(lkd)*ng + ig])
+#define trlcff2(ig, lkd)   (trlcff2[(lkd)*ng + ig])
+#define eta1(ig, lkd)  (eta1[(lkd)*ng + ig])
+#define eta2(ig, lkd)  (eta2[(lkd)*ng + ig])
+#define m260(ig, lkd)  (m260[(lkd)*ng + ig])
+#define m251(ig, lkd)  (m251[(lkd)*ng + ig])
+#define m253(ig, lkd)  (m253[(lkd)*ng + ig])
+#define m262(ig, lkd)  (m262[(lkd)*ng + ig])
+#define m264(ig, lkd)  (m264[(lkd)*ng + ig])
+#define diagD(ig, lkd) (diagD[(lkd)*ng + ig])
+#define diagDI(ig, lkd)    (diagDI[(lkd)*ng + ig])
+#define mu(i, j, lkd)   (mu[(lkd)*ng2 + (j)*ng + i])
+#define tau(i, j, lkd)  (tau[(lkd)*ng2 + (j)*ng + i])
+#define matM(i, j, lk)  (matM[(lk)*ng2 + (j)*ng + i])
+#define matMI(i, j, lk) (matMI[(lk)*ng2 + (j)*ng + i])
+#define matMs(i, j, lk) (matMs[(lk)*ng2 + (j)*ng + i])
+#define matMf(i, j, lk) (matMf[(lk)*ng2 + (j)*ng + i])
+#define xssf(i, j, lk)  (xssf[(lk)*ng2 + (j)*ng + i])
+#define xsadf(ig, lk)  (xsadf[(lk)*ng + ig])
+#define flux(ig, lk)   (flux[(lk)*ng+ig])
 
-#define dsncff2(ig, lkd) (dsncff2[lkd*ng + ig])
-#define dsncff4(ig, lkd) (dsncff4[lkd*ng + ig])
-#define dsncff6(ig, lkd) (dsncff6[lkd*ng + ig])
+#define dsncff2(ig, lkd) (dsncff2[(lkd)*ng + ig])
+#define dsncff4(ig, lkd) (dsncff4[(lkd)*ng + ig])
+#define dsncff6(ig, lkd) (dsncff6[(lkd)*ng + ig])
 
-#define hmesh(idir, lk)        (hmesh[lk*NDIRMAX+idir])
-#define lktosfc(lr, idir, lk)   (lktosfc[(lk*NDIRMAX+idir)*LR + lr])
-#define idirlr(lr, ls)         (idirlr[ls*LR + lr])
-#define neib(lr, idir, lk)    (neib[(lk*NDIRMAX+idir)*LR + lr])
-#define albedo(lr, idir)       (albedo[idir*LR + lr])
+#define hmesh(idir, lk)        (hmesh[(lk)*NDIRMAX+idir])
+#define lktosfc(lr, idir, lk)   (lktosfc[((lk)*NDIRMAX+(idir))*LR + lr])
+#define idirlr(lr, ls)         (idirlr[(ls)*LR + lr])
+#define neib(lr, idir, lk)    (neib[((lk)*NDIRMAX+(idir))*LR + lr])
+#define albedo(lr, idir)       (albedo[(idir)*LR + lr])
 
 __host__ __device__ void
 sanm2n_reset(const int &lk, const int &ng, const int &ng2, int &nxyz, float *hmesh, XS_PRECISION *xstf,
@@ -191,8 +191,7 @@ __host__ __device__ void sanm2n_trlcffbyintg(float *avgtrl3, float *hmesh3, floa
 
 __host__ __device__ void
 sanm2n_calculateTransverseLeakage(const int &lk, const int &ng, const int &ng2, int &nxyz, int *lktosfc, int *idirlr,
-                                  int *neib, float *hmesh, float *albedo, float *jnet, float *trlcff0, float *trlcff1,
-                                  float *trlcff2) {
+                                  int *neib, float *hmesh, float *albedo, float *jnet, float *trlcff0, float *trlcff1, float *trlcff2) {
     int lkd0 = lk * NDIRMAX;
 
     float avgjnet[NDIRMAX];
@@ -203,19 +202,20 @@ sanm2n_calculateTransverseLeakage(const int &lk, const int &ng, const int &ng2, 
             auto lsr = lktosfc(RIGHT, idir, lk);
 
             avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) * hmesh(idir, lk);
-
-            trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
-            trlcff0(ig, lkd0 + YDIR) = avgjnet[XDIR] + avgjnet[ZDIR];
-            trlcff0(ig, lkd0 + ZDIR) = avgjnet[XDIR] + avgjnet[YDIR];
         }
+
+        trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
+        trlcff0(ig, lkd0 + YDIR) = avgjnet[XDIR] + avgjnet[ZDIR];
+        trlcff0(ig, lkd0 + ZDIR) = avgjnet[XDIR] + avgjnet[YDIR];
+
     }
 
     for (size_t idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
 
         for (size_t ig = 0; ig < ng; ig++) {
-            float avgtrl3[LRC] = {0.0};
-            float hmesh3[LRC] = {0.0};
+            float avgtrl3[LRC]{};
+            float hmesh3[LRC]{};
             hmesh3[CENTER] = hmesh(idir, lk);
             avgtrl3[CENTER] = trlcff0(ig, lkd);
 
@@ -223,25 +223,25 @@ sanm2n_calculateTransverseLeakage(const int &lk, const int &ng, const int &ng2, 
             int lsl = lktosfc(LEFT, idir, lk);
             int idirl = idirlr(LEFT, lsl);
 
-            if (lkl < 0 && albedo(LEFT, idir) == 0) {
-                hmesh3[LEFT] = hmesh3[CENTER];
-                avgtrl3[LEFT] = avgtrl3[CENTER];
-            } else {
+            if (lkl > -1) {
                 hmesh3[LEFT] = hmesh(idirl, lkl);
                 avgtrl3[LEFT] = trlcff0(ig, lkd0 + idirl);
-            }
+            } else if(albedo(LEFT, idir) == 0) {
+                hmesh3[LEFT] = hmesh3[CENTER];
+                avgtrl3[LEFT] = avgtrl3[CENTER];
+            } 
 
             int lkr = neib(RIGHT, idir, lk);
             int lsr = lktosfc(RIGHT, idir, lk);
             int idirr = idirlr(RIGHT, lsr);
 
-            if (lkr < 0 && albedo(RIGHT, idir) == 0) {
-                hmesh3[RIGHT] = hmesh3[CENTER];
-                avgtrl3[RIGHT] = avgtrl3[CENTER];
-            } else {
+            if (lkr > -1) {
                 hmesh3[RIGHT] = hmesh(idirr, lkr);
                 avgtrl3[RIGHT] = trlcff0(ig, lkd0 + idirr);
-            }
+            } else if (albedo(RIGHT, idir) == 0) {
+                hmesh3[RIGHT] = hmesh3[CENTER];
+                avgtrl3[RIGHT] = avgtrl3[CENTER];
+            } 
 
 
             sanm2n_trlcffbyintg(avgtrl3, hmesh3, trlcff1(ig, lkd), trlcff2(ig, lkd));
@@ -539,12 +539,12 @@ sanm2n_calculateJnet1n(const int &ls, const int &lr, const int &ng, const int &n
 
     //make right vector
     irow = 0;
-    for (size_t ig = 0; ig < d_ng; ig++) {
+    for (size_t ig = 0; ig < ng; ig++) {
         b1[ig] = -m011 * trlcff1(ig, lkd);
     }
     irow = 2;
 
-    for (size_t ig = 0; ig < d_ng; ig++) {
+    for (size_t ig = 0; ig < ng; ig++) {
         b2[ig] = -sgn *
                  (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) +
                   alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));

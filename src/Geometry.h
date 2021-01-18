@@ -40,6 +40,7 @@ class Geometry
 {
 private:
 	int _ng;
+	int _ng2;
 	int	_nxy;
 	int	_nz;
 	int	_nxyz;
@@ -75,6 +76,7 @@ public:
 	void init(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int* nxe, int* nys, int* nye, int* nsurf_, int* ijtol, int* neibr, double* hmesh);
 
 	inline int& ng() { return _ng; };
+	inline int& ng2() { return _ng2; };
 	inline int& nxy() { return _nxy; };
 	inline int& nz() { return _nz; };
 	inline int& nxyz() { return _nxyz; };

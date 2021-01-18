@@ -15,7 +15,6 @@
 #define d_ng2  4
 #define d_rng  0.5
 
-
 __host__ __device__ void
 sanm2n_reset(const int &lk, const int& ng, const int& ng2, int &nxyz, float *hmesh, XS_PRECISION *xstf, XS_PRECISION *xsdf, float *eta1,
              float *eta2, float *m260, float *m251, float *m253, float *m262, float *m264, float *diagD,

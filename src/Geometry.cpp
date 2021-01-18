@@ -31,6 +31,7 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 	_nxy = *nxy_;
 	_nxyz = _nxy * _nz;
 	_nsurf = *nsurf_ * _nz + (_nz + 1) * _nxy;
+	_ng2 = _ng * _ng;
 
 	_neibr = new int[_nxy*NEWS];
 	_ijtol = new int[_nx*_ny];
