@@ -14,7 +14,7 @@
 #define m231   10.
 #define m242   14.
 
-class Nodal {
+class Nodal : public Managed {
 protected:
     Geometry& _g;
 
@@ -77,13 +77,19 @@ public:
 	int nlswp;
 
 public:
-    __device__ __host__ Nodal(Geometry& g);
-    __device__ __host__  virtual ~Nodal();
+    __host__ Nodal(Geometry& g);
+    __host__  virtual ~Nodal();
+
+    __host__ virtual void init() =0 ;
+    __host__ virtual void reset(CrossSection& xs, double* reigv, double* jnet, double* phif) = 0;
+    __host__ virtual void drive() = 0;
+
 
 	__host__ __device__ void updateConstant(const int& lk);
     __host__ __device__ void updateMatrix(const int& lk);
     __host__ __device__ void trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2);
-    __host__ __device__ void calculateTransverseLeakage(const int& lk);
+    __host__ __device__ void caltrlcff0(const int& lk);
+    __host__ __device__ void caltrlcff12(const int& lk);
     __host__ __device__ void calculateEven(const int& lk);
     __host__ __device__ void calculateJnet(const int& ls);
     __host__ __device__ void calculateJnet1n(const int& ls, const int& lr, const float& alb);
@@ -93,7 +99,5 @@ public:
     __host__ __device__ inline int& ng2() { return *_ng2; };
     __host__ __device__ inline int& nxyz() { return *_nxyz; };
     __host__ __device__ inline int& nsurf() { return *_nsurf; };
-
-    __host__ __device__ inline int* nxyz1() { return _nxyz; };
 
 };

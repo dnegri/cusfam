@@ -35,11 +35,11 @@
 #define d_neib(lr, idir, lk)	(d_neib[((lk)*NDIRMAX+(idir))*LR + lr])
 #define d_albedo(lr,idir)		(d_albedo[(idir)*LR + lr])
 
-__global__ void updateConstant(NodalCuda * nodal) {
+__global__ void updateConstant(NodalCuda& nodal) {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
-	if (lk >= *nodal->nxyz1()) return;
+	if (lk >= nodal.nxyz()) return;
 
-	//nodal.updateConstant(lk);
+	nodal.updateConstant(lk);
 }
 
 __global__ void updateMatrix(NodalCuda& nodal) {
@@ -49,12 +49,20 @@ __global__ void updateMatrix(NodalCuda& nodal) {
 	nodal.updateMatrix(lk);
 }
 
-__global__ void calculateTransverseLeakage(NodalCuda& nodal)
+__global__ void caltrlcff0(NodalCuda& nodal)
 {
 	int lk = threadIdx.x + blockIdx.x * blockDim.x;
 	if (lk >= nodal.nxyz()) return;
 
-	nodal.calculateTransverseLeakage(lk);
+	nodal.caltrlcff0(lk);
+
+}
+__global__ void caltrlcff12(NodalCuda& nodal)
+{
+	int lk = threadIdx.x + blockIdx.x * blockDim.x;
+	if (lk >= nodal.nxyz()) return;
+
+	nodal.caltrlcff12(lk);
 
 }
 
@@ -75,7 +83,7 @@ __global__ void calculateJnet(NodalCuda& nodal)
 
 }
 
-__device__ __host__ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
+__host__ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
 {
 	_blocks = dim3(g.nxyz() / NTHREADSPERBLOCK + 1, 1, 1);
 	_threads = dim3(NTHREADSPERBLOCK, 1, 1);
@@ -106,6 +114,7 @@ __device__ __host__ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
 	checkCudaErrors(cudaMalloc((void**)&_idirlr, sizeof(int) * LR * g.nsurf()));
 	checkCudaErrors(cudaMalloc((void**)&_sgnlr, sizeof(int) * LR * g.nsurf()));
 	checkCudaErrors(cudaMalloc((void**)&_lklr, sizeof(int) * LR * g.nsurf()));
+	checkCudaErrors(cudaMalloc((void**)&_albedo, sizeof(float) * NDIRMAX * LR));
 
 	checkCudaErrors(cudaMemcpy(_neib, &g.neib(0, 0), sizeof(int) * NEWSBT * g.nxyz(), cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_lktosfc, &g.lktosfc(0, 0, 0), sizeof(int) * NEWSBT * g.nxyz(), cudaMemcpyHostToDevice));
@@ -113,6 +122,7 @@ __device__ __host__ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
 	checkCudaErrors(cudaMemcpy(_idirlr, &g.idirlr(0, 0), sizeof(int) * LR * g.nsurf(), cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_sgnlr, &g.sgnlr(0, 0), sizeof(int) * LR * g.nsurf(), cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_lklr, &g.lklr(0, 0), sizeof(int) * LR * g.nsurf(), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(_albedo, &g.albedo(0, 0), sizeof(float) * NDIRMAX * LR, cudaMemcpyHostToDevice));
 
 	checkCudaErrors(cudaMalloc((void**)&_reigv, sizeof(double)));
 	checkCudaErrors(cudaMalloc((void**)&_jnet, sizeof(float) * g.nsurf() * g.ng()));
@@ -149,7 +159,7 @@ __device__ __host__ NodalCuda::NodalCuda(Geometry& g): Nodal(g)
 	checkCudaErrors(cudaMalloc((void**)&_matMf, sizeof(float) * g.nxyz() * g.ng2()));
 }
 
-__device__ __host__ NodalCuda::~NodalCuda()
+NodalCuda::~NodalCuda()
 {
 }
 
@@ -224,34 +234,41 @@ void NodalCuda::reset(CrossSection& xs, double* reigv, double* jnet, double* phi
 void NodalCuda::drive()
 {
 #ifdef _DEBUG
-	float* temp = new float[_g.nxyz() * NDIRMAX * _g.ng()]{};
+	float* temp = new float[_g.nxyz() * NDIRMAX * _g.ng2()]{};
+#endif
+	::updateConstant << <_blocks, _threads >> > (*this);
+	checkCudaErrors(cudaDeviceSynchronize());
+#ifdef _DEBUG
+	checkCudaErrors(cudaMemcpy(temp, _m264, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _diagDI, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
+#endif
+
+	::caltrlcff0 << <_blocks, _threads>> > (*this);
+	cudaDeviceSynchronize();
+	::caltrlcff12 << <_blocks, _threads >> > (*this);
+	cudaDeviceSynchronize();
+#ifdef _DEBUG
 	checkCudaErrors(cudaMemcpy(temp, _trlcff0, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(temp, _trlcff1, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(temp, _trlcff2, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _matM, sizeof(float) * _g.nxyz() * _g.ng2(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff4, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff6, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff2, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	//checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
-	delete[] temp;
 #endif
-
-	::updateConstant << <1, 1 >> > (this);
-	checkCudaErrors(cudaDeviceSynchronize());
-	checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
-
-	::calculateTransverseLeakage << <_blocks, _threads >> > (*this);
-	cudaDeviceSynchronize();
-	checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
 
 	::updateMatrix << <_blocks, _threads >> > (*this);
 	cudaDeviceSynchronize();
-	checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
+
+#ifdef _DEBUG
+	checkCudaErrors(cudaMemcpy(temp, _mu, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng2(), cudaMemcpyDeviceToHost));
+#endif
 
 
 	::calculateEven << <_blocks, _threads >> > (*this);
 	cudaDeviceSynchronize();
-	checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
+
+#ifdef _DEBUG
+	checkCudaErrors(cudaMemcpy(temp, _dsncff4, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _dsncff6, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(temp, _dsncff2, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
+#endif
 
 
 	::calculateJnet << <_blocks_sfc, _threads_sfc >> > (*this);
@@ -260,14 +277,6 @@ void NodalCuda::drive()
 	checkCudaErrors(cudaMemcpy(_host_jnet, _jnet, sizeof(float) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
 
 #ifdef _DEBUG
-	//float* temp = new float[_g.nxyz() * NDIRMAX * _g.ng()]{};
-	checkCudaErrors(cudaMemcpy(temp, _trlcff0, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _trlcff1, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _trlcff2, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _matM, sizeof(float) * _g.nxyz() * _g.ng2(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff4, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff6, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(temp, _dsncff2, sizeof(float) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
 	delete[] temp;
 #endif
 }

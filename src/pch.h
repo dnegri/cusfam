@@ -86,4 +86,21 @@ __constant__  static const int    NTHREADSPERBLOCK = 64;
 
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
+
+
+class Managed {
+public:
+    void* operator new(size_t len) {
+        void* ptr;
+        cudaMallocManaged(&ptr, len);
+        cudaDeviceSynchronize();
+        return ptr;
+    }
+
+    void operator delete(void* ptr) {
+        cudaDeviceSynchronize();
+        cudaFree(ptr);
+    }
+};
+
 #endif /* PCH_H_ */

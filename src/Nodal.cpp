@@ -54,53 +54,52 @@ __host__ __device__ void Nodal::updateConstant(const int& lk)
 {
     int lkd0 = lk * NDIRMAX;
     int lkg0 = lk * ng();
+   
+    for (int idir = 0; idir < NDIRMAX; idir++) {
+        int lkd = lkd0 + idir;
 
-    printf("updateConstant :: %d\n", lk);
-    //for (int idir = 0; idir < NDIRMAX; idir++) {
-    //    int lkd = lkd0 + idir;
+        for (int ig = 0; ig < ng(); ig++) {
+            auto kp2 = xstf(ig,lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
+            auto kp = sqrt(kp2);
+            auto kp3 = kp2 * kp;
+            auto kp4 = kp2 * kp2;
+            auto kp5 = kp2 * kp3;
+            auto rkp = 1 / kp;
+            auto rkp2 = rkp * rkp;
+            auto rkp3 = rkp2 * rkp;
+            auto rkp4 = rkp2 * rkp2;
+            auto rkp5 = rkp2 * rkp3;
+            auto sinhkp = sinh(kp);
+            auto coshkp = cosh(kp);
 
-    //    for (int ig = 0; ig < ng(); ig++) {
-    //        auto kp2 = xstf(ig,lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
-    //        auto kp = sqrt(kp2);
-    //        auto kp3 = kp2 * kp;
-    //        auto kp4 = kp2 * kp2;
-    //        auto kp5 = kp2 * kp3;
-    //        auto rkp = 1 / kp;
-    //        auto rkp2 = rkp * rkp;
-    //        auto rkp3 = rkp2 * rkp;
-    //        auto rkp4 = rkp2 * rkp2;
-    //        auto rkp5 = rkp2 * rkp3;
-    //        auto sinhkp = sinh(kp);
-    //        auto coshkp = cosh(kp);
+            //calculate coefficient of basic functions P5and P6
+            auto bfcff0 = -sinhkp * rkp;
+            auto bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
+            auto bfcff4 =
+                -9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
+                rkp5;
+            auto bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
+            auto bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
 
-    //        //calculate coefficient of basic functions P5and P6
-    //        auto bfcff0 = -sinhkp * rkp;
-    //        auto bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
-    //        auto bfcff4 =
-    //            -9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
-    //            rkp5;
-    //        auto bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
-    //        auto bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
+            auto oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
+            auto eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
 
-    //        auto oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
-    //        auto eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
+            //eta1, eta2
+            eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
+            eta2(ig, lkd) = (kp * sinhkp + 3 * bfcff2 + 10 * bfcff4) * eventemp;
 
-    //        //eta1, eta2
-    //        eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
-    //        eta2(ig, lkd) = (kp * sinhkp + 3 * bfcff2 + 10 * bfcff4) * eventemp;
+            //set to variables that depends on node properties by integrating of Pi* pj over - 1 ~1
+            m260(ig, lkd) = 2 * eta2(ig, lkd);
+            m251(ig, lkd) = 2 * (kp * coshkp - sinhkp + 5 * bfcff3) * oddtemp;
+            m253(ig, lkd) = 2 * (kp * (15 + kp2) * coshkp - 3 * (5 + 2 * kp2) * sinhkp) * oddtemp * rkp2;
+            m262(ig, lkd) = 2 * (-3 * kp * coshkp + (3 + kp2) * sinhkp + 7 * kp * bfcff4) * eventemp * rkp;
+            m264(ig, lkd) = 2 * (-5 * kp * (21 + 2 * kp2) * coshkp + (105 + 45 * kp2 + kp4) * sinhkp) * eventemp * rkp3;
+            if (m264(ig, lkd) == 0.0) m264(ig, lkd) = 1.e-10;
 
-    //        //set to variables that depends on node properties by integrating of Pi* pj over - 1 ~1
-    //        m260(ig, lkd) = 2 * eta2(ig, lkd);
-    //        m251(ig, lkd) = 2 * (kp * coshkp - sinhkp + 5 * bfcff3) * oddtemp;
-    //        m253(ig, lkd) = 2 * (kp * (15 + kp2) * coshkp - 3 * (5 + 2 * kp2) * sinhkp) * oddtemp * rkp2;
-    //        m262(ig, lkd) = 2 * (-3 * kp * coshkp + (3 + kp2) * sinhkp + 7 * kp * bfcff4) * eventemp * rkp;
-    //        m264(ig, lkd) = 2 * (-5 * kp * (21 + 2 * kp2) * coshkp + (105 + 45 * kp2 + kp4) * sinhkp) * eventemp * rkp3;
-    //        if (m264(ig, lkd) == 0.0) m264(ig, lkd) = 1.e-10;
-
-    //        diagD(ig, lkd) = 4 * xsdf(ig,lk) / (hmesh(idir, lk) * hmesh(idir, lk));
-    //        diagDI(ig, lkd) = 1.0 / diagD(ig, lkd);
-    //    }
-    //}
+            diagD(ig, lkd) = 4 * xsdf(ig,lk) / (hmesh(idir, lk) * hmesh(idir, lk));
+            diagDI(ig, lkd) = 1.0 / diagD(ig, lkd);
+        }
+    }
 }
 
 __host__ __device__ void Nodal::updateMatrix(const int& lk)
@@ -194,7 +193,7 @@ __host__ __device__ void Nodal::trlcffbyintg(float* avgtrl3, float* hmesh3, floa
     }
 }
 
-__host__ __device__ void Nodal::calculateTransverseLeakage(const int& lk)
+__host__ __device__ void Nodal::caltrlcff0(const int& lk)
 {
     int lkd0 = lk * NDIRMAX;
 
@@ -213,21 +212,25 @@ __host__ __device__ void Nodal::calculateTransverseLeakage(const int& lk)
         trlcff0(ig, lkd0 + ZDIR) = avgjnet[XDIR] + avgjnet[YDIR];
 
     }
+}
+__host__ __device__ void Nodal::caltrlcff12(const int& lk) {
+    int lkd0 = lk * NDIRMAX;
 
-    for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
 
-        for (size_t ig = 0; ig < ng(); ig++) {
+        int lkl = neib(LEFT, idir, lk);
+        int lkr = neib(RIGHT, idir, lk);
+
+        for (int ig = 0; ig < ng(); ig++) {
             float avgtrl3[LRC]{};
             float hmesh3[LRC]{};
             hmesh3[CENTER] = hmesh(idir, lk);
             avgtrl3[CENTER] = trlcff0(ig, lkd);
 
-            int lkl = neib(LEFT, idir, lk);
-            int lsl = lktosfc(LEFT, idir, lk);
-            int idirl = idirlr(LEFT, lsl);
-
             if (lkl > -1) {
+                int lsl = lktosfc(LEFT, idir, lk);
+                int idirl = idirlr(LEFT, lsl);
                 hmesh3[LEFT] = hmesh(idirl, lkl);
                 avgtrl3[LEFT] = trlcff0(ig, lkd0 + idirl);
             }
@@ -236,11 +239,10 @@ __host__ __device__ void Nodal::calculateTransverseLeakage(const int& lk)
                 avgtrl3[LEFT] = avgtrl3[CENTER];
             }
 
-            int lkr = neib(RIGHT, idir, lk);
-            int lsr = lktosfc(RIGHT, idir, lk);
-            int idirr = idirlr(RIGHT, lsr);
 
             if (lkr > -1) {
+                int lsr = lktosfc(RIGHT, idir, lk);
+                int idirr = idirlr(RIGHT, lsr);
                 hmesh3[RIGHT] = hmesh(idirr, lkr);
                 avgtrl3[RIGHT] = trlcff0(ig, lkd0 + idirr);
             }
@@ -452,8 +454,6 @@ __host__ __device__ void Nodal::calculateJnet1n(const int& ls, const int& lr, co
 
 __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
 {
-    int lsfclr = ls * LR;
-
     int lkl = lklr(LEFT, ls);
     int lkr = lklr(RIGHT, ls);
 

@@ -13,12 +13,12 @@ private:
 	dim3 _threads, _threads_sfc;
 
 public:
-	__device__ __host__ NodalCuda(Geometry& g);
-	__device__ __host__ virtual ~NodalCuda();
+	__host__ NodalCuda(Geometry& g);
+	__host__ virtual ~NodalCuda();
 
-	void init();
-	void reset(CrossSection& xs, double* reigv, double* jnet, double* phif);
-	void drive();
+	__host__ void init();
+	__host__ void reset(CrossSection& xs, double* reigv, double* jnet, double* phif);
+	__host__ void drive();
 
 	inline float& host_jnet(const int& ig, const int& lks) { return _host_jnet[lks * _g.ng() + ig]; };
 	inline double& host_flux(const int& ig, const int& lk) { return _host_flux[lk * _g.ng() + ig]; };

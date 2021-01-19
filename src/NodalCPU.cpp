@@ -119,7 +119,11 @@ void NodalCPU::drive() {
 
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateConstant(lk);
-		calculateTransverseLeakage(lk);
+		caltrlcff0(lk);
+	}
+
+	for (int lk = 0; lk < nxyz(); ++lk) {
+		caltrlcff12(lk);
 		updateMatrix(lk);
 		calculateEven(lk);
 	}
@@ -127,4 +131,6 @@ void NodalCPU::drive() {
 	for (int ls = 0; ls < nsurf(); ++ls) {
 		calculateJnet(ls);
 	}
+
+	fflush(stdout);
 }
