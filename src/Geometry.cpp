@@ -83,7 +83,11 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 			int lkd6 = lk * NEWSBT;
 			for (size_t inews = 0; inews < NEWS; inews++)
 			{
-				neib(inews, lk) = lk0 + neibr(inews, l);
+				if (neibr(inews, l) <= -1) {
+					neib(inews, lk) = -1;
+				} else {
+					neib(inews, lk) = lk0 + neibr(inews, l);
+				}
 			}
 
 			int lkb = (k - 1) * _nxy + l;

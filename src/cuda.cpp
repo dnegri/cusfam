@@ -132,6 +132,8 @@ extern "C" void runSANM2N(double* jnet)
 		int ll = lkl % g->nxy();
 		int kr = lkr / g->nxy();
 		int lr = lkr % g->nxy();
+		int sgnl = g->sgnlr(LEFT, ls);
+		int sgnr = g->sgnlr(RIGHT, ls);
 
 		for (size_t ig = 0; ig < g->ng(); ig++)
 		{
@@ -158,16 +160,27 @@ extern "C" void runSANM2N(double* jnet)
 					+ lr * (g->ng() * LR)
 					+ ig * LR
 					+ LEFT;
-				jnet[idx] = sfam_jnet[ls * g->ng() + ig];
+				jnet[idx] = sgnr * sfam_jnet[ls * g->ng() + ig];
 				
-				idx =
-					idirl * (g->nz() * g->nxy() * g->ng() * LR)
-					+ kl * (g->nxy() * g->ng() * LR)
-					+ ll * (g->ng() * LR)
-					+ ig * LR
-					+ RIGHT;
+				if (sgnl == - 1) {
+					idx =
+						idirl * (g->nz() * g->nxy() * g->ng() * LR)
+						+ kl * (g->nxy() * g->ng() * LR)
+						+ ll * (g->ng() * LR)
+						+ ig * LR
+						+ LEFT;
+				}
+				else {
+					idx =
+						idirl * (g->nz() * g->nxy() * g->ng() * LR)
+						+ kl * (g->nxy() * g->ng() * LR)
+						+ ll * (g->ng() * LR)
+						+ ig * LR
+						+ RIGHT;
+				}
 
-				jnet[idx] = sfam_jnet[ls * g->ng() + ig];
+
+				jnet[idx] = sgnl * sfam_jnet[ls * g->ng() + ig];
 			}
 		}
 	}

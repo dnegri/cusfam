@@ -537,9 +537,9 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
             (3 * dsncff2(ig, lkdr) + 10 * dsncff4(ig, lkdr) + eta2(ig, lkdr) * dsncff6(ig, lkdr));
         vec1g[ig] = bcc[ig]
             - diagDj[ig][LEFT] *
-            (matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl) + matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl))
+            (matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl) + matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl))
             + diagDj[ig][RIGHT] *
-            (matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr) + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
+            (matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr) + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
             - (tempz[0][ig] * zeta2[0] + tempz[1][ig] * zeta2[1]);
 
     }
