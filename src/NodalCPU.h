@@ -15,8 +15,8 @@ public:
     inline double& flux(const int& ig, const int& lk) { return _flux[lk * ng() + ig]; };
 
     void init();
-    void reset(CrossSection& xs, double* reigv, double* jnet, double* phif);
-    void drive();
+    void reset(CrossSection& xs, double& reigv, float* jnet, double* phif);
+    void drive(float* jnet);
 
 };
 

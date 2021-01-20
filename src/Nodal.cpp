@@ -204,7 +204,7 @@ __host__ __device__ void Nodal::caltrlcff0(const int& lk)
             auto lsl = lktosfc(LEFT, idir, lk);
             auto lsr = lktosfc(RIGHT, idir, lk);
 
-            avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) * hmesh(idir, lk);
+            avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) / hmesh(idir, lk);
         }
 
         trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
@@ -232,7 +232,7 @@ __host__ __device__ void Nodal::caltrlcff12(const int& lk) {
                 int lsl = lktosfc(LEFT, idir, lk);
                 int idirl = idirlr(LEFT, lsl);
                 hmesh3[LEFT] = hmesh(idirl, lkl);
-                avgtrl3[LEFT] = trlcff0(ig, lkd0 + idirl);
+                avgtrl3[LEFT] = trlcff0(ig, lkl * NDIRMAX + idirl);
             }
             else if (albedo(LEFT, idir) == 0) {
                 hmesh3[LEFT] = hmesh3[CENTER];
@@ -244,7 +244,7 @@ __host__ __device__ void Nodal::caltrlcff12(const int& lk) {
                 int lsr = lktosfc(RIGHT, idir, lk);
                 int idirr = idirlr(RIGHT, lsr);
                 hmesh3[RIGHT] = hmesh(idirr, lkr);
-                avgtrl3[RIGHT] = trlcff0(ig, lkd0 + idirr);
+                avgtrl3[RIGHT] = trlcff0(ig, lkr*NDIRMAX + idirr);
             }
             else if (albedo(RIGHT, idir) == 0) {
                 hmesh3[RIGHT] = hmesh3[CENTER];
@@ -289,7 +289,7 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
         }
 
         for (size_t ig = 0; ig < ng(); ig++) {
-            b[ig] = m220 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
+            b[ig] = m022 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
         }
 
         auto rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);

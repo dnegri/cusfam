@@ -81,8 +81,8 @@ public:
     __host__  virtual ~Nodal();
 
     __host__ virtual void init() =0 ;
-    __host__ virtual void reset(CrossSection& xs, double* reigv, double* jnet, double* phif) = 0;
-    __host__ virtual void drive() = 0;
+    __host__ virtual void reset(CrossSection& xs, double& reigv, float* jnet, double* phif) = 0;
+    __host__ virtual void drive(float* jnet) = 0;
 
 
 	__host__ __device__ void updateConstant(const int& lk);

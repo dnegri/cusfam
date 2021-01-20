@@ -29,7 +29,8 @@ interface
         real        :: reigv, jnet(*), phif(*)
     end subroutine
     
-    subroutine runSANM2N() bind(C, name="runSANM2N")
+    subroutine runSANM2N(jnet) bind(C, name="runSANM2N")
+    real        :: jnet(*)
     end subroutine
 end interface
 
