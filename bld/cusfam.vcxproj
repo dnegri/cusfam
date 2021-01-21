@@ -100,12 +100,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="../src/pch.h" />
+    <CudaCompile Include="..\src\CMFD.cu" />
     <CudaCompile Include="..\src\NodalCuda.cu" />
     <CudaCompile Include="..\src\sanm2n.cpp" />
     <CudaCompile Include="..\src\Nodal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
+    <ClInclude Include="..\src\CMFD.h" />
     <ClInclude Include="..\src\CrossSection.h" />
     <ClInclude Include="..\src\Geometry.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
