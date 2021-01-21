@@ -5,7 +5,7 @@
     #define XS_PRECISION double
 #endif
 
-class CrossSection {
+class CrossSection : public Managed {
 private:
     int _ng;
     int _nxyz;
@@ -17,7 +17,7 @@ private:
     XS_PRECISION* _chif;
     XS_PRECISION* _xsadf;
 public:
-    CrossSection(const int& ng, const int& nxyz, XS_PRECISION* xsdf, XS_PRECISION* xstf, XS_PRECISION* xsnf, XS_PRECISION* xssf, XS_PRECISION* xschif, XS_PRECISION* xsadf) {
+    __host__ CrossSection(const int& ng, const int& nxyz, XS_PRECISION* xsdf, XS_PRECISION* xstf, XS_PRECISION* xsnf, XS_PRECISION* xssf, XS_PRECISION* xschif, XS_PRECISION* xsadf) {
         _ng = ng;
         _nxyz = nxyz;
         _xsnf = xsnf;
@@ -28,7 +28,7 @@ public:
         _xsadf = xsadf;
     };
 
-    CrossSection(const int& ng, const int& nxyz) {
+    __host__ CrossSection(const int& ng, const int& nxyz) {
         _ng = ng;
         _nxyz = nxyz;
         _xsnf = new XS_PRECISION[_ng*_nxyz]();
@@ -39,8 +39,8 @@ public:
         _xssf = new XS_PRECISION[_ng*_ng*_nxyz]();
         _xsadf = new XS_PRECISION[_ng * _nxyz]();
     };
-    
-    virtual ~CrossSection() {
+
+    __host__ virtual ~CrossSection() {
         delete [] _xsnf;
         delete [] _xsdf;
         delete [] _xstf;
@@ -49,12 +49,12 @@ public:
         delete [] _xssf;
     }
 
-    inline XS_PRECISION& xsnf(const int & ig, const int & l) {return _xsnf[l*_ng+ig];};
-    inline XS_PRECISION& xsdf(const int & ig, const int & l) {return _xsdf[l*_ng+ig];};
-    inline XS_PRECISION& xssf(const int & igs, const int & ige, const int & l) {return _xssf[l*_ng*_ng+ige*_ng+igs];};
-    inline XS_PRECISION& xstf(const int & ig, const int & l) {return _xstf[l*_ng+ig];};
-    inline XS_PRECISION& xskf(const int & ig, const int & l) {return _xskf[l*_ng+ig];};
-    inline XS_PRECISION& chif(const int & ig, const int & l) {return _chif[l*_ng+ig];};
-    inline XS_PRECISION& xsadf(const int& ig, const int& l) { return _xsadf[l * _ng + ig]; };
+    __host__ __device__ inline XS_PRECISION& xsnf(const int & ig, const int & l) {return _xsnf[l*_ng+ig];};
+    __host__ __device__ inline XS_PRECISION& xsdf(const int & ig, const int & l) {return _xsdf[l*_ng+ig];};
+    __host__ __device__ inline XS_PRECISION& xssf(const int & igs, const int & ige, const int & l) {return _xssf[l*_ng*_ng+ige*_ng+igs];};
+    __host__ __device__ inline XS_PRECISION& xstf(const int & ig, const int & l) {return _xstf[l*_ng+ig];};
+    __host__ __device__ inline XS_PRECISION& xskf(const int & ig, const int & l) {return _xskf[l*_ng+ig];};
+    __host__ __device__ inline XS_PRECISION& chif(const int & ig, const int & l) {return _chif[l*_ng+ig];};
+    __host__ __device__ inline XS_PRECISION& xsadf(const int& ig, const int& l) { return _xsadf[l * _ng + ig]; };
 
 };

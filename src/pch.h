@@ -12,11 +12,29 @@
     #include <cuda_runtime.h>
     #include "helper_string.h"
     #include "helper_cuda.h"
+    class Managed {
+    public:
+        void* operator new(size_t len) {
+            void* ptr;
+            cudaMallocManaged(&ptr, len);
+            cudaDeviceSynchronize();
+            return ptr;
+        }
+
+        void operator delete(void* ptr) {
+            cudaDeviceSynchronize();
+            cudaFree(ptr);
+        }
+    };
 #else
     #define __global__
     #define __device__
     #define __host__
     #define __constant__
+
+    class Managed {
+
+    };
 #endif
 
 
@@ -88,19 +106,5 @@ __constant__  static const int    NTHREADSPERBLOCK = 64;
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 
 
-class Managed {
-public:
-    void* operator new(size_t len) {
-        void* ptr;
-        cudaMallocManaged(&ptr, len);
-        cudaDeviceSynchronize();
-        return ptr;
-    }
-
-    void operator delete(void* ptr) {
-        cudaDeviceSynchronize();
-        cudaFree(ptr);
-    }
-};
 
 #endif /* PCH_H_ */

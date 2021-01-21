@@ -36,8 +36,7 @@
 
 
 
-class Geometry
-{
+class Geometry : public Managed {
 private:
 	int _ng;
 	int _ng2;
@@ -66,40 +65,43 @@ private:
 	float* _albedo;
 
 	float* _hmesh;
+	float* _vol;
 
 
 public:
-	Geometry();
-	virtual ~Geometry();
+	__host__ Geometry();
+	__host__ virtual ~Geometry();
 
-	void setBoudnaryCondition(int* symopt, int* symang, double* albedo);
-	void init(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int* nxe, int* nys, int* nye, int* nsurf_, int* ijtol, int* neibr, double* hmesh);
+	__host__ void setBoudnaryCondition(int* symopt, int* symang, double* albedo);
+    __host__ void init(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int* nxe, int* nys, int* nye, int* nsurf_, int* ijtol, int* neibr, double* hmesh);
 
-	inline int& ng() { return _ng; };
-	inline int& ng2() { return _ng2; };
-	inline int& nxy() { return _nxy; };
-	inline int& nz() { return _nz; };
-	inline int& nxyz() { return _nxyz; };
-	inline int& nsurf() { return _nsurf; };
-	inline int& nx() { return _nx; };
-	inline int& ny() { return _ny; };
+	__host__ __device__ inline int& ng() { return _ng; };
+	__host__ __device__ inline int& ng2() { return _ng2; };
+	__host__ __device__ inline int& nxy() { return _nxy; };
+	__host__ __device__ inline int& nz() { return _nz; };
+	__host__ __device__ inline int& nxyz() { return _nxyz; };
+	__host__ __device__ inline int& nsurf() { return _nsurf; };
+	__host__ __device__ inline int& nx() { return _nx; };
+	__host__ __device__ inline int& ny() { return _ny; };
 
-	inline int& nxs(const int& j) { return _nxs[j]; };
-	inline int& nxe(const int& j) { return _nxe[j]; };
-	inline int& nys(const int& i) { return _nys[i]; };
-	inline int& nye(const int& i) { return _nye[i]; };
-	inline int& neibr(const int& news, const int& l) { return _neibr[l*NEWS + news]; };
-	inline int& ijtol(const int& i, const int& j) { return _ijtol[j*_nx + i]; };
-	inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
-	inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };
-	inline int& idirlr(const int& lr, const int& ls) { return _idirlr[ls * LR + lr]; };
-	inline int& sgnlr(const int& lr, const int& ls) { return _sgnlr[ls * LR + lr]; };
-	inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir)*LR + lr]; };
+	__host__ __device__ inline int& nxs(const int& j) { return _nxs[j]; };
+	__host__ __device__ inline int& nxe(const int& j) { return _nxe[j]; };
+	__host__ __device__ inline int& nys(const int& i) { return _nys[i]; };
+	__host__ __device__ inline int& nye(const int& i) { return _nye[i]; };
+	__host__ __device__ inline int& neibr(const int& news, const int& l) { return _neibr[l*NEWS + news]; };
+	__host__ __device__ inline int& ijtol(const int& i, const int& j) { return _ijtol[j*_nx + i]; };
+	__host__ __device__ inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
+    __host__ __device__ inline int& neib(const int& lr, const int& idir, const int& lk) { return _neib[lk * NEWSBT + idir*LR + lr]; };
+	__host__ __device__ inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };
+	__host__ __device__ inline int& idirlr(const int& lr, const int& ls) { return _idirlr[ls * LR + lr]; };
+	__host__ __device__ inline int& sgnlr(const int& lr, const int& ls) { return _sgnlr[ls * LR + lr]; };
+	__host__ __device__ inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir)*LR + lr]; };
 
-	inline float& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
-	inline int& symopt() { return _symopt; };
-	inline int& symang() { return _symang; };
-	inline float& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+	__host__ __device__ inline float& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+    __host__ __device__ inline float& vol(const int& lk) { return _vol[lk]; };
+	__host__ __device__ inline int& symopt() { return _symopt; };
+	__host__ __device__ inline int& symang() { return _symang; };
+	__host__ __device__ inline float& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
 
 };
 
