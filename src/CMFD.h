@@ -2,12 +2,14 @@
 #include "pch.h"
 #include "Geometry.h"
 #include "CrossSection.h"
+#include "MKLSolver.h"
 
 
 class CMFD : public Managed {
 protected:
     Geometry& _g;
     CrossSection& _x;
+    MKLSolver* _ls;
 
 	int _ng;
 	int _ncmfd;
@@ -17,7 +19,7 @@ protected:
 	float* _am;
 	float* _af;
 	float* _cc;
-	float* _src;
+	double* _src;
     float* _psi;
 
     float _eshift0  =   0.04;
@@ -41,7 +43,7 @@ public:
     __host__ __device__ virtual void setls()=0;
 
 	__host__ __device__ void upddtil(const int& ls);
-    __host__ __device__ void upddhat(const int& ls, float* flux, float* jnet);
+    __host__ __device__ void upddhat(const int& ls, double* flux, float* jnet);
     __host__ __device__ void setls(const int& l);
 
     __host__ __device__ float& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
@@ -52,6 +54,19 @@ public:
     };
     __host__ __device__ float& af(const int& ig, const int& l) {return _af[l*_g.ng()+ig];};
     __host__ __device__ float& psi(const int& l) {return _psi[l];};
-    __host__ __device__ float& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
+    __host__ __device__ double& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
 
+    __host__ __device__ double axb(const int& ig, const int& l, const double* flux) {
+        double ab = am(0, ig, l) * flux[l*_g.ng()] + am(1, ig, l) * flux[l * _g.ng()+1];
+
+        for (int idir = 0; idir < NDIRMAX; ++idir) {
+            for (int lr = 0; lr < LR; ++lr) {
+                int ln = _g.neib(lr, idir, l);
+                if (ln != -1)
+                    ab += cc(lr, idir, ig, l) * flux[ln*_g.ng()+ ig];
+            }
+        }
+
+        return ab;
+    };
 };

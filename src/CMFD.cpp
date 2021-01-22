@@ -4,7 +4,7 @@
 #define jnet(ig, ls)      (jnet[(ls)*_g.ng() + ig])
 
 CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
-
+    _ls = new MKLSolver(g);
 }
 
 CMFD::~CMFD() {
@@ -36,7 +36,7 @@ void CMFD::upddtil(const int& ls)
 	}
 }
 
-void CMFD::upddhat(const int &ls, float* flux, float* jnet) {
+void CMFD::upddhat(const int &ls, double* flux, float* jnet) {
     int ll = _g.lklr(LEFT,ls);
     int lr = _g.lklr(RIGHT,ls);
     int idirl = _g.idirlr(LEFT,ls);
@@ -61,25 +61,45 @@ void CMFD::setls(const int &l) {
 
     float sgn[2]{1.0,-1.0};
 
-    for (int ig = 0; ig < _g.ng(); ++ig) {
-        am(ig,ig,l) = _x.xstf(ig,l)  - _x.xsnf(ig,l) * _g.vol(l)*_x.chif(ig,l)*_reigvs;
-        for (int idir = 0; idir < NDIRMAX; ++idir) {
-            for (int lr = 0; lr < LR; ++lr) {
-                int ls = _g.lktosfc(lr, idir, l);
-                float offdiag=dtil(ig,ls)*area[idir];
-                cc(lr,idir,ig,l) = -offdiag;
-                am(ig,ig,l) = offdiag;
-                offdiag=sgn[lr]*dhat(ig,ls)*area[idir];
-                cc(lr,idir,ig,l) += offdiag;
-                am(ig,ig,l) += offdiag;
+    int idxrow = l * _g.ng();
+
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        int irow = _ls->indexRow(idxrow+ige);
+
+        double diag = 0.0;
+        for (size_t idir = NDIRMAX - 1; idir >= 0; --idir)
+        {
+            int ln = _g.neib(LEFT, idir, l);
+
+            if (ln >= 0) {
+                int ls = _g.lktosfc(LEFT, idir, l);
+                _ls->a(irow++) = (-dtil(ige, ls) + dhat(ige, ls))* area[idir];
+                diag += (dtil(ige, ls) + dhat(ige, ls)) * area[idir];
             }
         }
-    }
-    af(0,l) = _x.xsnf(0,l) * _g.vol(l) * _x.chif(1,l);
-    af(1,l) = _x.xsnf(1,l) * _g.vol(l) * _x.chif(0,l);
 
-    am(1,0,l) = -_x.xssf(1,0,l)*_g.vol(l) - af(1,l)*_reigvs;
-    am(0,1,l) = -_x.xssf(0,1,l)*_g.vol(l) - af(0,l)*_reigvs;
+        //diagonal
+        int idiag = irow + ige;
+        _ls->a(idiag) = _x.xstf(ige, l);
+
+        for (size_t igs = 0; igs < _g.ng(); igs++)
+        {
+            _ls->a(irow++) -= (_x.chif(ige, l) * _x.xsnf(igs, l) * _reigvs + _x.xssf(igs, ige, l)) * _g.vol(l);
+        }
+
+        for (size_t idir = 0; idir < NDIRMAX; idir++)
+        {
+            int ln = _g.neib(RIGHT, idir, l);
+
+            if (ln >= 0) {
+                int ls = _g.lktosfc(RIGHT, idir, l);
+                _ls->a(irow++) = (-dtil(ige, ls) - dhat(ige, ls)) * area[idir];
+                diag += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
+            }
+        }
+
+        _ls->a(idiag) += diag;
+    }
 }
 
 
