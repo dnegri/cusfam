@@ -1,306 +1,146 @@
-#include <iostream>
-#include <ctime>
-#include "blitz/array.h"
-#include <numeric>
-
-using namespace blitz;
-
-#define m_phif(ig,l,k) d_phif[(k*nxy+l)*ng+ig]
-#define m_xsnf(ig,l,k) d_xsnf[(k*nxy+l)*ng+ig]
-#define m_psi(l,k) d_psi[k*nxy+l]
-
-#define op /
+#include "pch.h"
+#include "NodalCPU.h"
+#include "CMFDCPU.h"
 
 int main() {
 
-    int ng=8;
-    int nx=16*30;
-    int ny=16*30;
-    int nz=300;
-    int nxy=nx*nz;
+    int ng=2;
+    int nx=2;
+    int ny=2;
+    int nz=1;
+    int nxy=nx*ny;
+    int nxyz = nxy * nz;
+    int lsurf = 12;
 
-    Array<float, 3> phif_col(ng, nxy, nz, ColumnMajorArray<3>()), xsnf_col(ng, nxy, nz, ColumnMajorArray<3>());
-    Array<float, 3> phif_for(Range(1,ng), Range(0,nxy), Range(0,nz), FortranArray<3>()), xsnf_for(Range(1,ng), Range(0,nxy), Range(0,nz), FortranArray<3>());
-    Array<float, 2> psi(nxy,nz,ColumnMajorArray<2>());
+    int* nxs = new int[ny]{1,1};
+    int* nxe = new int[ny]{2,2};
+    int* nys = new int[nx]{1,1};
+    int* nye = new int[nx]{2,2};
+    int* ijtol = new int[nx*ny]{};
+    ijtol[0] = 1;ijtol[1] = 2;ijtol[2] = 3;ijtol[3] = 4;
+    int* neibr = new int[NEWS*nxy];
+    neibr[0]=0;neibr[1]=2;neibr[2]=0;neibr[3]=3;
+    neibr[4]=1;neibr[5]=0;neibr[6]=0;neibr[7]=4;
+    neibr[8]=0;neibr[9]=4;neibr[10]=1;neibr[11]=0;
+    neibr[12]=3;neibr[13]=0;neibr[14]=2;neibr[15]=0;
+    double reigv = 0.742138228032457;
 
-    Array<float, 3> phif_row(ng, nxy, nz), xsnf_row(ng, nxy, nz);
-    Array<float, 2> psi3(nxy,nz);
+    double* hmesh = new double[(NDIRMAX+1)*nxyz]{ 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000, 20.87562, 20.87562, 20.87562, 381.0000 };
+    float* jnet = new float[LR * ng * NDIRMAX * nxyz]{};
+    double * phif  = new double[ng*nxyz]{};
+    double * psi  = new double[nxyz]{};
+    double* albedo = new double[NDIRMAX*LR]{};
 
-    Array<float, 3> phif_grp(nz, nxy, ng), xsnf_grp(nz, nxy, ng);
-    Array<float, 2> psi2(nz,nxy);
+    phif[0*ng + 0] = 1.0; //0.803122708205631;
+    phif[0*ng + 1] = 1.0; //0.164597288693038;
+    phif[1*ng + 0] = 1.0; //0.802536075765036;
+    phif[1*ng + 1] = 1.0; //0.175546129329372;
+    phif[2*ng + 0] = 1.0; //0.802536062402559;
+    phif[2*ng + 1] = 1.0; //0.175546126476501;
+    phif[3*ng + 0] = 1.0; //0.803122301848942;
+    phif[3*ng + 1] = 1.0; //0.164597207588429;
 
-    phif_for(1,0,0) = 0.0;
+//    jnet[1+1*LR]  = 4.027721933967146E-005;
+//    jnet[2+1*LR]  = -2.343435137703359E-004;
+//    jnet[1+4*LR]  = -4.025023700280725E-005;
+//    jnet[2+4*LR]  = 2.343451886314374E-004;
+//    jnet[1+7*LR]  = 4.027813678536138E-005;
+//    jnet[2+7*LR]  = -2.343434527089155E-004;
+//    jnet[1+10*LR] =  -4.024931955711733E-005;
+//    jnet[2+10*LR] =  2.343452496928578E-004;
 
-    float * d_phif = new float[ng*nxy*nz];
-    float * d_xsnf = new float[ng*nxy*nz];
-    float * d_psi = new float[nxy*nz];
+    Geometry g;
+    g.init(&ng, &nxy, &nz, &nx, &ny, nxs, nxe, nys, nye, &lsurf, ijtol, neibr, hmesh);
+    int symang = 360;
+    int symopt = 0;
+    g.setBoudnaryCondition(&symopt,&symang, albedo);
+    CrossSection xs(ng, nxyz);
 
-    float * p_phif = d_phif, *p_xsnf=d_xsnf;
+    xs.xsdf(0,0) =	1.42507149436478;
+    xs.xsdf(1,0) =	0.448454988085883;
+    xs.xsdf(0,1) =	1.44159527781466;
+    xs.xsdf(1,1) =	0.445179693901252;
+    xs.xsdf(0,2) =	1.44159527781466;
+    xs.xsdf(1,2) =	0.445179693901252;
+    xs.xsdf(0,3) =	1.42507149436478;
+    xs.xsdf(1,3) =	0.448454988085883;
 
-    auto begin = clock();
+    xs.xstf(0,0) =	2.592368710035673E-02;
+    xs.xstf(1,0) =	8.161927734374642E-02;
+    xs.xstf(0,1) =	2.653347017658737E-02;
+    xs.xstf(1,1) =	7.820114207991198E-02;
+    xs.xstf(0,2) =	2.653347017658737E-02;
+    xs.xstf(1,2) =	7.820114207991198E-02;
+    xs.xstf(0,3) =	2.592368710035673E-02;
+    xs.xstf(1,3) =	8.161927734374642E-02;
 
-    for (int k = 0; k < nz; ++k) {
-        for (int l = 0; l < nxy; ++l) {
-            for (int ig = 0; ig < ng; ++ig) {
-                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                *p_phif++ = r;
-                *p_xsnf++ = r*0.5;
-            }
-        }
-    }
-    auto end = clock();
-    auto elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    xs.xssf(0,0,0) =	0.0;
+    xs.xssf(1,0,0) =	0.0;
+    xs.xssf(0,1,0) =	1.669964031075737E-02;
+    xs.xssf(1,1,0) =	0.0;
+    xs.xssf(0,0,1) =	0.0;
+    xs.xssf(1,0,1) =	0.0;
+    xs.xssf(0,1,1) =	1.713363387143419E-02;
+    xs.xssf(1,1,1) =	0.0;
+    xs.xssf(0,0,2) =	0.0;
+    xs.xssf(1,0,2) =	0.0;
+    xs.xssf(0,1,2) =	1.713363387143419E-02;
+    xs.xssf(1,1,2) =	0.0;
+    xs.xssf(0,0,3) =	0.0;
+    xs.xssf(1,0,3) =	0.0;
+    xs.xssf(0,1,3) =	1.669964031075737E-02;
+    xs.xssf(1,1,3) =	0.0;
 
-    printf("Elapsed time for initializing values by legacy is %12.5f\n", elapsed_secs);
+    xs.xsnf(0,0) =	7.009412307796224E-03;
+    xs.xsnf(1,0) =	0.136542037889586;
+    xs.xsnf(0,1) =	7.089077904037993E-03;
+    xs.xsnf(1,1) =	0.130755891426204;
+    xs.xsnf(0,2) =	7.089077904037993E-03;
+    xs.xsnf(1,2) =	0.130755891426204;
+    xs.xsnf(0,3) =	7.009412307796224E-03;
+    xs.xsnf(1,3) =	0.136542037889586;
 
+    xs.chif(0,0) =	1.0;
+    xs.chif(1,0) =	0.0;
+    xs.chif(0,1) =	1.0;
+    xs.chif(1,1) =	0.0;
+    xs.chif(0,2) =	1.0;
+    xs.chif(1,2) =	0.0;
+    xs.chif(0,3) =	1.0;
+    xs.chif(1,3) =	0.0;
 
-    begin = clock();
-    for (int k = 0; k < nz; ++k) {
-        for (int l = 0; l < nxy; ++l) {
-            for (int ig = 0; ig < ng; ++ig) {
-                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                phif_col(ig, l, k) = r;
-                xsnf_col(ig, l, k) = r * 0.5;
-            }
-        }
-    }
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    xs.xsadf(0,0) =	1.0;
+    xs.xsadf(1,0) =	1.0;
+    xs.xsadf(0,1) =	1.0;
+    xs.xsadf(1,1) =	1.0;
+    xs.xsadf(0,2) =	1.0;
+    xs.xsadf(1,2) =	1.0;
+    xs.xsadf(0,3) =	1.0;
+    xs.xsadf(1,3) =	1.0;
 
-    printf("Elapsed time for initializing values by blitz column major is %12.5f\n", elapsed_secs);
-
-
-    begin = clock();
-    for (int k = 0; k < nz; ++k) {
-        for (int l = 0; l < nxy; ++l) {
-            for (int ig = 0; ig < ng; ++ig) {
-                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                phif_grp(k, l, ig) = r;
-                xsnf_grp(k, l, ig) = r * 0.5;
-            }
-        }
-    }
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-
-    printf("Elapsed time for initializing values by blitz grp major is %12.5f\n", elapsed_secs);
-
-    begin = clock();
-    for (int k = 0; k < nz; ++k) {
-        for (int l = 0; l < nxy; ++l) {
-            for (int ig = 0; ig < ng; ++ig) {
-                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                phif_row(ig, l, k) = r;
-                xsnf_row(ig, l, k) = r * 0.5;
-            }
-        }
-    }
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-
-    printf("Elapsed time for initializing values by blitz row major is %12.5f\n", elapsed_secs);
-
-    begin = clock();
-    for (int k = 0; k <= nz; ++k) {
-        for (int l = 0; l <= nxy; ++l) {
-            for (int ig = 1; ig <= ng; ++ig) {
-                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                phif_for(ig, l, k) = r;
-                xsnf_for(ig, l, k) = r * 0.5;
-            }
-        }
-    }
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-
-    printf("Elapsed time for initializing values by blitz fortran major is %12.5f\n", elapsed_secs);
-
-
-    auto sum=0.0;
-    for (int i=0; i<10; ++i) {
-        p_phif = d_phif, p_xsnf=d_xsnf;
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-//            m_psi(l,k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    sum += *(p_phif) op *(p_xsnf);
-//                m_psi(l,k) += *p_phif++ op *p_xsnf++;
-                }
-            }
-        }
-        end = clock();
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(d_psi , d_psi+nxy*nz , sum);
-        printf("Elapsed time with pointer is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
+    for (int l = 0; l < nxyz; ++l) {
+        psi[l] = (phif[l*ng+0]*xs.xsnf(0,l)+phif[l*ng+1]*xs.xsnf(1,l))*g.vol(l);
     }
 
+    reigv = 1.0;
+    float errl2 = 1.0;
 
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-//            m_psi(l,k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    sum += d_phif[i] op d_xsnf[i];
-//                m_psi(l,k) += d_phif[i] op d_xsnf[i];
-//                i++;
-                }
-            }
-        }
-        end = clock();
+    CMFDCPU cmfd(g, xs);
+    cmfd.setNcmfd(5);
+    cmfd.setEpsl2(1.0E-5);
+    cmfd.setEshift(0.0);
 
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(d_psi , d_psi+nxy*nz , sum);
+    NodalCPU nodal(g, xs);
 
-        printf("Elapsed time with [i] is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
+    for (int i = 0; i < 100; ++i) {
+        cmfd.upddtil();
+        cmfd.setls();
+        cmfd.drive(reigv, phif, psi, errl2);
+        nodal.reset(xs, reigv, jnet, phif);
+        nodal.drive(jnet);
+        cmfd.upddhat(phif, jnet);
     }
 
 
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-                auto lk0 = k * nxy + l;
-//            m_psi(l,k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    sum += d_phif[lk0 * ng + ig] op d_xsnf[lk0 * ng + ig];
-//                m_psi(l,k) += d_phif[lk0*ng+ig] op d_xsnf[lk0*ng+ig];
-                }
-            }
-        }
-        end = clock();
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(d_psi , d_psi+nxy*nz , sum);
-
-        printf("Elapsed time with (ig,lk) index is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-    }
-
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-//            m_psi(l,k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    auto lk0 = k * nxy + l;
-                    sum += d_phif[(k * nxy + l) * ng + ig] op d_xsnf[(k * nxy + l) * ng + ig];
-//                m_psi(l,k) += d_phif[(k*nxy+l)*ng+ig] op d_xsnf[(k*nxy+l)*ng+ig];
-                }
-            }
-        }
-        end = clock();
-//    accumulate(d_psi , d_psi+nxy*nz , sum);
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-
-        printf("Elapsed time with (ig,l,k) index is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-    }
-
-
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-                m_psi(l, k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    auto lk0 = k * nxy + l;
-                    sum += m_phif(ig, l, k) op m_xsnf(ig, l, k);
-//                m_psi(l,k) += m_phif(ig,l,k) op m_xsnf(ig,l,k);
-                }
-            }
-        }
-        end = clock();
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(d_psi , d_psi+nxy*nz , sum);
-
-        printf("Elapsed time with (ig,l,k) macro is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-    }
-
-//    sum=0.0;
-//    for (int i=0; i<10; ++i) {
-//        begin = clock();
-//        for (int k = 0; k < nz; ++k) {
-//            for (int l = 0; l < nxy; ++l) {
-//                for (int ig = 0; ig < ng; ++ig) {
-////                psi3(l,k) = 0.0;
-//                    sum += (phif_row(ig, l, k) op xsnf_row(ig, l, k));
-////                psi2(k,l) += (phif_col(k,l,ig) op xsnf_col(k,l,ig));
-//                }
-//            }
-//        }
-//        end = clock();
-//
-//        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-////    accumulate(psi2.data() , psi2.data()+nxy*nz , sum);
-//
-//        printf("Elapsed time with blitz row major is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-//    }
-
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 0; k < nz; ++k) {
-            for (int l = 0; l < nxy; ++l) {
-//            psi(l,k) = 0.0;
-                for (int ig = 0; ig < ng; ++ig) {
-                    sum += (phif_col(ig, l, k) op xsnf_col(ig, l, k));
-//                psi(l,k) += (phif_col(ig,l,k) op xsnf_col(ig,l,k));
-                }
-            }
-        }
-        end = clock();
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(psi.data() , psi.data()+nxy*nz , sum);
-
-        printf("Elapsed time with blitz column major is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-    }
-
-//    sum=0.0;
-//    for (int i=0; i<10; ++i) {
-//        begin = clock();
-//        for (int ig = 0; ig < ng; ++ig) {
-//            for (int l = 0; l < nxy; ++l) {
-////            psi2(k,l) = 0.0;
-//                for (int k = 0; k < nz; ++k) {
-//                    sum += (phif_grp(k, l, ig) op xsnf_grp(k, l, ig));
-////                psi2(k,l) += (phif_col(k,l,ig) op xsnf_col(k,l,ig));
-//                }
-//            }
-//        }
-//        end = clock();
-//
-//        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-////    accumulate(psi2.data() , psi2.data()+nxy*nz , sum);
-//
-//        printf("Elapsed time with blitz group major is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-//    }
-
-    sum=0.0;
-    for (int i=0; i<10; ++i) {
-        begin = clock();
-        for (int k = 1; k <= nz; ++k) {
-            for (int l = 1; l <= nxy; ++l) {
-//            psi2(k,l) = 0.0;
-                for (int ig = 1; ig <= ng; ++ig) {
-                    sum += (phif_for(ig, l, k) op xsnf_for(ig, l, k));
-//                psi2(k,l) += (phif_col(k,l,ig) op xsnf_col(k,l,ig));
-                }
-            }
-        }
-        end = clock();
-
-        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//    accumulate(psi2.data() , psi2.data()+nxy*nz , sum);
-
-        printf("Elapsed time with blitz fortran for is %12.5f seconds and sum is %e\n", elapsed_secs, sum);
-    }
     return 0;
 }

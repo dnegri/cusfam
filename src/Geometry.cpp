@@ -72,6 +72,7 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 	_neib = new int[nxyz6];
 	_hmesh = new float[nxyz6];
 	_lktosfc = new int[nxyz6];
+	_vol = new float[_nxyz];
 
 	for (size_t k = 0; k < _nz; k++)
 	{
@@ -105,6 +106,10 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 			}
 		}
 	}
+
+    for (int l = 0; l < _nxyz; ++l) {
+        vol(l) = hmesh(XDIR,l)*hmesh(YDIR,l)*hmesh(ZDIR,l);
+    }
 
 
 

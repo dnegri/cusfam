@@ -1,10 +1,17 @@
 ﻿#include "CMFD.h"
+#include "SuperLUSolver.h"
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define jnet(ig, ls)      (jnet[(ls)*_g.ng() + ig])
 
 CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
-    _ls = new MKLSolver(g);
+    _ls = new SuperLUSolver(g);
+
+    _dtil = new float[_g.nsurf()*_g.ng()];
+    _dhat = new float[_g.nsurf()*_g.ng()];
+    _diag = new float[_g.nxyz()*_g.ng2()];
+    _cc = new float[_g.nxyz()*_g.ng()*NEWSBT];
+    _src = new double[_g.nxyz()*_g.ng()];
 }
 
 CMFD::~CMFD() {
@@ -20,15 +27,15 @@ void CMFD::upddtil(const int& ls)
 
 	float betal, betar;
 
-	for (size_t ig = 0; ig < _g.ng(); ig++)
+	for (int ig = 0; ig < _g.ng(); ig++)
 	{
 	    if(ll < 0) {
-            betal = _g.albedo(LEFT, idirl);
+            betal = _g.albedo(LEFT, idirl)*0.5;
 	    } else {
             betal = _x.xsdf(ig, ll) / _g.hmesh(idirl, ll);
 	    }
         if(lr < 0) {
-            betar = _g.albedo(RIGHT, idirr);
+            betar = _g.albedo(RIGHT, idirr)*0.5;
         } else {
             betar = _x.xsdf(ig,lr) / _g.hmesh(idirr, lr);
         }
@@ -42,12 +49,18 @@ void CMFD::upddhat(const int &ls, double* flux, float* jnet) {
     int idirl = _g.idirlr(LEFT,ls);
     int idirr = _g.idirlr(RIGHT,ls);
 
-    float jnet_fdm;
-
-    for (size_t ig = 0; ig < _g.ng(); ig++)
+    for (int ig = 0; ig < _g.ng(); ig++)
     {
-        jnet_fdm =-dtil(ig,ls)*(flux(ig,lr)-flux(ig,ll));
-        dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,lr)+flux(ig,ll));
+        if(ll < 0) {
+            float jnet_fdm =-dtil(ig,ls)*(flux(ig,lr));
+            dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,lr));
+        } else if (lr < 0) {
+            float jnet_fdm =-dtil(ig,ls)*(-flux(ig,ll));
+            dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,ll));
+        } else {
+            float jnet_fdm =-dtil(ig,ls)*(flux(ig,lr)-flux(ig,ll));
+            dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,lr)+flux(ig,ll));
+        }
     }
 }
 
@@ -59,47 +72,48 @@ void CMFD::setls(const int &l) {
     area[YDIR] = _g.hmesh(XDIR, l) * _g.hmesh(ZDIR, l);
     area[ZDIR] = _g.hmesh(XDIR, l) * _g.hmesh(YDIR, l);
 
-    float sgn[2]{1.0,-1.0};
-
-    int idxrow = l * _g.ng();
-
     for (int ige = 0; ige < _g.ng(); ++ige) {
-        int irow = _ls->indexRow(idxrow+ige);
 
-        double diag = 0.0;
-        for (size_t idir = NDIRMAX - 1; idir >= 0; --idir)
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            diag(igs,ige,l) = -_x.xssf(igs, ige, l)*_g.vol(l);
+        }
+        diag(ige,ige,l) += _x.xstf(ige, l)*_g.vol(l);
+
+        for (int idir = NDIRMAX - 1; idir >= 0; --idir)
         {
             int ln = _g.neib(LEFT, idir, l);
 
             if (ln >= 0) {
                 int ls = _g.lktosfc(LEFT, idir, l);
-                _ls->a(irow++) = (-dtil(ige, ls) + dhat(ige, ls))* area[idir];
-                diag += (dtil(ige, ls) + dhat(ige, ls)) * area[idir];
+
+                cc(LEFT,idir,ige,l) =(-dtil(ige, ls) + dhat(ige, ls))* area[idir];
+                diag(ige,ige,l) += (dtil(ige, ls) + dhat(ige, ls)) * area[idir];
             }
         }
 
-        //diagonal
-        int idiag = irow + ige;
-        _ls->a(idiag) = _x.xstf(ige, l);
-
-        for (size_t igs = 0; igs < _g.ng(); igs++)
-        {
-            _ls->a(irow++) -= (_x.chif(ige, l) * _x.xsnf(igs, l) * _reigvs + _x.xssf(igs, ige, l)) * _g.vol(l);
-        }
-
-        for (size_t idir = 0; idir < NDIRMAX; idir++)
+        for (int idir = 0; idir < NDIRMAX; idir++)
         {
             int ln = _g.neib(RIGHT, idir, l);
 
             if (ln >= 0) {
                 int ls = _g.lktosfc(RIGHT, idir, l);
-                _ls->a(irow++) = (-dtil(ige, ls) - dhat(ige, ls)) * area[idir];
-                diag += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
+                cc(RIGHT,idir,ige,l) =(-dtil(ige, ls) - dhat(ige, ls))* area[idir];
+                diag(ige,ige,l) += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
             }
         }
-
-        _ls->a(idiag) += diag;
     }
+}
+
+void CMFD::setNcmfd(int ncmfd) {
+    _ncmfd = ncmfd;
+}
+
+void CMFD::setEshift(float eshift) {
+    _eshift = eshift;
+}
+
+void CMFD::setEpsl2(float epsl2) {
+    _epsl2 = epsl2;
 }
 
 

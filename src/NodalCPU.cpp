@@ -79,8 +79,6 @@ void NodalCPU::drive(float* jnet) {
 	}
 
 	for (int ls = 0; ls < nsurf(); ++ls) {
-		calculateJnet(ls);
-	}
-
-	fflush(stdout);
+        calculateJnet(ls);
+    }
 }

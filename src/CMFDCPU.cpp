@@ -6,10 +6,13 @@
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
-#define psi(l)   (_psi[(l)])
+#define psi(l)  (psi[(l)])
+
 
 CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
+
 }
+
 CMFDCPU::~CMFDCPU() {
 
 }
@@ -19,49 +22,88 @@ void CMFDCPU::upddtil() {
         CMFD::upddtil(ls);
     }
 }
-void CMFDCPU::upddhat() {
+
+void CMFDCPU::upddhat(double* flux, float* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
-        CMFD::upddtil(ls);
+        CMFD::upddhat(ls, flux, jnet);
     }
 
 }
 
 void CMFDCPU::setls() {
     for (int l = 0; l < _g.nxyz(); ++l) {
-        CMFD::setls(l);
+        setls(l);
     }
 }
 
-void CMFDCPU::axb(double * flux, double* aflux) {
-    for (int l = 0; l < _g.nxyz(); ++l) {
-        for (int ig = 0; ig < _g.ng(); ++ig) {
-            aflux(ig, l) = am(0,ig,l) * flux(0, l) + am(1, ig, l) * flux(1, l);
+void CMFDCPU::setls(const int &l) {
+    CMFD::setls(l);
 
-            for (int idir = 0; idir < NDIRMAX; ++idir) {
-                for (int lr = 0; lr < LR; ++lr) {
-                    int ln = _g.neib(lr,idir,l);
-                    if(ln != -1)
-                        aflux(ig, l) += cc(lr,idir,ig,l) * flux(ig,ln);
-                }
+    int idxrow = l * _g.ng();
+
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        int irow = _ls->rowptr(idxrow + ige);
+
+        for (int idir = NDIRMAX - 1; idir >= 0; --idir) {
+            int ln = _g.neib(LEFT, idir, l);
+
+            if (ln >= 0) {
+                _ls->a(irow++) = cc(LEFT, idir, ige, l);
             }
+        }
+
+        for (int igs = 0; igs < _g.ng(); igs++) {
+            _ls->a(irow++) = diag(igs, ige, l);
+        }
+
+        for (int idir = 0; idir < NDIRMAX; idir++) {
+            int ln = _g.neib(RIGHT, idir, l);
+
+            if (ln >= 0) {
+                _ls->a(irow++) = cc(RIGHT, idir, ige, l);
+            }
+        }
+    }
+
+}
+
+void CMFDCPU::updls(const double &reigvs) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        updls(l, reigvs);
+    }
+}
+
+void CMFDCPU::updls(const int &l, const double &reigvs) {
+    int idxrow = l * _g.ng();
+
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        int idx = _ls->idxdiag(idxrow + ige);
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            _ls->a(idx + igs) = diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
         }
     }
 }
 
-double CMFDCPU::wiel(const int& icy, double* flux, double* psi, double& eigv, double& reigv)
-{
+void CMFDCPU::axb(double *flux, double *aflux) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        for (int ig = 0; ig < _g.ng(); ++ig) {
+            aflux(ig, l) = CMFD::axb(ig, l, flux);
+        }
+    }
+}
+
+double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, double &reigv, double &reigvs) {
     double errl2 = 0;
 
     double gamman = 0;
     double gammad = 0;
 
-    for (size_t l = 0; l < _g.nxyz(); l++)
-    {
+    for (size_t l = 0; l < _g.nxyz(); l++) {
         double psid = psi(l);
         psi(l) = _x.xsnf(1, l) * flux(1, l) + _x.xsnf(2, l) * flux(2, l);
         psi(l) = psi(l) * _g.vol(l);
 
-        double err = psi(l, k) - psid;
+        double err = psi(l) - psid;
         errl2 = errl2 + err * err;
         gammad += psid * psi(l);
         gamman += psi(l) * psi(l);
@@ -72,122 +114,109 @@ double CMFDCPU::wiel(const int& icy, double* flux, double* psi, double& eigv, do
     if (icy < 0) {
         double sumf = 0;
         double summ = 0;
-        for (size_t l = 0; l < _g.nxyz(); l++)
-        {
-            for (size_t ig = 0; ig < _g.ng(); ig++)
-            {
+        for (size_t l = 0; l < _g.nxyz(); l++) {
+            for (size_t ig = 0; ig < _g.ng(); ig++) {
                 double ab = CMFD::axb(ig, l, flux);
                 summ = summ + ab;
             }
             sumf += psi(l);
-            summ += psi(l) * _reigvs;
+            summ += psi(l) * reigvs;
         }
-    }
-    else {
+    } else {
         double gamma = gammad / gamman;
-        eigv = 1 / (reigv * gamma + (1 - gamma) * _reigvs);
+        eigv = 1 / (reigv * gamma + (1 - gamma) * reigvs);
         reigv = 1 / eigv;
     }
 
     errl2 = sqrt(errl2 / gammad);
     double erreig = abs(eigv - eigvd);;
 
-    _eigshft = 0;
+    double eigvs = eigv;
     if (icy >= 0) {
-        _eigshft = _eshift;
+        eigvs += _eshift;
     }
-    _eigvs = eigv + _eigshft;
-    _reigvsd = _reigvs;
-    _reigvs = 0;
-    if (_eigshft != 0.0) _reigvs = 1 / _eigvs;
-    
+
+    reigvs = 0;
+    if (_eshift != 0.0) reigvs = 1 / eigvs;
+
     return errl2;
 }
 
 
-double CMFDCPU::residual(const double& reigv, const double& reigvs, double* flux) {
+double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux, double *psi) {
 
-    double reigvdel=reigv-reigvs;
+    double reigvdel = reigv - reigvs;
 
 //    axb(phi,aphi);
     double r = 0.0;
     double psi2 = 0.0;
 
     for (int l = 0; l < _g.nxyz(); ++l) {
-        double fs=psi(l)*reigvdel;
+        double fs = psi(l) * reigvdel;
 
         for (int ig = 0; ig < _g.ng(); ++ig) {
             double ab = CMFD::axb(ig, l, flux);
 
-            double err = _x.chif(ig,l)*fs-ab;
-            r += err*err;
+            double err = _x.chif(ig, l) * fs - ab;
+            r += err * err;
 
-            double ps = _x.chif(ig,l)*psi(l);
-            psi2 += ps*ps;
+            double ps = _x.chif(ig, l) * psi(l);
+            psi2 += ps * ps;
         }
     }
 
-    return sqrt(r/psi2);
+    return sqrt(r / psi2);
 }
 
-void CMFDCPU::drive(double& eigv, double* flux, float& errl2) {
+void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
 
-    int icy     = 0;
-    int icmfd   = 0;
-    double reigv = 1./eigv;
-    double reigvsdel=0, reigvsd=0;
+    int icy = 0;
+    int icmfd = 0;
+    double reigv = 1. / eigv;
+    double reigvs = 0.0;
     double resid0;
 
     for (int iout = 0; iout < _ncmfd; ++iout) {
-        icy=icy+1;
-        icmfd=icmfd+1;
-        double eigvd = eigv;
-        double reigvdel=reigv -_reigvs;
+        icy = icy + 1;
+        icmfd = icmfd + 1;
+        double reigvdel = reigv - reigvs;
         for (int l = 0; l < _g.nxyz(); ++l) {
-            double fs=psi(l)*reigvdel;
+            double fs = psi(l) * reigvdel;
             for (int ig = 0; ig < _g.ng(); ++ig) {
-                src(ig,l)=_x.chif(ig,l)*fs;
+                src(ig, l) = _x.chif(ig, l) * fs;
             }
         }
 
         //solve linear system A*phi = src
         // update flux
-        //_ls->solve(a, src, flux);
+        _ls->solve(_src, flux);
 
         //wielandt shift
-        //wiel(icy, phi, psi, eigv, reigv, errl2, errlinf);
+        errl2 = wiel(icy, flux, psi, eigv, reigv, reigvs);
 
-        reigvsdel=_reigvs - reigvsd;
-        reigvdel=reigv-_reigvs;
+        updls(reigvs);
 
-        for (int l = 0; l < _g.nxyz(); ++l) {
-            am(0,0,l)=am(0,0,l)-_x.xsnf(0,l)*_g.vol(l)*reigvsdel*_x.chif(0,l);
-            am(1,1,l)=am(1,1,l)-_x.xsnf(1,l)*_g.vol(l)*reigvsdel*_x.chif(1,l);
-            am(1,0,l) = -_x.xssf(1,0,l)*_g.vol(l) - af(1,l)*_reigvs;
-            am(0,1,l) = -_x.xssf(0,1,l)*_g.vol(l) - af(0,l)*_reigvs;
+        double resi = residual(reigv, reigvs, flux, psi);
 
-        }
-        reigvsd=_reigvs;
+        if (icmfd == 0) resid0 = resi;
+        double relresid = resi / resid0;
 
-        double resi = residual(reigv,_reigvs, flux);
-
-        if(icmfd == 0) resid0 = resi;
-        double relresid = resi/resid0;
-
-        int negative=0;
+        int negative = 0;
         for (int l = 0; l < _g.nxyz(); ++l) {
             for (int ig = 0; ig < _g.ng(); ++ig) {
-                if(flux(ig,l) < 0) {
+                if (flux(ig, l) < 0) {
                     ++negative;
                 }
             }
         }
 
-        double erreig = abs(eigv - eigvd);
+        printf("EIGV : %9.5f , ERRL2 : %12.5E\n", eigv, errl2);
 
         if (errl2 < _epsl2) break;
 
     }
 }
+
+
 
 

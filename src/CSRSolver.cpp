@@ -3,8 +3,11 @@
 CSRSolver::CSRSolver(Geometry& g) : _g(g)
 {
 	_nnz = countElements();
-	_idx_row = new int[(g.nxyz()*_g.ng())+1];
+	_n   = g.nxyz()*_g.ng();
+    _rowptr = new int[_n + 1];
 	_idx_col = new int[_nnz];
+    _idx_diag = new int[_n];
+	_a = new double[_nnz];
 	initialize();
 }
 
@@ -14,63 +17,65 @@ CSRSolver::~CSRSolver()
 
 void CSRSolver::initialize()
 {
-	_idx_row[0] = 0;
+    _rowptr[0] = 0;
 
-	for (size_t l = 0; l < _g.nxyz(); l++)
+    int nnz = 0;
+	for (int l = 0; l < _g.nxyz(); l++)
 	{
-		for (size_t ige = 0; ige < _g.ng(); ige++)
+		for (int ige = 0; ige < _g.ng(); ige++)
 		{
-			int nel = 0;
-			for (size_t idir = NDIRMAX - 1; idir >= 0; --idir)
+			for (int idir = NDIRMAX - 1; idir >= 0; --idir)
 			{
 				int ln = _g.neib(LEFT, idir, l);
 
 				if (ln >= 0) {
-					++nel;
-					*_idx_col++ = ln*_g.ng()+ige;
+					_idx_col[nnz] = ln*_g.ng()+ige;
+                    ++nnz;
 				}
 			}
 
 			//diagonal 
-			for (size_t igs = 0; igs < _g.ng(); igs++)
+            _idx_diag[l*_g.ng() + ige] = nnz;
+			for (int igs = 0; igs < _g.ng(); igs++)
 			{
-				++nel;
-				*_idx_col++ = l * _g.ng()+igs;
+				_idx_col[nnz] = l * _g.ng()+igs;
+                ++nnz;
 			}
 
-			for (size_t idir = 0; idir < NDIRMAX; idir++)
+			for (int idir = 0; idir < NDIRMAX; idir++)
 			{
 				int ln = _g.neib(RIGHT, idir, l);
 
 				if (ln >= 0) {
-					++nel;
-					*_idx_col++ = ln * _g.ng() + ige;;
+					_idx_col[nnz] = ln * _g.ng() + ige;;
+                    ++nnz;
 				}
 			}
 
-			_idx_row[l*_g.ng() + ige + 1] = nel;
+            _rowptr[l * _g.ng() + ige + 1] = nnz;
 		}
 	}
 }
 
 int CSRSolver::countElements()
 {
-	int cnt = _g.nxyz()*_g.ng2(); //the number of diagonal elements
+	int nnz = _g.nxyz()*_g.ng2(); //the number of diagonal elements
 
-	for (size_t l = 0; l < _g.nxyz(); l++)
+	for (int l = 0; l < _g.nxyz(); l++)
 	{
-		for (size_t idir = 0; idir < NDIRMAX; idir++)
+		for (int idir = 0; idir < NDIRMAX; idir++)
 		{
-			for (size_t lr = 0; lr < LR; lr++)
+			for (int lr = 0; lr < LR; lr++)
 			{
 				int ln = _g.neib(lr, idir, l);
 
 				if (ln >= 0) {
-					cnt += cnt*_g.ng();
+					nnz += _g.ng();
 				}
 			}
 		}
 	}
 
-	return cnt;
+	return nnz;
 }
+

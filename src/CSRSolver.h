@@ -5,11 +5,20 @@
 class CSRSolver : public Managed
 {
 protected:
+    int _n;
 	int _nnz;
-	int* _idx_row;
+	int* _rowptr;
 	int* _idx_col;
+    int * _idx_diag;
+public:
+    const int& idxdiag(const int& idx_row) {
+        return _idx_diag[idx_row];
+    };
 
-	double* _a;
+protected:
+
+
+    double* _a;
 	Geometry _g;
 
 public:
@@ -17,8 +26,8 @@ public:
 	virtual ~CSRSolver();
 
 	virtual void solve(double* b, double* x) = 0;
-	const int* indexRow() { return _idx_row; };
-	const int& indexRow(const int& idx_row) { return _idx_row[idx_row]; };
+	const int* rowptr() { return _rowptr; };
+	const int& rowptr(const int& idx_row) { return _rowptr[idx_row]; };
 	const int* indexCol() { return _idx_col; };
 	const int& nnz() { return _nnz; };
 
