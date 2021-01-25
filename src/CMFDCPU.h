@@ -5,16 +5,17 @@
 class CMFDCPU : public CMFD {
 
 private:
-
+    CSRSolver* _ls;
 public:
     CMFDCPU(Geometry &g, CrossSection &x);
 
     virtual ~CMFDCPU();
 
     void upddtil() override;
-    void upddhat(double* flux, float* jnet) override;
+    void upddhat(double* flux, double* jnet) override;
     void setls() override;
     void updls(const double& reigvs);
+    void updjnet(double* flux, double* jnet);
 
     void setls(const int &l);
     void updls(const int& l, const double& reigvs);

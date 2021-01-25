@@ -31,13 +31,13 @@ public:
     __host__ CrossSection(const int& ng, const int& nxyz) {
         _ng = ng;
         _nxyz = nxyz;
-        _xsnf = new XS_PRECISION[_ng*_nxyz]();
-        _xsdf = new XS_PRECISION[_ng*_nxyz]();
-        _xstf = new XS_PRECISION[_ng*_nxyz]();
-        _xskf = new XS_PRECISION[_ng*_nxyz]();
-        _chif = new XS_PRECISION[_ng*_nxyz]();
-        _xssf = new XS_PRECISION[_ng*_ng*_nxyz]();
-        _xsadf = new XS_PRECISION[_ng * _nxyz]();
+        _xsnf = new XS_PRECISION[_ng * _nxyz]{};
+        _xsdf = new XS_PRECISION[_ng*_nxyz]{};
+        _xstf = new XS_PRECISION[_ng*_nxyz]{};
+        _xskf = new XS_PRECISION[_ng*_nxyz]{};
+        _chif = new XS_PRECISION[_ng*_nxyz]{};
+        _xssf = new XS_PRECISION[_ng*_ng*_nxyz]{};
+        _xsadf = new XS_PRECISION[_ng * _nxyz]{};
     };
 
     __host__ virtual ~CrossSection() {

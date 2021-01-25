@@ -3,6 +3,7 @@
 #include "Geometry.h"
 #include "CrossSection.h"
 
+#define NODAL_PRECISION double
 
 #define m011   0.666666667
 #define m022   0.4
@@ -42,33 +43,33 @@ protected:
     XS_PRECISION* _xssf;
     XS_PRECISION* _xsadf;
 
-    float* _trlcff0;
-    float* _trlcff1;
-    float* _trlcff2;
-    float* _eta1;
-    float* _eta2;
-    float* _mu;
-    float* _tau;
+    NODAL_PRECISION* _trlcff0;
+    NODAL_PRECISION* _trlcff1;
+    NODAL_PRECISION* _trlcff2;
+    NODAL_PRECISION* _eta1;
+    NODAL_PRECISION* _eta2;
+    NODAL_PRECISION* _mu;
+    NODAL_PRECISION* _tau;
 
 
-    float* _m260;
-    float* _m251;
-    float* _m253;
-    float* _m262;
-    float* _m264;
+    NODAL_PRECISION* _m260;
+    NODAL_PRECISION* _m251;
+    NODAL_PRECISION* _m253;
+    NODAL_PRECISION* _m262;
+    NODAL_PRECISION* _m264;
 
-    float* _diagDI;
-    float* _diagD;
-    float* _matM;
-    float* _matMI;
-    float* _matMs;
-    float* _matMf;
+    NODAL_PRECISION* _diagDI;
+    NODAL_PRECISION* _diagD;
+    NODAL_PRECISION* _matM;
+    NODAL_PRECISION* _matMI;
+    NODAL_PRECISION* _matMs;
+    NODAL_PRECISION* _matMf;
 
-    float* _dsncff2;
-    float* _dsncff4;
-    float* _dsncff6;
+    NODAL_PRECISION* _dsncff2;
+    NODAL_PRECISION* _dsncff4;
+    NODAL_PRECISION* _dsncff6;
 
-    float* _jnet;
+    NODAL_PRECISION* _jnet;
     double* _flux;
     double _reigv;
 public:
@@ -81,13 +82,13 @@ public:
     __host__  virtual ~Nodal();
 
     __host__ virtual void init() =0 ;
-    __host__ virtual void reset(CrossSection& xs, double& reigv, float* jnet, double* phif) = 0;
-    __host__ virtual void drive(float* jnet) = 0;
+    __host__ virtual void reset(CrossSection& xs, double& reigv, NODAL_PRECISION* jnet, double* phif) = 0;
+    __host__ virtual void drive(NODAL_PRECISION* jnet) = 0;
 
 
 	__host__ __device__ void updateConstant(const int& lk);
     __host__ __device__ void updateMatrix(const int& lk);
-    __host__ __device__ void trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2);
+    __host__ __device__ void trlcffbyintg(NODAL_PRECISION* avgtrl3, NODAL_PRECISION* hmesh3, NODAL_PRECISION& trlcff1, NODAL_PRECISION& trlcff2);
     __host__ __device__ void caltrlcff0(const int& lk);
     __host__ __device__ void caltrlcff12(const int& lk);
     __host__ __device__ void calculateEven(const int& lk);

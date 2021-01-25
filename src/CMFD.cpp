@@ -1,17 +1,15 @@
 ﻿#include "CMFD.h"
-#include "SuperLUSolver.h"
+
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define jnet(ig, ls)      (jnet[(ls)*_g.ng() + ig])
 
 CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
-    _ls = new SuperLUSolver(g);
-
-    _dtil = new float[_g.nsurf()*_g.ng()];
-    _dhat = new float[_g.nsurf()*_g.ng()];
-    _diag = new float[_g.nxyz()*_g.ng2()];
-    _cc = new float[_g.nxyz()*_g.ng()*NEWSBT];
-    _src = new double[_g.nxyz()*_g.ng()];
+    _dtil = new double[_g.nsurf() * _g.ng()]{};
+    _dhat = new double[_g.nsurf() * _g.ng()]{};
+    _diag = new double[_g.nxyz() * _g.ng2()]{};
+    _cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
+    _src = new double[_g.nxyz() * _g.ng()]{};
 }
 
 CMFD::~CMFD() {
@@ -43,7 +41,7 @@ void CMFD::upddtil(const int& ls)
 	}
 }
 
-void CMFD::upddhat(const int &ls, double* flux, float* jnet) {
+void CMFD::upddhat(const int &ls, double* flux, double* jnet) {
     int ll = _g.lklr(LEFT,ls);
     int lr = _g.lklr(RIGHT,ls);
     int idirl = _g.idirlr(LEFT,ls);
@@ -52,13 +50,13 @@ void CMFD::upddhat(const int &ls, double* flux, float* jnet) {
     for (int ig = 0; ig < _g.ng(); ig++)
     {
         if(ll < 0) {
-            float jnet_fdm =-dtil(ig,ls)*(flux(ig,lr));
+            double jnet_fdm =-dtil(ig,ls)*(flux(ig,lr));
             dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,lr));
         } else if (lr < 0) {
-            float jnet_fdm =-dtil(ig,ls)*(-flux(ig,ll));
+            double jnet_fdm =-dtil(ig,ls)*(-flux(ig,ll));
             dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,ll));
         } else {
-            float jnet_fdm =-dtil(ig,ls)*(flux(ig,lr)-flux(ig,ll));
+            double jnet_fdm =-dtil(ig,ls)*(flux(ig,lr)-flux(ig,ll));
             dhat(ig,ls) = (jnet_fdm - jnet(ig,ls)) / (flux(ig,lr)+flux(ig,ll));
         }
     }

@@ -25,6 +25,8 @@ public:
 
 public:
     void solve(double *b, double *x) override;
+    void prepare() override;
+
 };
 
 

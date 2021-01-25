@@ -12,8 +12,8 @@ SuperLUSolver::SuperLUSolver(Geometry &g) : CSRSolver(g) {
 
     set_default_options(&_slu_opt);
 
-    _perm_c = new int[_n]{};
-    _perm_r = new int[_n]{};
+    //_perm_c = new int[_n]{};
+    //_perm_r = new int[_n]{};
     if (!(_perm_c = intMalloc(_n))) ABORT("Malloc fails for perm_c[].");
     if (!(_perm_r = intMalloc(_n))) ABORT("Malloc fails for perm_r[].");
 
@@ -46,5 +46,9 @@ void SuperLUSolver::solve(double *b, double *x) {
 //    memcpy(((NCformat *) _slu_b.Store)->nzval, _x, sizeof(double) * _n);
 //    dgssv(&_slu_opt, &_slu_a, _perm_c, _perm_r, &_slu_l, &_slu_u, &_slu_b, &_slu_stat, &info);
 
+}
+
+void SuperLUSolver::prepare()
+{
 }
 

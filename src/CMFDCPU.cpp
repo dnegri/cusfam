@@ -1,6 +1,5 @@
-//
-// Created by JOO IL YOON on 2021/01/21.
-//
+#include "MKLSolver.h"
+#include "SuperLUSolver.h"
 
 #include "CMFDCPU.h"
 
@@ -10,6 +9,7 @@
 
 
 CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
+    _ls = new SuperLUSolver(g);
 
 }
 
@@ -23,7 +23,7 @@ void CMFDCPU::upddtil() {
     }
 }
 
-void CMFDCPU::upddhat(double* flux, float* jnet) {
+void CMFDCPU::upddhat(double* flux, double* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
@@ -34,6 +34,7 @@ void CMFDCPU::setls() {
     for (int l = 0; l < _g.nxyz(); ++l) {
         setls(l);
     }
+    _ls->prepare();
 }
 
 void CMFDCPU::setls(const int &l) {
@@ -65,12 +66,22 @@ void CMFDCPU::setls(const int &l) {
         }
     }
 
+
 }
 
 void CMFDCPU::updls(const double &reigvs) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         updls(l, reigvs);
     }
+    _ls->prepare();
+}
+
+void CMFDCPU::updjnet(double* flux, double* jnet)
+{
+    for (int ls = 0; ls < _g.nsurf(); ++ls) {
+        CMFD::updjnet(ls, flux, jnet);
+    }
+
 }
 
 void CMFDCPU::updls(const int &l, const double &reigvs) {
@@ -100,7 +111,7 @@ double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, do
 
     for (size_t l = 0; l < _g.nxyz(); l++) {
         double psid = psi(l);
-        psi(l) = _x.xsnf(1, l) * flux(1, l) + _x.xsnf(2, l) * flux(2, l);
+        psi(l) = _x.xsnf(0, l) * flux(0, l) + _x.xsnf(1, l) * flux(1, l);
         psi(l) = psi(l) * _g.vol(l);
 
         double err = psi(l) - psid;
@@ -122,11 +133,12 @@ double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, do
             sumf += psi(l);
             summ += psi(l) * reigvs;
         }
+        eigv = sumf / summ;
     } else {
         double gamma = gammad / gamman;
         eigv = 1 / (reigv * gamma + (1 - gamma) * reigvs);
-        reigv = 1 / eigv;
     }
+    reigv = 1 / eigv;
 
     errl2 = sqrt(errl2 / gammad);
     double erreig = abs(eigv - eigvd);;
@@ -198,7 +210,7 @@ void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
 
         double resi = residual(reigv, reigvs, flux, psi);
 
-        if (icmfd == 0) resid0 = resi;
+        if (iout == 0) resid0 = resi;
         double relresid = resi / resid0;
 
         int negative = 0;

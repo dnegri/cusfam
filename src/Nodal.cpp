@@ -139,10 +139,10 @@ __host__ __device__ void Nodal::updateMatrix(const int& lk)
     for (size_t idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
 
-        float tempz[2][2] = {};
+        NODAL_PRECISION tempz[2][2] = {};
 
         for (size_t igd = 0; igd < ng(); igd++) {
-            float tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
+            NODAL_PRECISION tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
 
             tempz[igd][igd] = tempz[igd][igd] + m231;
 
@@ -166,11 +166,11 @@ __host__ __device__ void Nodal::updateMatrix(const int& lk)
     }
 }
 
-__host__ __device__ void Nodal::trlcffbyintg(float* avgtrl3, float* hmesh3, float& trlcff1, float& trlcff2)
+__host__ __device__ void Nodal::trlcffbyintg(NODAL_PRECISION* avgtrl3, NODAL_PRECISION* hmesh3, NODAL_PRECISION& trlcff1, NODAL_PRECISION& trlcff2)
 {
-    float sh[4];
+    NODAL_PRECISION sh[4];
 
-    float rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
+    NODAL_PRECISION rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
         (hmesh3[CENTER] + hmesh3[RIGHT])));
     sh[0] = (2 * hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[LEFT] + hmesh3[CENTER]);
     sh[1] = hmesh3[LEFT] + hmesh3[CENTER];
@@ -197,7 +197,7 @@ __host__ __device__ void Nodal::caltrlcff0(const int& lk)
 {
     int lkd0 = lk * NDIRMAX;
 
-    float avgjnet[NDIRMAX];
+    NODAL_PRECISION avgjnet[NDIRMAX];
 
     for (size_t ig = 0; ig < ng(); ig++) {
         for (size_t idir = 0; idir < NDIRMAX; idir++) {
@@ -223,8 +223,8 @@ __host__ __device__ void Nodal::caltrlcff12(const int& lk) {
         int lkr = neib(RIGHT, idir, lk);
 
         for (int ig = 0; ig < ng(); ig++) {
-            float avgtrl3[LRC]{};
-            float hmesh3[LRC]{};
+            NODAL_PRECISION avgtrl3[LRC]{};
+            NODAL_PRECISION hmesh3[LRC]{};
             hmesh3[CENTER] = hmesh(idir, lk);
             avgtrl3[CENTER] = trlcff0(ig, lkd);
 
@@ -265,7 +265,7 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
 
     for (size_t idir = 0; idir < NDIRMAX; idir++) {
         auto lkd = lkd0 + idir;
-        float at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
+        NODAL_PRECISION at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
         for (size_t igd = 0; igd < ng(); igd++) {
             rm4464[igd] = m044 / m264(igd, lkd);
@@ -332,10 +332,10 @@ __host__ __device__ void Nodal::calculateJnet1n(const int& ls, const int& lr, co
     int sgn = 1;
     if (lr == RIGHT) sgn = -1;
 
-    float diagDj[2]{};
+    NODAL_PRECISION diagDj[2]{};
 
-    float a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
-    float b1[2], b2[2];
+    NODAL_PRECISION a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
+    NODAL_PRECISION b1[2], b2[2];
 
     //1, 1
     for (size_t ige = 0; ige < ng(); ige++) {
@@ -405,7 +405,7 @@ __host__ __device__ void Nodal::calculateJnet1n(const int& ls, const int& lr, co
         }
     }
 
-    float a[2][2] = { 0.0 };
+    NODAL_PRECISION a[2][2] = { 0.0 };
     for (size_t ige = 0; ige < ng(); ige++) {
         for (size_t igs = 0; igs < ng(); igs++) {
             a[igs][ige] = a13[ige] * a22[igs][ige] - a11[igs][ige] * a32[igs];
@@ -424,9 +424,9 @@ __host__ __device__ void Nodal::calculateJnet1n(const int& ls, const int& lr, co
         b1[ige] = b1[ige] - (a11[0][ige] * b2[0] + a11[1][ige] * b2[1]);
     }
 
-    float oddcff[3][2];
+    NODAL_PRECISION oddcff[3][2];
 
-    float rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+    NODAL_PRECISION rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
     a11[0][0] = rdet * a[1][1];
     a11[1][0] = -rdet * a[1][0];
     a11[0][1] = -rdet * a[0][1];
@@ -464,7 +464,7 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
     int lkdl = lkl * NDIRMAX + idirl;
     int lkdr = lkr * NDIRMAX + idirr;
 
-    float adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
+    NODAL_PRECISION adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
 
     for (size_t ig = 0; ig < ng(); ig++) {
         adf[ig][LEFT] = xsadf(ig, lkl);
@@ -528,7 +528,7 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
         tempz[1][1] * zeta1[1][1];
 
 
-    float bcc[2], vec1g[2];
+    NODAL_PRECISION bcc[2], vec1g[2];
 
     for (size_t ig = 0; ig < ng(); ig++) {
         bcc[ig] =
@@ -551,7 +551,7 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
     mat1g[0][1] = -rdet * mat1g[0][1];
     mat1g[1][1] = rdet * tmp;
 
-    float oddcff[3][2];
+    NODAL_PRECISION oddcff[3][2];
 
     oddcff[1][0] = zeta2[0] - (zeta1[0][0] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
         + zeta1[1][0] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));

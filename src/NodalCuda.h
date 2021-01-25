@@ -14,7 +14,7 @@ public:
 	__host__ virtual ~NodalCuda();
 
 	__host__ void init();
-	__host__ void reset(CrossSection& xs, double& reigv, float* jnet, double* phif);
-	__host__ void drive(float* jnet);
+	__host__ void reset(CrossSection& xs, double& reigv, NODAL_PRECISION* jnet, double* phif);
+	__host__ void drive(NODAL_PRECISION* jnet);
 };
 

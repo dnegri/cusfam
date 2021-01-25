@@ -32,6 +32,11 @@ interface
     subroutine runSANM2N(jnet) bind(C, name="runSANM2N")
     real        :: jnet(*)
     end subroutine
+    
+    subroutine runCMFD(reigv, psi, jnet, phif) bind(C, name="runCMFD")
+        real        :: reigv, psi(*), jnet(*), phif(*)
+    end subroutine
+    
 end interface
 
 

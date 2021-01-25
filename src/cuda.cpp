@@ -3,13 +3,14 @@
 #include "Geometry.h"
 #include "NodalCuda.h"
 #include "NodalCPU.h"
+#include "CMFDCPU.h"
 
 Geometry * g; 
 NodalCuda * sanm2n;
 NodalCPU* nodal_cpu;
 CrossSection* xs;
 
-float* sfam_jnet;
+NODAL_PRECISION* sfam_jnet;
 double* sfam_flux;
 double sfam_reigv;
 
@@ -38,7 +39,7 @@ extern "C" void initGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* 
 {
 	g = new Geometry();
 	g->init(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh);
-	sfam_jnet = new float[g->nsurf() * g->ng()];
+	sfam_jnet = new NODAL_PRECISION[g->nsurf() * g->ng()];
 	sfam_flux = new double[g->nxyz() * g->ng()];
 
 }
@@ -184,4 +185,27 @@ extern "C" void runSANM2N(double* jnet)
 			}
 		}
 	}
+}
+
+extern "C" void runCMFD(double* reigv_, double* psi, double* phif, double* jnet)
+{
+	float errl2=1.0;
+	CMFDCPU cmfd(*g, *xs);
+	cmfd.setNcmfd(5);
+	cmfd.setEpsl2(1.0E-5);
+	cmfd.setEshift(0.00);
+
+	NodalCPU nodal(*g, *xs);
+	cmfd.upddtil();
+	for (int i = 0; i < 50; ++i) {
+		cmfd.setls();
+		cmfd.drive(*reigv_, phif, psi, errl2);
+		cmfd.updjnet(phif, jnet);
+		nodal.reset(*xs, *reigv_, jnet, phif);
+		nodal.drive(jnet);
+		cmfd.upddhat(phif, jnet);
+		//if (i > 3 && errl2 < 1E-6) break;
+	}
+
+	fflush(stdout);
 }

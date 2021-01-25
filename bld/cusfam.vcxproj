@@ -48,11 +48,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WIN64;_MKL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir);D:\codes\vs-superlu-master\src\SuperLU\SRC</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -118,6 +119,7 @@
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
     <ClInclude Include="..\src\sanm2n.h" />
+    <ClInclude Include="..\src\SuperLUSolver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\CMFD.cpp" />
@@ -128,6 +130,7 @@
     <ClCompile Include="..\src\cuda.cpp" />
     <ClCompile Include="..\src\MKLSolver.cpp" />
     <ClCompile Include="..\src\NodalCPU.cpp" />
+    <ClCompile Include="..\src\SuperLUSolver.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

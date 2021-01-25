@@ -9,15 +9,14 @@ class CMFD : public Managed {
 protected:
     Geometry& _g;
     CrossSection& _x;
-    CSRSolver* _ls;
 
 	int _ng;
 	int _ncmfd;
 
-	float* _dtil;
-	float* _dhat;
-	float* _diag;
-	float* _cc;
+	double* _dtil;
+    double* _dhat;
+    double* _diag;
+    double* _cc;
 	double* _src;
 
 public:
@@ -38,17 +37,18 @@ public:
     __host__ virtual ~CMFD();
 
     __host__ __device__ virtual void upddtil()=0;
-    __host__ __device__ virtual void upddhat(double* flux, float* jnet)=0;
+    __host__ __device__ virtual void upddhat(double* flux, double* jnet)=0;
     __host__ __device__ virtual void setls()=0;
+    __host__ __device__ virtual void updjnet(double* flux, double* jnet)=0;
 
 	__host__ __device__ void upddtil(const int& ls);
-    __host__ __device__ void upddhat(const int& ls, double* flux, float* jnet);
+    __host__ __device__ void upddhat(const int& ls, double* flux, double* jnet);
     __host__ __device__ void setls(const int& l);
 
-    __host__ __device__ float& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
-    __host__ __device__ float& dhat(const int& ig, const int& ls) {return _dhat[ls*_g.ng()+ig];};
-    __host__ __device__ float& diag(const int& igs, const int& ige, const int& l) {return _diag[l*_g.ng2()+ige*_g.ng()+igs];};
-    __host__ __device__ float& cc(const int& lr,const int& idir, const int& ig, const int& l) {
+    __host__ __device__ double& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
+    __host__ __device__ double& dhat(const int& ig, const int& ls) {return _dhat[ls*_g.ng()+ig];};
+    __host__ __device__ double& diag(const int& igs, const int& ige, const int& l) {return _diag[l*_g.ng2()+ige*_g.ng()+igs];};
+    __host__ __device__ double& cc(const int& lr,const int& idir, const int& ig, const int& l) {
         return _cc[l*_g.ng()*NDIRMAX*LR+ig*NDIRMAX*LR+idir*LR+lr];
     };
     __host__ __device__ double& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
@@ -70,4 +70,26 @@ public:
 
         return ab;
     };
+
+    __host__ __device__ void updjnet(const int& ls, const double* flux, double* jnet) {
+        int ll = _g.lklr(LEFT, ls);
+        int lr = _g.lklr(RIGHT, ls);
+        int idirl = _g.idirlr(LEFT, ls);
+        int idirr = _g.idirlr(RIGHT, ls);
+
+        for (int ig = 0; ig < _g.ng(); ig++)
+        {
+            if (ll < 0) {
+                jnet[ls*_g.ng()+ig] = -(dtil(ig, ls) + dhat(ig, ls)) * flux[lr*_g.ng()+ig];
+            }
+            else if (lr < 0) {
+                jnet[ls * _g.ng() + ig] = (dtil(ig, ls) - dhat(ig, ls)) * flux[ll * _g.ng() + ig];
+            }
+            else {
+                jnet[ls * _g.ng() + ig] = -dtil(ig, ls) * (flux[lr * _g.ng() + ig] - flux[ll * _g.ng() + ig])
+                                          -dhat(ig, ls) * (flux[lr * _g.ng() + ig] + flux[ll * _g.ng() + ig]);
+            }
+        }
+
+    }
 };
