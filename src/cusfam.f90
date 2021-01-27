@@ -4,32 +4,28 @@ module cusfam
     
     
 interface
-    subroutine setBoundaryCondtition(symopt, symang, albedo) bind(C,name="setBoundaryCondtition")
+    subroutine initCudaGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh, symopt, symang, albedo) bind(C,name="initGudaGeometry")
         use iso_c_binding
         integer         :: symopt, symang
         real            :: albedo(*)
-    end subroutine
-
-    subroutine initGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh) bind(C,name="initGeometry")
-        use iso_c_binding
         integer         :: ng, nxy, nz, nx, ny, nsurf
         integer         :: nxs(ny), nxe(ny), nys(nx), nye(nx), neibr(4,nxy), ijtol(nx,ny)
-        real            :: hmesh(3+1, nxy, nz) !hmesh has 0-th index 
+        real            :: hmesh(3, nxy, nz) 
     end subroutine
     
-    subroutine initCrossSection(ng, nxy, nz, xsdf, xstf, xsnf, xssf, xschif, xsadf) bind(C, name="initCrossSection")
+    subroutine initCudaXS(ng, nxy, nz, xsdf, xstf, xsnf, xssf, xschif, xsadf) bind(C, name="initCudaXS")
         integer              :: ng, nxy, nz    
         real  :: xsdf(ng, nxy, nz), xstf(ng, nxy, nz), xsnf(ng, nxy, nz), &
                 xssf(ng, ng, nxy, nz), xschif(ng, nxy, nz), xsadf(ng, nxy, nz)
     end subroutine
     
-    subroutine initSANM2N() bind(C, name="initSANM2N")
+    subroutine initCudaSolver() bind(C, name="initCudaSolver")
     end subroutine
-    subroutine resetSANM2N(reigv, jnet, phif) bind(C, name="resetSANM2N")
+    subroutine updateCuda(reigv, jnet, phif) bind(C, name="updateCuda")
         real        :: reigv, jnet(*), phif(*)
     end subroutine
     
-    subroutine runSANM2N(jnet) bind(C, name="runSANM2N")
+    subroutine runCuda(jnet) bind(C, name="runCuda")
     real        :: jnet(*)
     end subroutine
     

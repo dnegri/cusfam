@@ -34,7 +34,7 @@ extern "C" void setBoundaryCondtition(int* symopt, int* symang, double* albedo)
 }
 
 
-extern "C" void initGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int*nxe, 
+extern "C" void initCudaGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int*nxe, 
 							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, double* hmesh)
 {
 	g = new Geometry();
@@ -44,13 +44,13 @@ extern "C" void initGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* 
 
 }
 
-extern "C" void initCrossSection(int* ng, int* nxy, int* nz, double*xsdf, double* xstf, double* xsnf, 
+extern "C" void initCudaXS(int* ng, int* nxy, int* nz, double*xsdf, double* xstf, double* xsnf, 
 	double* xssf, double* xschif, double* xsadf)
 {
 	xs = new CrossSection(g->ng(), g->nxyz(), xsdf, xstf, xsnf, xssf, xschif, xsadf);
 }
 
-extern "C" void initSANM2N()
+extern "C" void initCudaSolver()
 {
 	initCuda();
 
@@ -62,7 +62,7 @@ extern "C" void initSANM2N()
 	nodal_cpu->init();
 }
 
-extern "C" void resetSANM2N(double* reigv_, double* jnet, double* phif)
+extern "C" void updateCuda(double* reigv_, double* jnet, double* phif)
 {
 	sfam_reigv = *reigv_;
 
@@ -118,7 +118,7 @@ extern "C" void resetSANM2N(double* reigv_, double* jnet, double* phif)
 	sanm2n->reset(*xs, sfam_reigv, sfam_jnet, sfam_flux);
 }
 
-extern "C" void runSANM2N(double* jnet)
+extern "C" void runCuda(double* jnet)
 {
 	nodal_cpu->drive(sfam_jnet);
 	sanm2n->drive(sfam_jnet);
