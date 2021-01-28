@@ -28,17 +28,13 @@ void initCuda() {
 		deviceProp.multiProcessorCount, deviceProp.major, deviceProp.minor);
 }
 
-extern "C" void setBoundaryCondtition(int* symopt, int* symang, double* albedo)
-{
-	g->setBoudnaryCondition(symopt, symang, albedo);
-}
-
-
 extern "C" void initCudaGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int*nxe, 
-							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, double* hmesh)
+							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, double* hmesh,
+							int* symopt, int* symang, double* albedo)
 {
 	g = new Geometry();
 	g->init(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh);
+	g->setBoudnaryCondition(symopt, symang, albedo);
 	sfam_jnet = new NODAL_PRECISION[g->nsurf() * g->ng()];
 	sfam_flux = new double[g->nxyz() * g->ng()];
 

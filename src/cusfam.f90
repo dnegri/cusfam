@@ -4,7 +4,7 @@ module cusfam
     
     
 interface
-    subroutine initCudaGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh, symopt, symang, albedo) bind(C,name="initGudaGeometry")
+    subroutine initCudaGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh, symopt, symang, albedo) bind(C,name="initCudaGeometry")
         use iso_c_binding
         integer         :: symopt, symang
         real            :: albedo(*)
