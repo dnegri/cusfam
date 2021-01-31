@@ -104,7 +104,7 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 			for (size_t idir = 0; idir < NDIRMAX; idir++)
 			{
 				// in hemsh_, the zero value in 0th index.
-				hmesh(idir, lk) = hmesh_[lkd4 + idir + 1];
+				hmesh(idir, lk) = hmesh_[lkd4 + idir];
 			}
 		}
 	}
