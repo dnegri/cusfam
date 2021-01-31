@@ -20,12 +20,15 @@ file(GLOB SOURCES
         ../src/CMFD*
         ../src/CSRSolver.*
         ../src/SuperLUSolver.*
-#        ../src/BICG*
+        ../src/Feedback.*
+        ../src/SimpleCore.*
+        ../src/myblas.h
+        ../src/BICG*
         )
 #file(GLOB eigen ../src/eigen/*)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+include_directories(/opt/homebrew/include)
+link_directories(/opt/homebrew/lib)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
  

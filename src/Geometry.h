@@ -43,6 +43,8 @@ private:
 	int	_nxy;
 	int	_nz;
 	int	_nxyz;
+    int	_ngxy;
+    int	_ngxyz;
 
 	int _nx;
 	int _ny; 
@@ -80,6 +82,8 @@ public:
 	__host__ __device__ inline int& nxy() { return _nxy; };
 	__host__ __device__ inline int& nz() { return _nz; };
 	__host__ __device__ inline int& nxyz() { return _nxyz; };
+    __host__ __device__ inline int& ngxyz() { return _ngxyz; };
+    __host__ __device__ inline int& ngxy() { return _ngxy; };
 	__host__ __device__ inline int& nsurf() { return _nsurf; };
 	__host__ __device__ inline int& nx() { return _nx; };
 	__host__ __device__ inline int& ny() { return _ny; };

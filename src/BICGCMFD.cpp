@@ -1,104 +1,75 @@
-#ifdef _MKL
-#include "MKLSolver.h"
-#endif
+//
+// Created by JOO IL YOON on 2021/01/31.
+//
 
-#include "SuperLUSolver.h"
-
-#include "CMFDCPU.h"
+#include "BICGCMFD.h"
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
 #define psi(l)  (psi[(l)])
 
-
-CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
-    _ls = new MKLSolver(g);
-
+BICGCMFD::BICGCMFD(Geometry &g, CrossSection &x) : CMFD(g, x) {
+    _ls = new BICGSolver(g);
+    _eshift_diag = new double [g.ng2()*g.nxyz()];
+    _epsbicg = 1.E-4;
+    _nmaxbicg = 3;
 }
 
-CMFDCPU::~CMFDCPU() {
-
+BICGCMFD::~BICGCMFD() {
+    delete _ls;
+    delete[] _eshift_diag;
 }
 
-void CMFDCPU::upddtil() {
+
+void BICGCMFD::upddtil() {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddtil(ls);
     }
 }
 
-void CMFDCPU::upddhat(double* flux, double* jnet) {
+void BICGCMFD::upddhat(double* flux, double* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
 
 }
 
-void CMFDCPU::setls() {
+void BICGCMFD::setls() {
     for (int l = 0; l < _g.nxyz(); ++l) {
         setls(l);
     }
-    _ls->prepare();
+    _ls->facilu(_diag, _cc);
 }
 
-void CMFDCPU::setls(const int &l) {
+void BICGCMFD::setls(const int &l) {
     CMFD::setls(l);
-
-    int idxrow = l * _g.ng();
-
-    for (int ige = 0; ige < _g.ng(); ++ige) {
-        int irow = _ls->rowptr(idxrow + ige);
-
-        for (int idir = NDIRMAX - 1; idir >= 0; --idir) {
-            int ln = _g.neib(LEFT, idir, l);
-
-            if (ln >= 0 && _ls->fac(LEFT, idir, l) != 0) {
-                _ls->a(irow++) = _ls->fac(LEFT, idir, l) * cc(LEFT, idir, ige, l);
-            }
-        }
-
-        for (int igs = 0; igs < _g.ng(); igs++) {
-            _ls->a(irow++) = diag(igs, ige, l);
-        }
-
-        for (int idir = 0; idir < NDIRMAX; idir++) {
-            int ln = _g.neib(RIGHT, idir, l);
-
-            if (ln >= 0 && _ls->fac(RIGHT, idir, l) != 0) {
-                _ls->a(irow++) = _ls->fac(RIGHT, idir, l) * cc(RIGHT, idir, ige, l);
-            }
-        }
-    }
-
-
 }
 
-void CMFDCPU::updls(const double &reigvs) {
+void BICGCMFD::updls(const double &reigvs) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         updls(l, reigvs);
     }
-    _ls->prepare();
+    _ls->facilu(_diag, _cc);
 }
 
-void CMFDCPU::updjnet(double* flux, double* jnet)
+void BICGCMFD::updjnet(double* flux, double* jnet)
 {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::updjnet(ls, flux, jnet);
     }
-
 }
 
-void CMFDCPU::updls(const int &l, const double &reigvs) {
+void BICGCMFD::updls(const int &l, const double &reigvs) {
     int idxrow = l * _g.ng();
 
     for (int ige = 0; ige < _g.ng(); ++ige) {
-        int idx = _ls->idxdiag(idxrow + ige);
         for (int igs = 0; igs < _g.ng(); ++igs) {
-            _ls->a(idx + igs) = diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
+            eshift_diag(igs,ige,l) = diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
         }
     }
 }
 
-void CMFDCPU::axb(double *flux, double *aflux) {
+void BICGCMFD::axb(double *flux, double *aflux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aflux(ig, l) = CMFD::axb(ig, l, flux);
@@ -106,7 +77,7 @@ void CMFDCPU::axb(double *flux, double *aflux) {
     }
 }
 
-double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, double &reigv, double &reigvs) {
+double BICGCMFD::wiel(const int &icy, double *flux, double *psi, double &eigv, double &reigv, double &reigvs) {
     double errl2 = 0;
 
     double gamman = 0;
@@ -158,7 +129,7 @@ double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, do
 }
 
 
-double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux, double *psi) {
+double BICGCMFD::residual(const double &reigv, const double &reigvs, double *flux, double *psi) {
 
     double reigvdel = reigv - reigvs;
 
@@ -183,7 +154,7 @@ double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux
     return sqrt(r / psi2);
 }
 
-void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
+void BICGCMFD::drive(double &eigv, double *flux, double *psi, float &errl2) {
 
     int icy = 0;
     int icmfd = 0;
@@ -202,14 +173,20 @@ void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
             }
         }
 
-        //solve linear system A*phi = src
-        // update flux
-        _ls->solve(_src, flux);
+        double r20=0.0;
+        _ls->reset(_diag, _cc, flux, _src, r20);
+
+        double r2 = 0.0;
+        for (int iin = 0; iin < _nmaxbicg; ++iin) {
+            //solve linear system A*phi = src
+            _ls->solve(_diag, _cc, r20, flux, r2);
+            if(r2 < _epsbicg) break;
+        }
 
         //wielandt shift
         errl2 = wiel(icy, flux, psi, eigv, reigv, reigvs);
 
-        updls(reigvs);
+        if(reigvs != 0) updls(reigvs);
 
         double resi = residual(reigv, reigvs, flux, psi);
 
@@ -225,13 +202,11 @@ void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
             }
         }
 
-        printf("EIGV : %9.5f , ERRL2 : %12.5E\n", eigv, errl2);
+        printf("EIGV : %9.7f , ERRL2 : %12.5E\n", eigv, errl2);
 
         if (errl2 < _epsl2) break;
 
     }
 }
-
-
 
 
