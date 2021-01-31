@@ -10,6 +10,8 @@ CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
     _diag = new double[_g.nxyz() * _g.ng2()]{};
     _cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
     _src = new double[_g.nxyz() * _g.ng()]{};
+    _eshift = 0.0;
+    _epsl2 = 1.E-5;
 }
 
 CMFD::~CMFD() {

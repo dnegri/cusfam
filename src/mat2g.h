@@ -1,12 +1,30 @@
 #pragma once
 
 
+#define d(i)    d[i]
 #define a(i,j)  a[j*2+i]
 #define b(i,j)  b[j*2+i]
 #define c(i,j)  c[j*2+i]
 
 #define x(i)  x[i]
 #define r(i)  r[i]
+
+
+template <class T>
+void matxdiag2g(T* a, T* d, T* c) {
+    c(0, 0) = a(0, 0) * d(0);
+    c(1, 0) = a(1, 0) * d(1);
+    c(0, 1) = a(0, 1) * d(0);
+    c(1, 1) = a(1, 1) * d(1);
+}
+
+template <class T>
+void diagxmat2g(T* d, T* b, T* c) {
+    c(0, 0) = d(0) * b(0, 0);
+    c(1, 0) = d(0) * b(1, 0);
+    c(0, 1) = d(1) * b(0, 1);
+    c(1, 1) = d(1) * b(1, 1);
+}
 
 template <class T>
 void matxmat2g(T* a, T* b, T* c) {
@@ -32,6 +50,27 @@ void addmat2g(T* a, T* b, T* c) {
     c(1, 1) = a(1, 1) + b(1, 1);
 
 }
+
+template <class T>
+void submat2g(T* a, T* b, T* c) {
+
+    c(0, 0) = a(0, 0) - b(0, 0);
+    c(1, 0) = a(1, 0) - b(1, 0);
+    c(0, 1) = a(0, 1) - b(0, 1);
+    c(1, 1) = a(1, 1) - b(1, 1);
+
+}
+
+template <class T>
+void copyTomat2g(T* a, T* b) {
+
+    b(0, 0) = a(0, 0);
+    b(1, 0) = a(1, 0);
+    b(0, 1) = a(0, 1);
+    b(1, 1) = a(1, 1);
+
+}
+
 
 template <class T>
 void invmat2g(T* a, T* b) {
