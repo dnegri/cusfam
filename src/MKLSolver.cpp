@@ -22,7 +22,7 @@ MKLSolver::MKLSolver(Geometry& g) : CSRSolver(g)
     iparam[10] = 1; // use nonsymmetric permutation and scaling MPS
     iparam[23] = 1; // two-level factorization algorithm to improve scalability on many OpenMP threads (more than eight)
     iparam[27] = 0; // Input arrays (a, x and b) and all internal arrays must be presented in double precision.
-    iparam[33] = 16; // Optimal number of OpenMP threads for conditional numerical reproducibility (CNR) mode.
+    iparam[33] = 1; // Optimal number of OpenMP threads for conditional numerical reproducibility (CNR) mode.
     iparam[34] = 1; // zero - based indexing of columns and rows.
     iparam[36] = 0; // Use CSR format for matrix storage.
 }
@@ -35,6 +35,7 @@ MKLSolver::~MKLSolver()
 void MKLSolver::solve(double* b, double* x)
 {
     int error = 0;
+
 
     int phase = 33;
     pardiso(pt, &_maxfct, &_mnum, &_mtype, &phase, &_n, _a, _rowptr, _idx_col, idum, &_nrhs, iparam, &_msglvl, b, x, &error);
@@ -163,7 +164,16 @@ void MKLSolver::prepare()
     int error=0;
     //Reordering and Symbolic Factorization, This step also allocates all memory that is necessary for the factorization
 
-    int phase = 12; //only reorderingand symbolic factorization
+    int phase = 11; //only reorderingand symbolic factorization
+    pardiso(pt, &_maxfct, &_mnum, &_mtype, &phase, &_n, _a, _rowptr, _idx_col, idum, &_nrhs, iparam, &_msglvl, nullptr, nullptr, &error);
+
+
+    if (error != 0) {
+        printf("ERROR WHILE PREPARING MKL SOLVER : %d\n", error);
+        exit(error);
+    }
+
+    phase = 22; //only reorderingand symbolic factorization
     pardiso(pt, &_maxfct, &_mnum, &_mtype, &phase, &_n, _a, _rowptr, _idx_col, idum, &_nrhs, iparam, &_msglvl, nullptr, nullptr, &error);
 
 

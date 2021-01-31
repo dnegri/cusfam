@@ -193,13 +193,13 @@ extern "C" void runCMFD(double* reigv_, double* psi, double* phif, double* jnet)
 
 	NodalCPU nodal(*g, *xs);
 	cmfd.upddtil();
+	cmfd.setls();
 	for (int i = 0; i < 50; ++i) {
-		cmfd.setls();
 		cmfd.drive(*reigv_, phif, psi, errl2);
-		cmfd.updjnet(phif, jnet);
-		nodal.reset(*xs, *reigv_, jnet, phif);
-		nodal.drive(jnet);
-		cmfd.upddhat(phif, jnet);
+		//cmfd.updjnet(phif, jnet);
+		//nodal.reset(*xs, *reigv_, jnet, phif);
+		//nodal.drive(jnet);
+		//cmfd.upddhat(phif, jnet);
 		//if (i > 3 && errl2 < 1E-6) break;
 	}
 

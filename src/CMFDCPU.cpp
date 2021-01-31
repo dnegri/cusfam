@@ -9,7 +9,7 @@
 
 
 CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
-    _ls = new SuperLUSolver(g);
+    _ls = new MKLSolver(g);
 
 }
 
@@ -48,8 +48,8 @@ void CMFDCPU::setls(const int &l) {
         for (int idir = NDIRMAX - 1; idir >= 0; --idir) {
             int ln = _g.neib(LEFT, idir, l);
 
-            if (ln >= 0) {
-                _ls->a(irow++) = cc(LEFT, idir, ige, l);
+            if (ln >= 0 && _ls->fac(LEFT, idir, l) != 0) {
+                _ls->a(irow++) = _ls->fac(LEFT, idir, l) * cc(LEFT, idir, ige, l);
             }
         }
 
@@ -60,8 +60,8 @@ void CMFDCPU::setls(const int &l) {
         for (int idir = 0; idir < NDIRMAX; idir++) {
             int ln = _g.neib(RIGHT, idir, l);
 
-            if (ln >= 0) {
-                _ls->a(irow++) = cc(RIGHT, idir, ige, l);
+            if (ln >= 0 && _ls->fac(RIGHT, idir, l) != 0) {
+                _ls->a(irow++) = _ls->fac(RIGHT, idir, l) * cc(RIGHT, idir, ige, l);
             }
         }
     }

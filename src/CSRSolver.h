@@ -10,6 +10,7 @@ protected:
 	int* _rowptr;
 	int* _idx_col;
     int * _idx_diag;
+	int* _fac;
     double* _a;
 	Geometry _g;
 
@@ -24,6 +25,7 @@ public:
 	const int& idxdiag(const int& idx_row) { return _idx_diag[idx_row]; };
 	const int* indexCol() { return _idx_col; };
 	const int& nnz() { return _nnz; };
+	int& fac(const int& lr, const int& idir, const int& l) { return _fac[l*NDIRMAX*LR + idir*LR + lr]; };
 
 	double& a(const int& index) { return _a[index]; };
 
