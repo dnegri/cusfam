@@ -24,7 +24,7 @@ int main() {
     int ng=2;
     int nx=2;
     int ny=2;
-    int nz=1000;
+    int nz=2;
     int nxy=3;
     int nxyz = nxy * nz;
     int lsurf = 5*2;
@@ -90,12 +90,12 @@ int main() {
     double reigv = 1.0;
     float errl2 = 1.0;
 
-//    CMFDCPU cmfd(g, xs);
+//    CMFDCPU cmfd(_g, xs);
 //    cmfd.setNcmfd(7);
 //    cmfd.setEpsl2(1.0E-7);
 //    cmfd.setEshift(0.00);
 //
-//    NodalCPU nodal(g, xs);
+//    NodalCPU nodal(_g, xs);
 //    cmfd.upddtil();
 //
 //    for (int i = 0; i < 50; ++i) {

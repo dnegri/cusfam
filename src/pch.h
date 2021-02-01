@@ -95,6 +95,7 @@ __constant__  static const double BIG = 1.E+30;
 
 __constant__  static const double MICRO = 1.E-6;
 __constant__  static const double MILLI = 1.E-3;
+__constant__  static const float KELVIN = 273.15;
 
 __constant__  static const int    NG2 = 2;
 

@@ -69,6 +69,9 @@ private:
 	float* _hmesh;
 	float* _vol;
 
+	int _npinbox;
+
+
 
 public:
 	__host__ Geometry();
@@ -87,6 +90,7 @@ public:
 	__host__ __device__ inline int& nsurf() { return _nsurf; };
 	__host__ __device__ inline int& nx() { return _nx; };
 	__host__ __device__ inline int& ny() { return _ny; };
+    __host__ __device__ inline int& npinbox() { return _npinbox; };
 
 	__host__ __device__ inline int& nxs(const int& j) { return _nxs[j]; };
 	__host__ __device__ inline int& nxe(const int& j) { return _nxe[j]; };
