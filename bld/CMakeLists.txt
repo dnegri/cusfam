@@ -27,6 +27,7 @@ file(GLOB SOURCES
         ../src/SteamTable.*
         ../src/Depletion.*
         ../src/DepletionChain.*
+        ../src/LinearizedChain.*
         )
 #file(GLOB eigen ../src/eigen/*)
 
