@@ -24,6 +24,10 @@ file(GLOB SOURCES
         ../src/SimpleCore.*
         ../src/myblas.h
         ../src/BICG*
+        ../src/SteamTable.*
+        ../src/Depletion.*
+        ../src/DepletionChain.*
+        ../src/LinearizedChain.*
         )
 #file(GLOB eigen ../src/eigen/*)
 

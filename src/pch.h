@@ -95,12 +95,46 @@ __constant__  static const double BIG = 1.E+30;
 
 __constant__  static const double MICRO = 1.E-6;
 __constant__  static const double MILLI = 1.E-3;
+__constant__  static const float KELVIN = 273.15;
 
 __constant__  static const int    NG2 = 2;
 
 using namespace std;
 
 __constant__  static const int    NTHREADSPERBLOCK = 64;
+
+__constant__ static const int MAX_ISOTOPE = 31;
+__constant__ static const int NUM_FISSION = 16;
+__constant__ static const int NUM_YIELD = 7;
+__constant__ static const int NUM_DECAY = 9;
+__constant__ static const int NUM_POISON = 1;
+__constant__ static const int LEN_ISONAME = 5;
+
+__constant__ const char* _ISOTOPE_NAME[MAX_ISOTOPE] = {
+        "U234 ", "U235 ", "U236 ", "U238 ", "NP237",
+        "NP239", "PU238", "PU239", "PU240", "PU241",
+        "PU242", "AM241", "AM242", "AM243", "CM242",
+        "CM244", "POIS ", "SB10 ", "H2O  ", "MAC  ",
+        "PM147", "PS148", "PM148", "PM149", "SM149",
+        "I135 ", "XE145", "XSE  ", "DEL1 ", "DEL2 ",
+        "DEL3"};
+
+
+enum Isotope {
+    U234 , U235 , U236 , U238 , NP237,
+    NP239, PU238, PU239, PU240, PU241,
+    PU242, AM241, AM242, AM243, CM242,
+    CM244, POIS , SB10 , H2O  , MAC  ,
+    PM147, PS148, PM148, PM149, SM149,
+    I135 , XE145, XSE  , DEL1 , DEL2 ,
+    DEL3
+};
+
+
+//  9 - the number of isotopes(pm47, ps48, pm48, pm49, sm, i135, xe, b10, h2o)
+__constant__ static const int NNIS = 9;
+
+static const int ISONIS[]{PM147, PS148, PM148, PM149, SM149, I135, XE145, SB10, H2O};
 
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
