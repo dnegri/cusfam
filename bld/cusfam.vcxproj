@@ -81,7 +81,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_MKL;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir);D:\codes\vs-superlu-master\src\SuperLU\SRC</AdditionalIncludeDirectories>
     </ClCompile>
@@ -110,29 +110,53 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/Nodal.h" />
+    <ClInclude Include="..\src\BICGCMFD.h" />
+    <ClInclude Include="..\src\BICGSolver.h" />
     <ClInclude Include="..\src\CMFD.h" />
     <ClInclude Include="..\src\CMFDCPU.h" />
     <ClInclude Include="..\src\CrossSection.h" />
     <ClInclude Include="..\src\CSRSolver.h" />
+    <ClInclude Include="..\src\CuSFAM.h" />
+    <ClInclude Include="..\src\Depletion.h" />
+    <ClInclude Include="..\src\DepletionChain.h" />
+    <ClInclude Include="..\src\Feedback.h" />
     <ClInclude Include="..\src\Geometry.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
     <ClInclude Include="..\src\helper_string.h" />
+    <ClInclude Include="..\src\mat2g.h" />
     <ClInclude Include="..\src\MKLSolver.h" />
+    <ClInclude Include="..\src\myblas.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
     <ClInclude Include="..\src\sanm2n.h" />
+    <ClInclude Include="..\src\SimpleCore.h" />
+    <ClInclude Include="..\src\Solution.h" />
+    <ClInclude Include="..\src\SteamTable.h" />
     <ClInclude Include="..\src\SuperLUSolver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\BICGCMFD.cpp" />
+    <ClCompile Include="..\src\BICGSolver.cpp" />
     <ClCompile Include="..\src\CMFD.cpp" />
     <ClCompile Include="..\src\CMFDCPU.cpp" />
     <ClCompile Include="..\src\CrossSection.cpp" />
     <ClCompile Include="..\src\CSRSolver.cpp" />
+    <ClCompile Include="..\src\CuSFAM.cpp" />
+    <ClCompile Include="..\src\Depletion.cpp" />
+    <ClCompile Include="..\src\DepletionChain.cpp" />
+    <ClCompile Include="..\src\Feedback.cpp" />
     <ClCompile Include="..\src\Geometry.cpp" />
     <ClCompile Include="..\src\cuda.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\MKLSolver.cpp" />
     <ClCompile Include="..\src\NodalCPU.cpp" />
+    <ClCompile Include="..\src\SimpleCore.cpp" />
+    <ClCompile Include="..\src\Solution.cpp" />
+    <ClCompile Include="..\src\SteamTable.cpp" />
     <ClCompile Include="..\src\SuperLUSolver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\cusfam.f90" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

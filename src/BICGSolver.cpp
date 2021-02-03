@@ -43,29 +43,29 @@
 
 
 BICGSolver::BICGSolver(Geometry &g) : _g(g) {
-    _vr = new double[_g.ng() * _g.nxyz()];
-    _vr0 = new double[_g.ng() * _g.nxyz()];
-    _vp = new double[_g.ng() * _g.nxyz()];
-    _vv = new double[_g.ng() * _g.nxyz()];
-    _vs = new double[_g.ng() * _g.nxyz()];
-    _vt = new double[_g.ng() * _g.nxyz()];
-    _vy = new double[_g.ng() * _g.nxyz()];
-    _vz = new double[_g.ng() * _g.nxyz()];
-    _y1d = new double[_g.ng() * _g.nxyz()];
-    _b1i = new double[_g.ng() * _g.nxyz()];
-    _b01d = new double[_g.ng() * _g.nxyz()];
-    _s1dl = new double[_g.ng() * _g.nxyz()];
-    _b03d = new double[_g.ng() * _g.nxyz()];
-    _s3d = new double[_g.ng() * _g.nxyz()];
+    _vr = new double[_g.ng() * _g.nxyz()]{};
+    _vr0 = new double[_g.ng() * _g.nxyz()]{};
+    _vp = new double[_g.ng() * _g.nxyz()]{};
+    _vv = new double[_g.ng() * _g.nxyz()]{};
+    _vs = new double[_g.ng() * _g.nxyz()]{};
+    _vt = new double[_g.ng() * _g.nxyz()]{};
+    _vy = new double[_g.ng() * _g.nxyz()]{};
+    _vz = new double[_g.ng() * _g.nxyz()]{};
+    _y1d = new double[_g.ng() * _g.nxyz()]{};
+    _b1i = new double[_g.ng() * _g.nxyz()]{};
+    _b01d = new double[_g.ng() * _g.nxyz()]{};
+    _s1dl = new double[_g.ng() * _g.nxyz()]{};
+    _b03d = new double[_g.ng() * _g.nxyz()]{};
+    _s3d = new double[_g.ng() * _g.nxyz()]{};
 
-    _del = new double[_g.ng2() * _g.nxyz()];
-    _ainvd = new double[_g.ng2() * _g.nxyz()];
-    _ainvl = new double[_g.ng2() * _g.nxyz()];
-    _ainvu = new double[_g.ng2() * _g.nxyz()];
-    _au = new double[_g.ng2() * _g.nxyz()];
-    _delinv = new double[_g.ng2() * _g.nxyz()];
-    _al = new double[_g.ng2() * _g.nxyz()];
-    _deliau = new double[_g.ng2() * _g.nxyz()];
+    _del = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvd = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvl = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvu = new double[_g.ng2() * _g.nxyz()]{};
+    _au = new double[_g.ng2() * _g.nxyz()]{};
+    _delinv = new double[_g.ng2() * _g.nxyz()]{};
+    _al = new double[_g.ng2() * _g.nxyz()]{};
+    _deliau = new double[_g.ng2() * _g.nxyz()]{};
 }
 
 BICGSolver::~BICGSolver() {

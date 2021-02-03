@@ -202,7 +202,7 @@ void BICGCMFD::drive(double &eigv, double *flux, double *psi, float &errl2) {
             }
         }
 
-        printf("EIGV : %9.7f , ERRL2 : %12.5E\n", eigv, errl2);
+        printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iout, eigv, errl2, negative);
 
         if (errl2 < _epsl2) break;
 

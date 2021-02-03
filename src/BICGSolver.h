@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Geometry.h"
-#include "blitz/array.h"
-
-using namespace blitz;
 
 class BICGSolver {
 private:

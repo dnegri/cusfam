@@ -249,11 +249,11 @@ public:
     __host__ __device__ inline XS_PRECISION& xdmmicn(const int& ig, const int& ip, const int& iiso, const int& l) { return _xdmmicn[l * _ng * _nptm * _mnucl+ iiso*_ng*_nptm + ip*_ng + ig]; };
     __host__ __device__ inline XS_PRECISION& xdmmics(const int& igs, const int& ige, const int& ip, const int& iiso, const int& l) { return _xdmmics[l * _ng * _ng * _nptm * _mnucl + iiso*_ng*_ng*_nptm + ip *_ng*_ng + ige*_ng + igs]; };
 
-    __host__ __device__ inline XS_PRECISION& xsmic2n(const int& ig, const int& iiso, const int& l) { return _xsmic2n[l * _ng * _mnucl + iiso*_ng + ig]; };
+    __host__ __device__ inline XS_PRECISION& xsmic2n(const int& ig, const int& l) { return _xsmic2n[l * _ng + ig]; };
     __host__ __device__ inline XS_PRECISION& xsmicd (const int& ig, const int& iiso, const int& l) { return _xsmicd [l * _ng * _mnucl + iiso*_ng + ig]; };
     __host__ __device__ inline XS_PRECISION& xsmica (const int& ig, const int& iiso, const int& l) { return _xsmica [l * _ng * _mnucl + iiso*_ng + ig]; };
-    __host__ __device__ inline XS_PRECISION& xsmics (const int& ig, const int& iiso, const int& l) { return _xsmics [l * _ng * _mnucl + iiso*_ng + ig]; };
-    __host__ __device__ inline XS_PRECISION& xsmicf (const int& ig, const int& iiso, const int& l) { return _xsmicf [l * _ng * _mnucl + iiso*_ng + ig]; };
+    __host__ __device__ inline XS_PRECISION& xsmics (const int& igs, const int& ige, const int& iiso, const int& l) { return _xsmics [l * _ng * _ng * _mnucl + iiso * _ng * _ng + ige * _ng + ig]; };
+    __host__ __device__ inline XS_PRECISION& xsmicf (const int& ig, const int& iiso, const int& l) { return _xsmicf [l * _ng * _mnucl + iiso * _ng + ig]; };
     __host__ __device__ inline XS_PRECISION& xsmick (const int& ig, const int& iiso, const int& l) { return _xsmick [l * _ng * _mnucl + iiso*_ng + ig]; };
     __host__ __device__ inline XS_PRECISION& xsmicn (const int& ig, const int& iiso, const int& l) { return _xsmicn [l * _ng * _mnucl + iiso*_ng + ig]; };
 
