@@ -17,7 +17,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -44,6 +44,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IFORT_COMPILER20)compiler\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(IFORT_COMPILER20)compiler\lib\intel64_win;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -59,7 +61,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernnz32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);cudart.lib;cudadevrt.lib;cudart_static.lib;cusfamf.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(CudaToolkitLibDir);D:\codes\cusfam\main\bld\x64\Debug</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -103,12 +106,28 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="../src/pch.h" />
-    <CudaCompile Include="..\src\NodalCuda.cu" />
-    <CudaCompile Include="..\src\sanm2n.cpp" />
     <CudaCompile Include="..\src\Nodal.cpp" />
+    <CudaCompile Include="..\src\BICGCMFD.cpp" />
+    <CudaCompile Include="..\src\BICGSolver.cpp" />
+    <CudaCompile Include="..\src\CMFD.cpp" />
+    <CudaCompile Include="..\src\CMFDCPU.cpp" />
+    <CudaCompile Include="..\src\CrossSection.cpp" />
+    <CudaCompile Include="..\src\CSRSolver.cpp" />
+    <CudaCompile Include="..\src\CuSFAM.cpp" />
+    <CudaCompile Include="..\src\DepletionChain.cpp" />
+    <CudaCompile Include="..\src\Feedback.cpp" />
+    <CudaCompile Include="..\src\Geometry.cpp" />
+    <CudaCompile Include="..\src\cuda.cpp" />
+    <CudaCompile Include="..\src\MKLSolver.cpp" />
+    <CudaCompile Include="..\src\NodalCPU.cpp" />
+    <CudaCompile Include="..\src\NodalCuda.cu" />
+    <CudaCompile Include="..\src\SimpleCore.cpp" />
+    <CudaCompile Include="..\src\Solution.cpp" />
+    <CudaCompile Include="..\src\SteamTable.cpp" />
+    <CudaCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="../src/pch.h" />
     <ClInclude Include="../src/Nodal.h" />
     <ClInclude Include="..\src\BICGCMFD.h" />
     <ClInclude Include="..\src\BICGSolver.h" />
@@ -117,7 +136,6 @@
     <ClInclude Include="..\src\CrossSection.h" />
     <ClInclude Include="..\src\CSRSolver.h" />
     <ClInclude Include="..\src\CuSFAM.h" />
-    <ClInclude Include="..\src\Depletion.h" />
     <ClInclude Include="..\src\DepletionChain.h" />
     <ClInclude Include="..\src\Feedback.h" />
     <ClInclude Include="..\src\Geometry.h" />
@@ -128,35 +146,9 @@
     <ClInclude Include="..\src\myblas.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
-    <ClInclude Include="..\src\sanm2n.h" />
     <ClInclude Include="..\src\SimpleCore.h" />
     <ClInclude Include="..\src\Solution.h" />
     <ClInclude Include="..\src\SteamTable.h" />
-    <ClInclude Include="..\src\SuperLUSolver.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\BICGCMFD.cpp" />
-    <ClCompile Include="..\src\BICGSolver.cpp" />
-    <ClCompile Include="..\src\CMFD.cpp" />
-    <ClCompile Include="..\src\CMFDCPU.cpp" />
-    <ClCompile Include="..\src\CrossSection.cpp" />
-    <ClCompile Include="..\src\CSRSolver.cpp" />
-    <ClCompile Include="..\src\CuSFAM.cpp" />
-    <ClCompile Include="..\src\Depletion.cpp" />
-    <ClCompile Include="..\src\DepletionChain.cpp" />
-    <ClCompile Include="..\src\Feedback.cpp" />
-    <ClCompile Include="..\src\Geometry.cpp" />
-    <ClCompile Include="..\src\cuda.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\MKLSolver.cpp" />
-    <ClCompile Include="..\src\NodalCPU.cpp" />
-    <ClCompile Include="..\src\SimpleCore.cpp" />
-    <ClCompile Include="..\src\Solution.cpp" />
-    <ClCompile Include="..\src\SteamTable.cpp" />
-    <ClCompile Include="..\src\SuperLUSolver.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\cusfam.f90" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

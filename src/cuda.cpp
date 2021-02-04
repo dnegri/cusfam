@@ -29,19 +29,20 @@ void initCuda() {
 }
 
 extern "C" void initCudaGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int*nxe, 
-							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, double* hmesh,
-							int* symopt, int* symang, double* albedo)
+							int* nys, int* nye, int* nsurf, int* ijtol, int* neibr, float* hmesh,
+							int* symopt, int* symang, float* albedo)
 {
 	g = new Geometry();
-	g->init(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh);
+	g->initDimension(ng, nxy, nz, nx, ny, nsurf);
+	g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
 	g->setBoudnaryCondition(symopt, symang, albedo);
 	sfam_jnet = new NODAL_PRECISION[g->nsurf() * g->ng()];
 	sfam_flux = new double[g->nxyz() * g->ng()];
 
 }
 
-extern "C" void initCudaXS(int* ng, int* nxy, int* nz, double*xsdf, double* xstf, double* xsnf, 
-	double* xssf, double* xschif, double* xsadf)
+extern "C" void initCudaXS(int* ng, int* nxy, int* nz, XS_PRECISION *xsdf, XS_PRECISION * xstf, XS_PRECISION * xsnf,
+	XS_PRECISION* xssf, XS_PRECISION * xschif, XS_PRECISION * xsadf)
 {
 	xs = new CrossSection(g->ng(), g->nxyz(), xsdf, xstf, xsnf, xssf, xschif, xsadf);
 }

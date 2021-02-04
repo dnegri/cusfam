@@ -3,6 +3,10 @@
 #include "NodalCPU.h"
 #include "CMFDCPU.h"
 #include "BICGCMFD.h"
+#include "Geometry.h"
+#include "DepletionChain.h"
+#include "CrossSection.h"
+#include "Feedback.h"
 
 
 // function to call if operator new can't allocate enough memory or error arises
@@ -13,83 +17,204 @@ void outOfMemHandler()
     std::exit(-1);
 }
 
+extern"C" {
+    void opendb(int* length, const char* file);
+    void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
+    void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
+    void readBoundary(int* symopt, int* symang, float* albedo);
+    void readNXNY(const int* nx, const int* ny, float* val);
+    void readNXYZ(const int* nxyz, float* val);
+
+    void readStep(float* bucyc, float* buavg, float* efpd);
+    void readXS(const int* niso, float* xs);
+    void readXSS(const int* niso, float* xs);
+    void readXSD(const int* niso, float* xs);
+    void readXSSD(const int* niso, float* xs);
+    void readXSDTM(const int* niso, float* xs);
+    void readXSSDTM(const int* niso, float* xs);
+    void readDensity(const int* niso, float* dnst);
+
+}
+
 
 int main() {
 
+    int ng;
+    int nx;
+    int ny;
+    int nz;
+    int nxy;
+    int nxyz;
+    int nsurf;
 
-    //set the new_handler
-    std::set_new_handler(outOfMemHandler);
+    string simondb = "simondb0";
+    int length = simondb.length();
+    opendb(&length, simondb.c_str());
+    readDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
+    nxyz = nxy * nz;
+    nsurf = nsurf * nz + (nz + 1) * nxy;
 
-    int symang = 360;
-    int symopt = 0;
-    int ng=2;
-    int nx=2;
-    int ny=2;
-    int nz=2;
-    int nxy=3;
-    int nxyz = nxy * nz;
-    int lsurf = 5*2;
-
-    int* nxs = new int[ny]{1,1};
-    int* nxe = new int[ny]{2,1};
-    int* nys = new int[nx]{1,1};
-    int* nye = new int[nx]{2,1};
-    int* ijtol = new int[nx*ny]{};
-    ijtol[0] = 1;ijtol[1] = 2;ijtol[2] = 3;ijtol[3] = 0;
-    int* neibr = new int[NEWS*nxy];
-    neibr[0]=0;neibr[1]=2;neibr[2]=0;neibr[3]=3;
-    neibr[4]=1;neibr[5]=0;neibr[6]=0;neibr[7]=0;
-    neibr[8]=0;neibr[9]=0;neibr[10]=1;neibr[11]=0;
-
-    double* hmesh = new double[(NDIRMAX+1)*nxyz];
-    for (int l = 0; l < nxyz; ++l) {
-        hmesh[l*(NDIRMAX+1)+0] = 20;
-        hmesh[l*(NDIRMAX+1)+1] = 20;
-        hmesh[l*(NDIRMAX+1)+2] = 20;
-        hmesh[l*(NDIRMAX+1)+3] = 5;
-    }
-
-    double* jnet = new double[LR * ng * NDIRMAX * nxyz]{};
-    double * phif  = new double[ng*nxyz]{};
-    double * psi  = new double[nxyz]{};
-    double* albedo = new double[NDIRMAX*LR]{};
+    int* nxs = new int[ny];
+    int* nxe = new int[ny];
+    int* nys = new int[nx];
+    int* nye = new int[nx];
+    int* ijtol = new int[nx * ny];
+    int* neibr = new int[NEWS * nxy];
+    float* hmesh = new float[NDIRMAX * nxyz];
+    float* chflow = new float[nx*ny];
 
 
-    Geometry g;
-    g.init(&ng, &nxy, &nz, &nx, &ny, nxs, nxe, nys, nye, &lsurf, ijtol, neibr, hmesh);
-    g.setBoudnaryCondition(&symopt,&symang, albedo);
-    CrossSection xs(ng, nxyz);
+    readIndex(&nx, &ny, &nxy, &nz, nxs, nxe, nys, nye, ijtol, neibr, hmesh);
+
+    int symopt;
+    int symang;
+    float albedo[6];
+
+    readBoundary(&symopt, &symang, albedo);
+
+    Geometry* g = new Geometry();
+    g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
+    g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
+    g->setBoudnaryCondition(&symopt, &symang, albedo);
+
+    int NPTM = 2;
+    SteamTable steam;
+    CrossSection* x = new CrossSection(ng, NISO, NFIS, NNIS, NPTM, nxyz);
+    DepletionChain* d = new DepletionChain(*g);
+    Feedback* f = new Feedback(*g, steam);
+    
+    readNXNY(&nx, &ny, chflow);
+    readNXYZ(&nxyz, &(f->ppm0(0)));
+    readNXYZ(&nxyz, &(f->stf0(0)));
+    readNXYZ(&nxyz, &(f->tm0(0)));
+    readNXYZ(&nxyz, &(f->dm0(0)));
 
 
-    for (size_t l = 0; l < nxyz; l++)
+    CMFDCPU cmfd(*g, *x);
+    cmfd.setNcmfd(7);
+    cmfd.setEpsl2(1.0E-7);
+    cmfd.setEshift(0.00);
+
+    NodalCPU nodal(*g, *x);
+
+    float* power = new float[nxyz];
+
+    int nstep = 1;
+
+    for (size_t istep = 0; istep < nstep; istep++)
     {
-        phif[l * ng + 0] = 1.0; //0.803122708205631;
-        phif[l * ng + 1] = 1.0; //0.803122708205631;
+        float bucyc, buavg, efpd;
+        readStep(&bucyc, &buavg, &efpd);
+        readDensity(&NISO, &(d->dnst(0, 0)));
+        readNXYZ(&nxyz, &(d->burn(0)));
+        readNXYZ(&nxyz, power);
+        readNXYZ(&nxyz, &(f->tf(0)));
+        readNXYZ(&nxyz, &(f->tm(0)));
+        readNXYZ(&nxyz, &(f->dm(0)));
 
-        xs.xsdf(0, l) = 1.5;
-        xs.xsdf(1, l) = 0.5;
-        xs.xstf(0, l) = 0.03;
-        xs.xstf(1, l) = 0.08;
-        xs.xssf(0, 1, l) = 0.02;
-        xs.xsnf(0, l) = 0.001;
-        xs.xsnf(1, l) = 0.15;
-        xs.chif(0, l) = 1.0;
-        xs.chif(1, l) = 0.0;
-        xs.xsadf(0, l) = 1.0;
-        xs.xsadf(1, l) = 1.0;
+        readXS(&NISO, &(x->xsmicd0(0, 0, 0)));
+        readXS(&NISO, &(x->xsmica0(0, 0, 0)));
+        readXS(&NISO, &(x->xsmicf0(0, 0, 0)));
+        readXS(&NISO, &(x->xsmicn0(0, 0, 0)));
+        readXS(&NISO, &(x->xsmick0(0, 0, 0)));
+        readXSS(&NISO, &(x->xsmics0(0, 0, 0, 0)));
+
+        readXSD(&NISO, &(x->xdpmicd(0, 0, 0)));
+        readXSD(&NISO, &(x->xdpmica(0, 0, 0)));
+        readXSD(&NISO, &(x->xdpmicf(0, 0, 0)));
+        readXSD(&NISO, &(x->xdpmicn(0, 0, 0)));
+        readXSD(&NISO, &(x->xdpmick(0, 0, 0)));
+        readXSSD(&NISO, &(x->xdpmics(0, 0, 0, 0)));
+
+        readXSD(&NISO, &(x->xdfmicd(0, 0, 0)));
+        readXSD(&NISO, &(x->xdfmica(0, 0, 0)));
+        readXSD(&NISO, &(x->xdfmicf(0, 0, 0)));
+        readXSD(&NISO, &(x->xdfmicn(0, 0, 0)));
+        readXSD(&NISO, &(x->xdfmick(0, 0, 0)));
+        readXSSD(&NISO, &(x->xdfmics(0, 0, 0, 0)));
+
+        readXSD(&NISO, &(x->xddmicd(0, 0, 0)));
+        readXSD(&NISO, &(x->xddmica(0, 0, 0)));
+        readXSD(&NISO, &(x->xddmicf(0, 0, 0)));
+        readXSD(&NISO, &(x->xddmicn(0, 0, 0)));
+        readXSD(&NISO, &(x->xddmick(0, 0, 0)));
+        readXSSD(&NISO,&(x->xddmics(0, 0, 0, 0)));
+
+
+        readXSDTM (&NISO, &(x->xdmmicd(0, 0, 0, 0)));
+        readXSDTM(&NISO, &(x->xdmmica(0, 0, 0, 0)));
+        readXSDTM(&NISO, &(x->xdmmicf(0, 0, 0, 0)));
+        readXSDTM(&NISO, &(x->xdmmicn(0, 0, 0, 0)));
+        readXSDTM(&NISO, &(x->xdmmick(0, 0, 0, 0)));
+        readXSSDTM(&NISO, &(x->xdmmics(0, 0, 0, 0, 0)));
+
     }
 
-    xs.xstf(0, 0) *= 1.1;
-    xs.xstf(1, 0) *= 1.1;
-//    xs.xstf(0, 3) *= 1.1;
-//    xs.xstf(1, 3) *= 1.1;
 
-    for (int l = 0; l < nxyz; ++l) {
-        psi[l] = (phif[l*ng+0]*xs.xsnf(0,l)+phif[l*ng+1]*xs.xsnf(1,l))*g.vol(l);
-    }
+    x->updateMacroXS(&(d->dnst(0, 0)));
+    x->updateXS(&(d->dnst(0, 0)), 0.0, &(f->dtf(0)), &(f->dtm(0)));
+    
+    cmfd.upddtil();
+    cmfd.setls();
 
     double reigv = 1.0;
     float errl2 = 1.0;
+    double* phif = new double[nxyz * ng]{};
+    double* psi = new double[nxyz]{};
+
+    for (int l = 0; l < nxyz; l++)
+    {
+        for (int ig = 0; ig < ng; ig++)
+        {
+            phif[ig + l * ng] = 1.0;
+        }
+
+        psi[l] = 0.0;
+
+        for (int ig = 0; ig < ng; ig++)
+        {
+            psi[l] = phif[ig + l * ng] * x->xsnf(ig, l);
+        }
+        psi[l] = psi[l] * g->vol(l);
+
+    }
+
+    cmfd.drive(reigv, phif, psi, errl2);
+
+
+    //int maxout = 1;
+
+    //for (size_t iout = 0; iout < maxout; iout++)
+    //{
+    //    float dppm = 0.0;
+
+    //    x->updateXS(&(d->dnst(0, 0)), dppm, &(f->dtf(0)), &(f->dtm(0)));
+    //    cmfd.upddtil();
+
+    //    cmfd.setls();
+    //    //cmfd.drive(reigv, phif, psi, errl2);
+    //    //cmfd.updjnet(phif, jnet);
+    //    //nodal.reset(xs, reigv, jnet, phif);
+    //    //nodal.drive(jnet);
+    //    //cmfd.upddhat(phif, jnet);
+    //    //cmfd.updjnet(phif, jnet);
+
+    //    //if (iout > 3 && errl2 < 1E-6) break;
+    //}
+
+
+
+    delete [] nxs;
+    delete [] nxe;
+    delete [] nys;
+    delete [] nye;
+    delete [] ijtol;
+    delete [] neibr;
+    delete []  hmesh;
+
+    delete g;
+    delete x;
+
 
 //    CMFDCPU cmfd(_g, xs);
 //    cmfd.setNcmfd(7);
@@ -110,30 +235,30 @@ int main() {
 ////        if (i > 3 && errl2 < 1E-6) break;
 //    }
 
-    BICGCMFD bcmfd(g,xs);
-    bcmfd.setNcmfd(100);
-    bcmfd.setEpsl2(1.0E-7);
-
-    bcmfd.upddtil();
-    bcmfd.setls();
-
-    double eigv = 1.0;
-    auto begin = clock();
-    bcmfd.drive(eigv, phif, psi, errl2);
-    auto end = clock();
-    auto elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    printf("TIME : %7.3f\n", elapsed_secs);
-
-//    for (int i = 0; i < 50; ++i) {
-//        bcmfd.drive(reigv, phif, psi, errl2);
-////        cmfd.updjnet(phif, jnet);
-////        nodal.reset(xs, reigv, jnet, phif);
-////        nodal.drive(jnet);
-////        cmfd.upddhat(phif, jnet);
-////        cmfd.updjnet(phif, jnet);
+//    BICGCMFD bcmfd(g,xs);
+//    bcmfd.setNcmfd(100);
+//    bcmfd.setEpsl2(1.0E-7);
 //
-//    }
-
-
-    return 0;
+//    bcmfd.upddtil();
+//    bcmfd.setls();
+//
+//    double eigv = 1.0;
+//    auto begin = clock();
+//    bcmfd.drive(eigv, phif, psi, errl2);
+//    auto end = clock();
+//    auto elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+//    printf("TIME : %7.3f\n", elapsed_secs);
+//
+////    for (int i = 0; i < 50; ++i) {
+////        bcmfd.drive(reigv, phif, psi, errl2);
+//////        cmfd.updjnet(phif, jnet);
+//////        nodal.reset(xs, reigv, jnet, phif);
+//////        nodal.drive(jnet);
+//////        cmfd.upddhat(phif, jnet);
+//////        cmfd.updjnet(phif, jnet);
+////
+////    }
+//
+//
+//    return 0;
 }

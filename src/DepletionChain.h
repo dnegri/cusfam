@@ -83,16 +83,21 @@ private:
     int ixe;
     int ism;
 
+    float* _dnst;
+    float* _burn;
+
 
 public:
     __host__  __device__ DepletionChain(Geometry& g);
 
     __host__ __device__ virtual ~DepletionChain();
 
+    __host__ __device__ float& burn(const int& l) { return _burn[l]; };
     __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*_mnucl + iiso]; } ;
     __host__ __device__ float& rem(const int& iiso, const int& l) { return _rem[l*_mnucl + iiso]; } ;
     __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*_mnucl + iiso]; } ;
     __host__ __device__ float& dcy(const int& iiso, const int& l) { return _dcy[l*_mnucl + iiso]; } ;
+    __host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
     __host__ __device__ int& nheavy(const int& ichn) { return _nheavy[ichn]; };
     __host__ __device__ int& ihchn(const int& step, const int& ichn) { return _hvyids[_ihvys[ichn]+ step]; };
     __host__ __device__ int& idpct(const int& step, const int& ichn) { return _hvyupd[_ihvys[ichn] + step]; };

@@ -1,68 +1,95 @@
-module simondbreader
+    module simondbreader
 
     integer :: ifile
     integer :: ng, nxyz 
-    integer :: nnucl = 40
 contains
-    subroutine opendb(file)
+    subroutine opendb(lenf, file) bind(c, name="opendb")
+        use, intrinsic :: iso_c_binding, only: c_char
+        integer            :: lenf
+        character(len=1, kind=c_char)   :: file(lenf)
+        character*(lenf)                :: file2
 
-        character*(*)   :: file
-    
+        do i=1,lenf
+            file2(i:i)= file(i)
+        enddo
+        !print *, lenf, file
         ifile = 6845
-        open(unit=ifile, file=file, form='unformatted', status='old')
+        open(unit=ifile, file=file2, form='unformatted', status='old')
     end subroutine
     
-    subroutine closedb()    
+    subroutine closedb()  bind(c, name="closedb")
         close(ifile)
     end subroutine
     
-    subroutine readgeom(ifile, ng, nxy, nz, nx, ny, nsurf)
-        use geom
-        use const
-        integer         :: ifile
-        integer         :: ng, nxy, nz, nx, ny, nsurf
+    subroutine readDimension(ng_, nxy, nz, nx, ny, nsurf)  bind(c, name="readDimension")
+        integer         :: ng_, nxy, nz, nx, ny, nsurf
         
-        read(ifile) ng, nxy, nz, nx, ny, nsurf
+        read(ifile) ng_, nxy, nz, nx, ny, nsurf
+        nxyz = nxy*nz
+        ng = ng_
     end subroutine
     
-    subroutine readgeom(ifile, ng, nxy, nz, nx, ny, nsurf, nxs, nxe, nys, nye, nodel, neibr, hmesh, symopt, symang, albedo)
-        integer         :: ifile
-        integer         :: ng, nxy, nz, nx, ny, nsurf
+    subroutine readIndex(nx, ny, nxy, nz, nxs, nxe, nys, nye, nodel, neibr, hmesh)   bind(c, name="readIndex")
+        integer         :: nxy, nx, ny, nz
         integer         :: nxs(ny), nxe(ny), nys(nx), nye(nx), nodel(nx,ny), neibr(4,nxy)
-        integer         :: symopt, symang
-        real(4)         :: hmesh(3,nxy,nz), albedo(2,3)
+        real(4)         :: hmesh(3,nxy,nz)
         
         
-        read(ifile) ng, nxy, nz, nx, ny, nsurf
         read(ifile) nxs, nxe, nys, nye, nodel, neibr, hmesh
+        
+    end subroutine
+    
+    subroutine readBoundary(symopt, symang, albedo)   bind(c, name="readBoundary")
+        integer         :: symopt, symang
+        real(4)         :: albedo(2,3)
+        
+        
         read(ifile) symopt, symang, albedo
         
     end subroutine
     
-    subroutine readstep(ifile, bucyc, buavg, efpd)
-        
-        integer         :: ifile
+    subroutine readstep(bucyc, buavg, efpd)   bind(c, name="readStep")
         real(4)         :: bucyc, buavg, efpd
         
         read(ifile) bucyc, buavg, efpd
         
     end subroutine
     
-    subroutine readxs(ifile, xs)
-        integer         :: m2d, k
-        integer         :: ifile
-        real            :: xs(ig,nnucl,nxyz)
+    subroutine readDensity(niso, dnst)   bind(c, name="readDensity")
+        real(4)            :: dnst(niso,nxyz)
 
         do l = 1,nxyz
-            read(ifile) xs(:,:,m2d,k) 
+            read(ifile) dnst(:,l) 
         enddo
     
     end subroutine
     
-    subroutine readxsd(ifile, xsd)
-        integer         :: m2d, k
-        integer         :: ifile
-        real            :: xsd(ig,nnucl,nxyz)
+    subroutine readnxny(nx, ny, val)   bind(c, name="readNXNY")
+        real(4)            :: val(nx, ny)
+
+        read(ifile) val
+    
+    end subroutine    
+    
+    subroutine readnxyz(nxyz, val)   bind(c, name="readNXYZ")
+        real(4)            :: val(nxyz)
+
+        read(ifile) val
+    
+    end subroutine        
+    
+    
+    subroutine readxs(niso, xs)   bind(c, name="readXS")
+        real(4)            :: xs(ng,niso,nxyz)
+
+        do l = 1,nxyz
+            read(ifile) xs(:,:,l) 
+        enddo
+    
+    end subroutine
+    
+    subroutine readxsd(niso, xsd)  bind(c, name="readXSD")
+        real(4)            :: xsd(ng,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xsd(:,:,l) 
@@ -70,10 +97,8 @@ contains
     
     end subroutine    
     
-    subroutine readxss(ifile, xss)
-        integer         :: m2d, k
-        integer         :: ifile
-        real, pointer   :: xss(ng,ng,nnucl,nxyz)
+    subroutine readxss(niso, xss) bind(c, name="readXSS")
+        real(4)            :: xss(ng,ng,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xss(:,:,:,l) 
@@ -81,10 +106,8 @@ contains
     
     end subroutine    
     
-    subroutine readxssd(ifile, xssd)
-        integer         :: m2d, k
-        integer         :: ifile
-        real            :: xssd(ng,ng,nnucl,nxyz)
+    subroutine readxssd(niso, xssd) bind(c, name="readXSSD")
+        real(4)            :: xssd(ng,ng,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xssd(:,:,:,l) 
@@ -92,10 +115,8 @@ contains
     
     end subroutine    
     
-    subroutine readxstm(ifile, xs)
-        integer         :: m2d, k
-        integer         :: ifile
-        real, pointer   :: xs(ng,2,nnucl,nxyz)
+    subroutine readxsdtm(niso, xs) bind(c, name="readXSDTM")
+        real(4)            :: xs(ng,2,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xs(:,:,:,l)
@@ -104,10 +125,8 @@ contains
     end subroutine
     
     
-    subroutine readxsstm(ifile, xss)
-        integer         :: m2d, k
-        integer         :: ifile
-        real, pointer   :: xss(ng, ng,2,nnucl,nxyz)
+    subroutine readxssdtm(niso, xss)  bind(c, name="readXSSDTM")
+        real(4)            :: xss(ng, ng,2,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xss(:,:,:,:,l)

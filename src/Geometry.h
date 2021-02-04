@@ -77,8 +77,9 @@ public:
 	__host__ Geometry();
 	__host__ virtual ~Geometry();
 
-	__host__ void setBoudnaryCondition(int* symopt, int* symang, double* albedo);
-    __host__ void init(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nxs, int* nxe, int* nys, int* nye, int* nsurf_, int* ijtol, int* neibr, double* hmesh);
+	__host__ __device__ void setBoudnaryCondition(int* symopt, int* symang, float* albedo);
+	__host__ __device__ void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
+    __host__ __device__ void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
 
 	__host__ __device__ inline int& ng() { return _ng; };
 	__host__ __device__ inline int& ng2() { return _ng2; };

@@ -103,14 +103,14 @@ using namespace std;
 
 __constant__  static const int    NTHREADSPERBLOCK = 64;
 
-__constant__ static const int MAX_ISOTOPE = 40;
-__constant__ static const int NUM_FISSION = 16;
+__constant__ static const int NISO = 40;
+__constant__ static const int NUM_FISSION = 12;
 __constant__ static const int NUM_YIELD = 7;
 __constant__ static const int NUM_DECAY = 9;
 __constant__ static const int NUM_POISON = 1;
 __constant__ static const int LEN_ISONAME = 5;
 
-__constant__ const char* _ISOTOPE_NAME[MAX_ISOTOPE] = {
+__constant__ static const char* ISOTOPE_NAME[NISO] = {
         "U234", "U235", "U236", "NP37", "U238",
         "PU48", "NP39", "PU49", "PU40", "PU41",
         "PU42", "AM43", "RESI", "POIS", "PM47",
@@ -132,10 +132,20 @@ __constant__ enum Isotope {
     DEL3, TMOD, DETE, V, XSE
 };
 
+__constant__ static const int NMAC = 16;
+__constant__ static const int ISOMAC[]{ U234, U235, U236, NP37, U238, 
+                                        PU48, NP39, PU49, PU40, PU41, 
+                                        PU42, AM43, RESI, POIS, FP1 , STRM};
+
+__constant__ static const int NFIS = 12;
+__constant__ static const int ISOFIS[]{ U235, U236, NP37, U238, PU48, 
+                                        PU49, PU40, PU41, PU42, AM43, 
+                                        U234, NP39};
+
 //  9 - the number of isotopes(pm47, ps48, pm48, pm49, sm, i135, xe, b10, h2o)
 __constant__ static const int NNIS = 9;
-
-__constant__ static const int ISONIS[]{PM47, PS48, PM48, PM49, SM49, I135, XE45, SB10, H2O};
+__constant__ static const int ISONIS[]{ PM47, PS48, PM48, PM49, SM49, 
+                                        I135, XE45, SB10, H2O};
 
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]

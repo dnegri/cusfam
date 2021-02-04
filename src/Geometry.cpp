@@ -8,7 +8,7 @@ Geometry::~Geometry()
 {
 }
 
-void Geometry::setBoudnaryCondition(int* symopt, int* symang, double* albedo)
+void Geometry::setBoudnaryCondition(int* symopt, int* symang, float* albedo)
 {
 	_symopt = *symopt;
 	_symang = *symang;
@@ -22,19 +22,21 @@ void Geometry::setBoudnaryCondition(int* symopt, int* symang, double* albedo)
 	}
 }
 
-void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_, int* nxe_, int* nys_, int* nye_, int* nsurf_, int * ijtol_, int* neibr_, double* hmesh_)
-{
+void Geometry::initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_) {
 	_ng = *ng_;
 	_nx = *nx_;
 	_ny = *ny_;
 	_nz = *nz_;
 	_nxy = *nxy_;
 	_nxyz = _nxy * _nz;
-	_nsurf = *nsurf_ * _nz + (_nz + 1) * _nxy;
+	_nsurf = *nsurf_;
 	_ng2 = _ng * _ng;
-	_ngxyz = _nxyz*_ng;
-    _ngxy  = _nxy*_ng;
+	_ngxyz = _nxyz * _ng;
+	_ngxy = _nxy * _ng;
+}
 
+void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol_, int* neibr_, float* hmesh_)
+{
 	_neibr = new int[_nxy*NEWS];
 	_ijtol = new int[_nx*_ny];
 	_nxs = new int[_ny];
@@ -104,7 +106,7 @@ void Geometry::init(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nxs_
 			for (size_t idir = 0; idir < NDIRMAX; idir++)
 			{
 				// in hemsh_, the zero value in 0th index.
-				hmesh(idir, lk) = hmesh_[lkd4 + idir +1 ];
+				hmesh(idir, lk) = hmesh_[lk*NDIRMAX + idir];
 			}
 		}
 	}

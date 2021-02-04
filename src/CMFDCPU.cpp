@@ -2,8 +2,6 @@
 #include "MKLSolver.h"
 #endif
 
-#include "SuperLUSolver.h"
-
 #include "CMFDCPU.h"
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])

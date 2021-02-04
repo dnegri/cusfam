@@ -1,39 +1,191 @@
 #include "CrossSection.h"
 
+#define dnst(iso, l)    dnst[l*NISO + iso]
+
+__host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
+{
+
+	for (int ig = 0; ig < _ng; ig++)
+	{
+		xsmaca0(ig, l) = 0.0;
+		xsmacd0(ig, l) = 0.0;
+		xsmacf0(ig, l) = 0.0;
+		xsmack0(ig, l) = 0.0;
+		xsmacn0(ig, l) = 0.0;
+		for (int igs = 0; igs < _ng; igs++)
+		{
+			xsmacs0(igs, ig, l) = 0.0;;
+		}
+	}
+
+	for (int i = 0; i < NMAC; i++)
+	{
+		int iso = ISOMAC[i];
+
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			xsmaca0(ig, l) = xsmaca0(ig, l) + xsmica0(ig, iso, l) * dnst(iso, l);
+			xsmacd0(ig, l) = xsmacd0(ig, l) + xsmicd0(ig, iso, l) * dnst(iso, l);
+			xsmacf0(ig, l) = xsmacf0(ig, l) + xsmicf0(ig, iso, l) * dnst(iso, l);
+			xsmack0(ig, l) = xsmack0(ig, l) + xsmick0(ig, iso, l) * dnst(iso, l);
+			xsmacn0(ig, l) = xsmacn0(ig, l) + xsmick0(ig, iso, l) * dnst(iso, l);
+
+			dpmacd(ig, l) = dpmacd(ig, l) + xdpmicd(ig, iso, l) * dnst(iso, l);
+			dpmaca(ig, l) = dpmaca(ig, l) + xdpmica(ig, iso, l) * dnst(iso, l);
+			dpmacf(ig, l) = dpmacf(ig, l) + xdpmicf(ig, iso, l) * dnst(iso, l);
+			dpmack(ig, l) = dpmack(ig, l) + xdpmick(ig, iso, l) * dnst(iso, l);
+			dpmacn(ig, l) = dpmacn(ig, l) + xdpmicn(ig, iso, l) * dnst(iso, l);
+			ddmacd(ig, l) = ddmacd(ig, l) + xddmicd(ig, iso, l) * dnst(iso, l);
+			ddmaca(ig, l) = ddmaca(ig, l) + xddmica(ig, iso, l) * dnst(iso, l);
+			ddmacf(ig, l) = ddmacf(ig, l) + xddmicf(ig, iso, l) * dnst(iso, l);
+			ddmack(ig, l) = ddmack(ig, l) + xddmick(ig, iso, l) * dnst(iso, l);
+			ddmacn(ig, l) = ddmacn(ig, l) + xddmicn(ig, iso, l) * dnst(iso, l);
+			dfmacd(ig, l) = dfmacd(ig, l) + xdfmicd(ig, iso, l) * dnst(iso, l);
+			dfmaca(ig, l) = dfmaca(ig, l) + xdfmica(ig, iso, l) * dnst(iso, l);
+			dfmacf(ig, l) = dfmacf(ig, l) + xdfmicf(ig, iso, l) * dnst(iso, l);
+			dfmack(ig, l) = dfmack(ig, l) + xdfmick(ig, iso, l) * dnst(iso, l);
+			dfmacn(ig, l) = dfmacn(ig, l) + xdfmicn(ig, iso, l) * dnst(iso, l);
+
+			for (int igs = 0; igs < _ng; igs++)
+			{
+				xsmacs0(igs, ig, l) = xsmacs0(igs, ig, l) + xsmics0(igs, ig, iso, l) * dnst(iso, l);
+				dpmacs(igs, ig, l) = dpmacs(igs, ig, l) + xdpmics(igs, ig, iso, l) * dnst(iso, l);
+				dfmacs(igs, ig, l) = dfmacs(igs, ig, l) + xdfmics(igs, ig, iso, l) * dnst(iso, l);
+				ddmacs(igs, ig, l) = ddmacs(igs, ig, l) + xddmics(igs, ig, iso, l) * dnst(iso, l);
+
+			}
+		}
+
+		for (int ip = 0; ip < _nptm; ip++)
+		{
+			for (int ig = 0; ig < _ng; ig++)
+			{
+				dmmacd(ig, ip, l) = dmmacd(ig, ip, l) + xdmmicd(ig, iso, ip, l) * dnst(iso, l);
+				dmmaca(ig, ip, l) = dmmaca(ig, ip, l) + xdmmica(ig, iso, ip, l) * dnst(iso, l);
+				dmmacf(ig, ip, l) = dmmacf(ig, ip, l) + xdmmicf(ig, iso, ip, l) * dnst(iso, l);
+				dmmack(ig, ip, l) = dmmack(ig, ip, l) + xdmmick(ig, iso, ip, l) * dnst(iso, l);
+				dmmacn(ig, ip, l) = dmmacn(ig, ip, l) + xdmmicn(ig, iso, ip, l) * dnst(iso, l);
+
+
+				for (int igs = 0; igs < _ng; igs++)
+				{
+					dmmacs(igs, ig, ip, l) = dmmacs(igs, ig, ip, l) + xdmmics(igs, ig, iso, ip, l) * dnst(iso, l);
+
+				}
+			}
+		}
+	}
+}
+
+__host__ __device__ void CrossSection::updateMacroXS(float* dnst)
+{
+	for (size_t l = 0; l < _nxyz; l++)
+	{
+		updateMacroXS(l, dnst);
+	}
+}
+
+__host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm )
+{
+	float dtm2 = dtm * dtm;
+
+	for (int ige = 0; ige < _ng; ige++)
+	{
+		for (int igs = 0; igs < _ng; igs++)
+		{
+			xssf(igs, ige, l) = xsmacs0(igs, ige, l) + dpmacs(igs, ige, l) * dppm + dfmacs(igs, ige, l) * dtf + dmmacs(igs, ige, 0, l) * dtm + dmmacs(igs, ige, 1, l) * dtm2;
+		}
+	}
+
+	for (int ig = 0; ig < _ng; ig++)
+	{
+		xsdf(ig, l) = xsmacd0(ig, l) + dpmacd(ig, l) * dppm + dfmacd(ig, l) * dtf + dmmacd(ig, 0, l) * dtm + dmmacd(ig, 1, l) * dtm2;
+		xskf(ig, l) = xsmack0(ig, l) + dpmack(ig, l) * dppm + dfmack(ig, l) * dtf + dmmack(ig, 0, l) * dtm + dmmack(ig, 1, l) * dtm2;
+		xsnf(ig, l) = xsmacn0(ig, l) + dpmacn(ig, l) * dppm + dfmacn(ig, l) * dtf + dmmacn(ig, 0, l) * dtm + dmmacn(ig, 1, l) * dtm2;
+		xstf(ig, l) = xsmaca0(ig, l) + dpmaca(ig, l) * dppm + dfmaca(ig, l) * dtf + dmmaca(ig, 0, l) * dtm + dmmaca(ig, 1, l) * dtm2;		
+	}
+
+
+	for (int i = 0; i < NNIS; i++)
+	{
+		int iso = ISOFIS[i];
+
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			xsdf(ig, l) = xsdf(ig, l) + (xsmicd0(ig, iso, l) + xdpmicd(ig, iso, l) * dppm + xdfmicd(ig, iso, l) * dtf + xdmmicd(ig, 0, iso, l) * dtm + xdmmicd(ig, 1, iso, l) * dtm2) * dnst(iso, l);
+			xskf(ig, l) = xskf(ig, l) + (xsmick0(ig, iso, l) + xdpmick(ig, iso, l) * dppm + xdfmick(ig, iso, l) * dtf + xdmmick(ig, 0, iso, l) * dtm + xdmmick(ig, 1, iso, l) * dtm2) * dnst(iso, l);
+			xsnf(ig, l) = xsnf(ig, l) + (xsmicn0(ig, iso, l) + xdpmicn(ig, iso, l) * dppm + xdfmicn(ig, iso, l) * dtf + xdmmicn(ig, 0, iso, l) * dtm + xdmmicn(ig, 1, iso, l) * dtm2) * dnst(iso, l);
+			xstf(ig, l) = xstf(ig, l) + (xsmica0(ig, iso, l) + xdpmica(ig, iso, l) * dppm + xdfmica(ig, iso, l) * dtf + xdmmica(ig, 0, iso, l) * dtm + xdmmica(ig, 1, iso, l) * dtm2) * dnst(iso, l);
+
+
+			for (int igs = 0; igs < _ng; igs++)
+			{
+				xssf(igs, ig, l) = xssf(igs, ig, l) + (xsmics0(igs, ig, iso, l) + xdpmics(igs, ig, iso, l) * dppm + xdfmics(igs, ig, iso, l) * dtf + xdmmics(igs, ig, 0, iso, l) * dtm + xdmmics(igs, ig, 1, iso, l) * dtm2) * dnst(iso, l);
+			}
+		}
+	}
+
+	for (int ig = 0; ig < _ng; ig++)
+	{
+		for (int ige = 0; ige < _ng; ige++)
+		{
+			if (ig != ige) {
+				xstf(ig, l) += xssf(ig, ige, l);
+			}
+			else {
+				xssf(ig, ige, l) = 0.0;
+			}
+		}
+		xsdf(ig, l) = 1. / (3 * xsdf(ig, l));
+	}
+
+}
+
+__host__ __device__ void CrossSection::updateXS(const float* dnst, const float& dppm, const float* dtf, const float* dtm)
+{
+	for (size_t l = 0; l < _nxyz; l++)
+	{
+		updateXS(l, dnst, dppm, dtf[l], dtm[l]);
+	}
+
+}
+
+
+
 void CrossSection::dupdxs(const int& l, const float& dppm, const float& dtf, const float& dtm, const float& ddm) {
 
-    float dxp[]{dppm, dtf, ddm, dtm};
+	float dxp[]{ dppm, dtf, ddm, dtm };
 
-    for (int inis = 0; inis < NNIS; ++inis) {
-        int iiso = ISONIS[inis];
+	for (int inis = 0; inis < NNIS; ++inis) {
+		int iiso = ISONIS[inis];
 
-        for (int ig = 0; ig < _ng; ++ig) {
-            xsmicd(ig, iiso, l) = xsmicd0(ig, iiso, l)
-                                  + xdpmicd(ig, iiso, l) * dxp[0]
-                                  + xdfmicd(ig, iiso, l) * dxp[1]
-                                  + xddmicd(ig, iiso, l) * dxp[2];
-            xsmica(ig, iiso, l) = xsmica0(ig, iiso, l)
-                                  + xdpmica(ig, iiso, l) * dxp[0]
-                                  + xdfmica(ig, iiso, l) * dxp[1]
-                                  + xddmica(ig, iiso, l) * dxp[2];
-            for (int igs = 0; igs < _ng; ++igs) {
-                xsmics(igs, ig, iiso, l) = xsmics0(igs, ig, iiso, l)
-                                           + xdpmics(igs, ig, iiso, l) * dxp[0]
-                                           + xdfmics(igs, ig, iiso, l) * dxp[1]
-                                           + xddmics(igs, ig, iiso, l) * dxp[2];
-            }
-        }
+		for (int ig = 0; ig < _ng; ++ig) {
+			xsmicd(ig, iiso, l) = xsmicd0(ig, iiso, l)
+				+ xdpmicd(ig, iiso, l) * dxp[0]
+				+ xdfmicd(ig, iiso, l) * dxp[1]
+				+ xddmicd(ig, iiso, l) * dxp[2];
+			xsmica(ig, iiso, l) = xsmica0(ig, iiso, l)
+				+ xdpmica(ig, iiso, l) * dxp[0]
+				+ xdfmica(ig, iiso, l) * dxp[1]
+				+ xddmica(ig, iiso, l) * dxp[2];
+			for (int igs = 0; igs < _ng; ++igs) {
+				xsmics(igs, ig, iiso, l) = xsmics0(igs, ig, iiso, l)
+					+ xdpmics(igs, ig, iiso, l) * dxp[0]
+					+ xdfmics(igs, ig, iiso, l) * dxp[1]
+					+ xddmics(igs, ig, iiso, l) * dxp[2];
+			}
+		}
 
-        for (int ip = 0; ip < _nptm; ++ip) {
-            for (int ig = 0; ig < _ng; ++ig) {
-                xsmicd(ig, iiso, l) = xsmicd(ig, iiso, l) + xdmmicd(ig, ip, iiso, l) * dxp[3];
-                xsmica(ig, iiso, l) = xsmica0(ig, iiso, l) + xdmmica(ig, ip, iiso, l) * dxp[3];
-                for (int igs = 0; igs < _ng; ++igs) {
-                    xsmics(igs, ig, iiso, l) = xsmics0(igs, ig, iiso, l) + xdmmics(igs, ig, ip, iiso, l) * dxp[3];
-                }
-            }
-            dxp[3] *= dtm;
-        }
+		for (int ip = 0; ip < _nptm; ++ip) {
+			for (int ig = 0; ig < _ng; ++ig) {
+				xsmicd(ig, iiso, l) = xsmicd(ig, iiso, l) + xdmmicd(ig, ip, iiso, l) * dxp[3];
+				xsmica(ig, iiso, l) = xsmica0(ig, iiso, l) + xdmmica(ig, ip, iiso, l) * dxp[3];
+				for (int igs = 0; igs < _ng; ++igs) {
+					xsmics(igs, ig, iiso, l) = xsmics0(igs, ig, iiso, l) + xdmmics(igs, ig, ip, iiso, l) * dxp[3];
+				}
+			}
+			dxp[3] *= dtm;
+		}
 
-    }
+	}
 }

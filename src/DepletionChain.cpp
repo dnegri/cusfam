@@ -78,15 +78,18 @@ DepletionChain::DepletionChain(Geometry& g) : _g(g) {
 		2.93061E-05, 2.10657E-05};
 
 
-	float* _cap = new float[_mnucl * g.nxyz()];
-	float* _rem = new float[_mnucl * g.nxyz()];
-	float* _fis = new float[_mnucl * g.nxyz()];
-	float* _dcy = new float[_mnucl * g.nxyz()];
+	float* _cap = new float[_mnucl * g.nxyz()]{};
+	float* _rem = new float[_mnucl * g.nxyz()]{};
+	float* _fis = new float[_mnucl * g.nxyz()]{};
+	float* _dcy = new float[_mnucl * g.nxyz()]{};
 	float* _tn2n = new float[g.nxyz()];
 
 	ixe = XEType::XE_EQ;
 	ism = SMType::SM_TR;
 
+
+	_dnst = new float[NISO * g.nxyz()]{};
+	_burn = new float[g.nxyz()]{};
 }
 
 DepletionChain::~DepletionChain() {
