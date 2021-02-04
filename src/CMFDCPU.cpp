@@ -1,17 +1,25 @@
 #ifdef _MKL
 #include "MKLSolver.h"
+#else
+#include "SuperLUSolver.h"
 #endif
 
 #include "CMFDCPU.h"
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
-#define psi(l)  (psi[(l)])
 
 
 CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
+#ifdef _MKL
     _ls = new MKLSolver(g);
+#else
+    _ls = new SuperLUSolver(g);
+#endif
 
+    _epsl2 = 1.E-5;
+    _ncmfd = 5;
+    _eshift = 0.0;
 }
 
 CMFDCPU::~CMFDCPU() {
@@ -104,7 +112,7 @@ void CMFDCPU::axb(double *flux, double *aflux) {
     }
 }
 
-double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, double &reigv, double &reigvs) {
+double CMFDCPU::wiel(const int &icy, double *flux, double &eigv, double &reigv, double &reigvs) {
     double errl2 = 0;
 
     double gamman = 0;
@@ -156,7 +164,7 @@ double CMFDCPU::wiel(const int &icy, double *flux, double *psi, double &eigv, do
 }
 
 
-double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux, double *psi) {
+double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux) {
 
     double reigvdel = reigv - reigvs;
 
@@ -181,7 +189,7 @@ double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux
     return sqrt(r / psi2);
 }
 
-void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
+void CMFDCPU::drive(double &eigv, double *flux, float &errl2) {
 
     int icy = 0;
     int icmfd = 0;
@@ -201,15 +209,15 @@ void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
         }
 
         //solve linear system A*phi = src
-        // update flux
+        // update _flux
         _ls->solve(_src, flux);
 
         //wielandt shift
-        errl2 = wiel(icy, flux, psi, eigv, reigv, reigvs);
+        errl2 = wiel(icy, flux, eigv, reigv, reigvs);
 
         updls(reigvs);
 
-        double resi = residual(reigv, reigvs, flux, psi);
+        double resi = residual(reigv, reigvs, flux);
 
         if (iout == 0) resid0 = resi;
         double relresid = resi / resid0;
@@ -227,6 +235,12 @@ void CMFDCPU::drive(double &eigv, double *flux, double *psi, float &errl2) {
 
         if (errl2 < _epsl2) break;
 
+    }
+}
+
+void CMFDCPU::updpsi(const double* flux) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        CMFD::updpsi(l,flux);
     }
 }
 

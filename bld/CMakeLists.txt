@@ -19,24 +19,22 @@ file(GLOB SOURCES
         ../src/mat2g.h
         ../src/CMFD*
         ../src/CSRSolver.*
-        ../src/SuperLUSolver.*
+        ../src/SuperLUSolver.*Î
         ../src/Feedback.*
-        ../src/SimpleCore.*
+        ../src/Simon.*
         ../src/myblas.h
         ../src/BICG*
         ../src/SteamTable.*
-        ../src/Depletion.*
         ../src/DepletionChain.*
-        ../src/LinearizedChain.*
+        ../src/SuperLUSolver.*
         )
-#file(GLOB eigen ../src/eigen/*)
 
 include_directories(/opt/homebrew/include)
-link_directories(/opt/homebrew/lib)
+link_directories(/opt/homebrew/lib /opt/homebrew/Cellar/gcc/10.2.0_3/lib/gcc/10 cmake-build-debug-gdb/)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
- 
+
 add_library(L${PROJECT_NAME} ${SOURCES} )
-add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} blitz superlu blas)
+add_executable(${PROJECT_NAME} ${SOURCES} )
+target_link_libraries(${PROJECT_NAME} blitz superlu blas gfortran simondb)
 

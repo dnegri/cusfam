@@ -4,7 +4,7 @@
 
 #include "Feedback.h"
 
-#define pow(l2d, k)  pow[k*_g.nxy()+l2d]
+#define pow2(l2d, k)  pow[k*_g.nxy()+l2d]
 #define pow3(l)  pow[l]
 #define bu(l)  bu[l]
 
@@ -19,6 +19,7 @@ Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
     _stf0 = new float[g.nxyz()]{};
     _tm0 = new float[g.nxyz()]{};
     _dm0 = new float[g.nxyz()]{};
+    _chflow = new float[g.nxy()]{};
 }
 
 Feedback::~Feedback()
@@ -27,8 +28,8 @@ Feedback::~Feedback()
 
 void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
 
-    // powlin     : integrated nodal power in w
-    // qprime     : node average linear power density in w/cm
+    // powlin     : integrated nodal _power in w
+    // qprime     : node average linear _power density in w/cm
     float qprime = pow3(l) / _g.hmesh(ZDIR, l) * _heatfrac;
     qprime = qprime / _g.npinbox();
 
@@ -40,8 +41,8 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     int ib[2];
     float bus[2];
 
-    ib[1] = i;
     ib[0] = i - 1;
+    ib[1] = i;
     bus[0] = tfbu(ib[0]);
     bus[1] = tfbu(ib[1]);
 
@@ -55,9 +56,9 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     ip[0] = i - 1;
     ip[1] = i;
     ip[2] = i + 1;
-    pws[0] = tfpow(ip[1]);
-    pws[1] = tfpow(ip[2]);
-    pws[2] = tfpow(ip[3]);
+    pws[0] = tfpow(ip[0]);
+    pws[1] = tfpow(ip[1]);
+    pws[2] = tfpow(ip[2]);
 
     float rx12 = 1. / (bus[1] - bus[1]);
 
@@ -84,7 +85,7 @@ void Feedback::updateTm(const int& l2d, const float* pow, int& nboiling) {
 
     int l = l2d;
     for (int k = 0; k < _g.nz(); ++k) {
-        float hup = hlow + pow3(l2d, k) / chflow(l2d);
+        float hup = hlow + pow2(l2d, k) / chflow(l2d);
         float havg = (hlow + hup) * 0.5;
 
         SteamError err = _steam.checkEnthalpy(havg);

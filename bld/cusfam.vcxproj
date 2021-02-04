@@ -121,7 +121,7 @@
     <CudaCompile Include="..\src\MKLSolver.cpp" />
     <CudaCompile Include="..\src\NodalCPU.cpp" />
     <CudaCompile Include="..\src\NodalCuda.cu" />
-    <CudaCompile Include="..\src\SimpleCore.cpp" />
+    <CudaCompile Include="..\src\Simon.cpp" />
     <CudaCompile Include="..\src\Solution.cpp" />
     <CudaCompile Include="..\src\SteamTable.cpp" />
     <CudaCompile Include="..\src\main.cpp" />
@@ -146,7 +146,7 @@
     <ClInclude Include="..\src\myblas.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
-    <ClInclude Include="..\src\SimpleCore.h" />
+    <ClInclude Include="..\src\Simon.h" />
     <ClInclude Include="..\src\Solution.h" />
     <ClInclude Include="..\src\SteamTable.h" />
   </ItemGroup>

@@ -149,18 +149,14 @@ private:
 
 
 public:
-	__host__ CrossSection(const int& ng, const int& nxyz, XS_PRECISION* xsdf, XS_PRECISION* xstf, XS_PRECISION* xsnf, XS_PRECISION* xssf, XS_PRECISION* xschif, XS_PRECISION* xsadf) {
-		_ng = ng;
-		_nxyz = nxyz;
-		_xsnf = xsnf;
-		_xsdf = xsdf;
-		_xstf = xstf;
-		_chif = xschif;
-		_xssf = xssf;
-		_xsadf = xsadf;
+	__host__ __device__ CrossSection() {
 	};
 
-	__host__ CrossSection(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
+    __host__ __device__ CrossSection(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
+        init(ng, nnucl, nfcnt, nnis, nptm, nxyz);
+    }
+
+	__host__ __device__ void init(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
 		_ng = ng;
 		_nxyz = nxyz;
 		_nnucl = nnucl;

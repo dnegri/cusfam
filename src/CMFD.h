@@ -18,6 +18,7 @@ protected:
     double* _diag;
     double* _cc;
 	double* _src;
+	double* _psi;
 
 public:
     void setNcmfd(int ncmfd);
@@ -40,7 +41,10 @@ public:
     __host__ __device__ virtual void upddhat(double* flux, double* jnet)=0;
     __host__ __device__ virtual void setls()=0;
     __host__ __device__ virtual void updjnet(double* flux, double* jnet)=0;
+    __host__ __device__ virtual void updpsi(const double* flux)=0;
+    __host__ __device__ virtual void drive(double& eigv, double* flux, float& errl2)=0;
 
+    __host__ __device__ void updpsi(const int& l, const double* flux);
 	__host__ __device__ void upddtil(const int& ls);
     __host__ __device__ void upddhat(const int& ls, double* flux, double* jnet);
     __host__ __device__ void setls(const int& l);
@@ -52,6 +56,7 @@ public:
         return _cc[l*_g.ng()*NDIRMAX*LR+ig*NDIRMAX*LR+idir*LR+lr];
     };
     __host__ __device__ double& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
+    __host__ __device__ double& psi(const int& l) {return _psi[l];};
 
     __host__ __device__ double axb(const int& ig, const int& l, const double* flux) {
 

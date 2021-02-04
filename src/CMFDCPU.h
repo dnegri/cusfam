@@ -11,6 +11,8 @@ public:
 
     virtual ~CMFDCPU();
 
+    void updpsi(const double* flux) override;
+
     __host__ __device__ void upddtil() override;
     __host__ __device__ void upddhat(double* flux, double* jnet) override;
     __host__ __device__ void setls() override;
@@ -20,10 +22,10 @@ public:
 
     __host__ __device__ void updls(const int& l, const double& reigvs);
 
-    __host__ __device__ void drive(double& eigv, double* flux, double* psi, float& errl2);
-    __host__ __device__ double residual(const double& reigv, const double& reigvs, double* flux, double* psi);
+    __host__ __device__ void drive(double& eigv, double* flux, float& errl2) override;
+    __host__ __device__ double residual(const double& reigv, const double& reigvs, double* flux);
     __host__ __device__ void axb(double* flux, double* aflux);
-    __host__ __device__ double wiel(const int& icy, double* flux, double* psi, double& eigv, double& reigv, double& reigvs);
+    __host__ __device__ double wiel(const int& icy, double* flux, double& eigv, double& reigv, double& reigvs);
 };
 
 

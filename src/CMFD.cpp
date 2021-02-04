@@ -10,6 +10,7 @@ CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
     _diag = new double[_g.nxyz() * _g.ng2()]{};
     _cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
     _src = new double[_g.nxyz() * _g.ng()]{};
+    _psi = new double[_g.nxyz()]{};
     _eshift = 0.0;
     _epsl2 = 1.E-5;
 }
@@ -114,6 +115,18 @@ void CMFD::setEshift(float eshift) {
 
 void CMFD::setEpsl2(float epsl2) {
     _epsl2 = epsl2;
+}
+
+void CMFD::updpsi(const int& l, const double* flux) {
+
+    _psi[l] = 0.0;
+
+    for (int ig = 0; ig < _ng; ig++)
+    {
+        _psi[l] += flux(ig,l) * _x.xsnf(ig, l);
+    }
+    _psi[l] = _psi[l] * _g.vol(l);
+
 }
 
 

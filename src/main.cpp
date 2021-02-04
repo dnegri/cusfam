@@ -47,8 +47,9 @@ int main() {
     int nxyz;
     int nsurf;
 
-    string simondb = "simondb0";
+    string simondb = "/Users/jiyoon/Downloads/simondb0";
     int length = simondb.length();
+    printf("Compledted to open Simon DB File.\n");
     opendb(&length, simondb.c_str());
     readDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
     nxyz = nxy * nz;
@@ -151,7 +152,6 @@ int main() {
     }
 
 
-    x->updateMacroXS(&(d->dnst(0, 0)));
     x->updateXS(&(d->dnst(0, 0)), 0.0, &(f->dtf(0)), &(f->dtm(0)));
     
     cmfd.upddtil();
@@ -178,8 +178,8 @@ int main() {
         psi[l] = psi[l] * g->vol(l);
 
     }
-
-    cmfd.drive(reigv, phif, psi, errl2);
+    cmfd.updpsi(phif);
+    cmfd.drive(reigv, phif,  errl2);
 
 
     //int maxout = 1;

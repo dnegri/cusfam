@@ -88,6 +88,7 @@ private:
 
 
 public:
+    __host__  __device__ DepletionChain();
     __host__  __device__ DepletionChain(Geometry& g);
 
     __host__ __device__ virtual ~DepletionChain();
