@@ -10,7 +10,6 @@ protected:
     Geometry& _g;
     CrossSection& _x;
 
-	int _ng;
 	int _ncmfd;
 
 	double* _dtil;
@@ -20,17 +19,7 @@ protected:
 	double* _src;
 	double* _psi;
 
-public:
-    void setNcmfd(int ncmfd);
-
-    void setEshift(float eshift0);
-
-    void setEpsl2(float epsl2);
-
-protected:
-    float _eshift;
     float _epsl2;
-
 
 
 public:
@@ -39,7 +28,7 @@ public:
 
     __host__ __device__ virtual void upddtil()=0;
     __host__ __device__ virtual void upddhat(double* flux, double* jnet)=0;
-    __host__ __device__ virtual void setls()=0;
+    __host__ __device__ virtual void setls(const double& eigv)=0;
     __host__ __device__ virtual void updjnet(double* flux, double* jnet)=0;
     __host__ __device__ virtual void updpsi(const double* flux)=0;
     __host__ __device__ virtual void drive(double& eigv, double* flux, float& errl2)=0;
@@ -49,6 +38,8 @@ public:
     __host__ __device__ void upddhat(const int& ls, double* flux, double* jnet);
     __host__ __device__ void setls(const int& l);
 
+    __host__ __device__ void setNcmfd(int ncmfd);
+    __host__ __device__ void setEpsl2(float epsl2);
     __host__ __device__ double& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
     __host__ __device__ double& dhat(const int& ig, const int& ls) {return _dhat[ls*_g.ng()+ig];};
     __host__ __device__ double& diag(const int& igs, const int& ige, const int& l) {return _diag[l*_g.ng2()+ige*_g.ng()+igs];};
@@ -97,4 +88,6 @@ public:
         }
 
     }
+
+
 };

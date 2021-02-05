@@ -19,11 +19,15 @@ CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
 
     _epsl2 = 1.E-5;
     _ncmfd = 5;
+
+    _eshift_diag = new double[g.ng2() * g.nxyz()];
     _eshift = 0.0;
+
 }
 
 CMFDCPU::~CMFDCPU() {
-
+    delete _ls;
+    delete[] _eshift_diag;
 }
 
 void CMFDCPU::upddtil() {
@@ -39,15 +43,24 @@ void CMFDCPU::upddhat(double* flux, double* jnet) {
 
 }
 
-void CMFDCPU::setls() {
+void CMFDCPU::setls(const double& eigv) {
+    double reigvs = 1. / (eigv + _eshift);
+
     for (int l = 0; l < _g.nxyz(); ++l) {
         setls(l);
+        updls(l, reigvs);
     }
     _ls->prepare();
 }
 
 void CMFDCPU::setls(const int &l) {
     CMFD::setls(l);
+
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            eshift_diag(igs, ige, l) = diag(igs, ige, l);
+        }
+    }
 
     int idxrow = l * _g.ng();
 
@@ -78,11 +91,8 @@ void CMFDCPU::setls(const int &l) {
 
 }
 
-void CMFDCPU::updls(const double &reigvs) {
-    for (int l = 0; l < _g.nxyz(); ++l) {
-        updls(l, reigvs);
-    }
-    _ls->prepare();
+void CMFDCPU::setEshift(float eshift) {
+    _eshift = eshift;
 }
 
 void CMFDCPU::updjnet(double* flux, double* jnet)
@@ -93,13 +103,26 @@ void CMFDCPU::updjnet(double* flux, double* jnet)
 
 }
 
+void CMFDCPU::updls(const double& reigvs) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        updls(l, reigvs);
+    }
+    _ls->prepare();
+}
+
 void CMFDCPU::updls(const int &l, const double &reigvs) {
     int idxrow = l * _g.ng();
 
     for (int ige = 0; ige < _g.ng(); ++ige) {
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            diag(igs, ige, l) = eshift_diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
+        }
+    }
+
+    for (int ige = 0; ige < _g.ng(); ++ige) {
         int idx = _ls->idxdiag(idxrow + ige);
         for (int igs = 0; igs < _g.ng(); ++igs) {
-            _ls->a(idx + igs) = diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
+            _ls->a(idx + igs) = diag(igs, ige, l);
         }
     }
 }

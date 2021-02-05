@@ -248,6 +248,12 @@ public:
 		_dfmacs = new XS_PRECISION[_nxyz * _ng * _ng];
 
 
+		for (size_t l = 0; l < _nxyz; l++)
+		{
+			chif(0, l) = 1.0;
+			xsadf(0, l) = 1.0;
+			xsadf(1, l) = 1.0;
+		}
 
 	};
 
@@ -301,7 +307,7 @@ public:
 	__host__ __device__ void updateMacroXS(float* dnst);
 
 	__host__ __device__ void updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm);
-	__host__ __device__ void updateXS(const float* dnst, const float& dppm, const float* dtf, const float* dtm);
+	__host__ __device__ void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
 
 
 	__host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };
@@ -324,9 +330,9 @@ public:
 	__host__ __device__ inline XS_PRECISION& xdpmicn(const int& ig, const int& iiso, const int& l) { return _xdpmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xdfmicn(const int& ig, const int& iiso, const int& l) { return _xdfmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xddmicn(const int& ig, const int& iiso, const int& l) { return _xddmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
-	__host__ __device__ inline XS_PRECISION& xdpmick(const int& ig, const int& iiso, const int& l) { return _xdpmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
-	__host__ __device__ inline XS_PRECISION& xdfmick(const int& ig, const int& iiso, const int& l) { return _xdfmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
-	__host__ __device__ inline XS_PRECISION& xddmick(const int& ig, const int& iiso, const int& l) { return _xddmicn[l * _ng * _nnucl + iiso * _ng + ig]; };
+	__host__ __device__ inline XS_PRECISION& xdpmick(const int& ig, const int& iiso, const int& l) { return _xdpmick[l * _ng * _nnucl + iiso * _ng + ig]; };
+	__host__ __device__ inline XS_PRECISION& xdfmick(const int& ig, const int& iiso, const int& l) { return _xdfmick[l * _ng * _nnucl + iiso * _ng + ig]; };
+	__host__ __device__ inline XS_PRECISION& xddmick(const int& ig, const int& iiso, const int& l) { return _xddmick[l * _ng * _nnucl + iiso * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xdfmics(const int& igs, const int& ige, const int& iiso, const int& l) { return _xdfmics[l * _ng * _ng * _nnucl + iiso * _ng * _ng + ige * _ng + igs]; };
 	__host__ __device__ inline XS_PRECISION& xddmics(const int& igs, const int& ige, const int& iiso, const int& l) { return _xddmics[l * _ng * _ng * _nnucl + iiso * _ng * _ng + ige * _ng + igs]; };
 	__host__ __device__ inline XS_PRECISION& xdpmics(const int& igs, const int& ige, const int& iiso, const int& l) { return _xdpmics[l * _ng * _ng * _nnucl + iiso * _ng * _ng + ige * _ng + igs]; };

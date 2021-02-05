@@ -12,9 +12,46 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 		xsmacf0(ig, l) = 0.0;
 		xsmack0(ig, l) = 0.0;
 		xsmacn0(ig, l) = 0.0;
+		dpmacd(ig, l) = 0.0;
+		dpmaca(ig, l) = 0.0;
+		dpmacf(ig, l) = 0.0;
+		dpmack(ig, l) = 0.0;
+		dpmacn(ig, l) = 0.0;
+		ddmacd(ig, l) = 0.0;
+		ddmaca(ig, l) = 0.0;
+		ddmacf(ig, l) = 0.0;
+		ddmack(ig, l) = 0.0;
+		ddmacn(ig, l) = 0.0;
+		dfmacd(ig, l) = 0.0;
+		dfmaca(ig, l) = 0.0;
+		dfmacf(ig, l) = 0.0;
+		dfmack(ig, l) = 0.0;
+		dfmacn(ig, l) = 0.0;
+
 		for (int igs = 0; igs < _ng; igs++)
 		{
 			xsmacs0(igs, ig, l) = 0.0;;
+			dpmacs(igs, ig, l) = 0.0;
+			dfmacs(igs, ig, l) = 0.0;
+			ddmacs(igs, ig, l) = 0.0;
+		}
+	}
+
+	for (int ip = 0; ip < _nptm; ip++)
+	{
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			dmmacd(ig, ip, l) = 0.0;
+			dmmaca(ig, ip, l) = 0.0;
+			dmmacf(ig, ip, l) = 0.0;
+			dmmack(ig, ip, l) = 0.0;
+			dmmacn(ig, ip, l) = 0.0;
+
+
+			for (int igs = 0; igs < _ng; igs++)
+			{
+				dmmacs(igs, ig, ip, l) = 0.0;
+			}
 		}
 	}
 
@@ -28,23 +65,23 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 			xsmacd0(ig, l) = xsmacd0(ig, l) + xsmicd0(ig, iso, l) * dnst(iso, l);
 			xsmacf0(ig, l) = xsmacf0(ig, l) + xsmicf0(ig, iso, l) * dnst(iso, l);
 			xsmack0(ig, l) = xsmack0(ig, l) + xsmick0(ig, iso, l) * dnst(iso, l);
-			xsmacn0(ig, l) = xsmacn0(ig, l) + xsmick0(ig, iso, l) * dnst(iso, l);
+			xsmacn0(ig, l) = xsmacn0(ig, l) + xsmicn0(ig, iso, l) * dnst(iso, l);
 
 			dpmacd(ig, l) = dpmacd(ig, l) + xdpmicd(ig, iso, l) * dnst(iso, l);
 			dpmaca(ig, l) = dpmaca(ig, l) + xdpmica(ig, iso, l) * dnst(iso, l);
 			dpmacf(ig, l) = dpmacf(ig, l) + xdpmicf(ig, iso, l) * dnst(iso, l);
-			dpmack(ig, l) = dpmack(ig, l) + xdpmick(ig, iso, l) * dnst(iso, l);
 			dpmacn(ig, l) = dpmacn(ig, l) + xdpmicn(ig, iso, l) * dnst(iso, l);
+			dpmack(ig, l) = dpmack(ig, l) + xdpmick(ig, iso, l) * dnst(iso, l);
 			ddmacd(ig, l) = ddmacd(ig, l) + xddmicd(ig, iso, l) * dnst(iso, l);
 			ddmaca(ig, l) = ddmaca(ig, l) + xddmica(ig, iso, l) * dnst(iso, l);
 			ddmacf(ig, l) = ddmacf(ig, l) + xddmicf(ig, iso, l) * dnst(iso, l);
-			ddmack(ig, l) = ddmack(ig, l) + xddmick(ig, iso, l) * dnst(iso, l);
 			ddmacn(ig, l) = ddmacn(ig, l) + xddmicn(ig, iso, l) * dnst(iso, l);
+			ddmack(ig, l) = ddmack(ig, l) + xddmick(ig, iso, l) * dnst(iso, l);
 			dfmacd(ig, l) = dfmacd(ig, l) + xdfmicd(ig, iso, l) * dnst(iso, l);
 			dfmaca(ig, l) = dfmaca(ig, l) + xdfmica(ig, iso, l) * dnst(iso, l);
 			dfmacf(ig, l) = dfmacf(ig, l) + xdfmicf(ig, iso, l) * dnst(iso, l);
-			dfmack(ig, l) = dfmack(ig, l) + xdfmick(ig, iso, l) * dnst(iso, l);
 			dfmacn(ig, l) = dfmacn(ig, l) + xdfmicn(ig, iso, l) * dnst(iso, l);
+			dfmack(ig, l) = dfmack(ig, l) + xdfmick(ig, iso, l) * dnst(iso, l);
 
 			for (int igs = 0; igs < _ng; igs++)
 			{
@@ -63,8 +100,8 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 				dmmacd(ig, ip, l) = dmmacd(ig, ip, l) + xdmmicd(ig, iso, ip, l) * dnst(iso, l);
 				dmmaca(ig, ip, l) = dmmaca(ig, ip, l) + xdmmica(ig, iso, ip, l) * dnst(iso, l);
 				dmmacf(ig, ip, l) = dmmacf(ig, ip, l) + xdmmicf(ig, iso, ip, l) * dnst(iso, l);
-				dmmack(ig, ip, l) = dmmack(ig, ip, l) + xdmmick(ig, iso, ip, l) * dnst(iso, l);
 				dmmacn(ig, ip, l) = dmmacn(ig, ip, l) + xdmmicn(ig, iso, ip, l) * dnst(iso, l);
+				dmmack(ig, ip, l) = dmmack(ig, ip, l) + xdmmick(ig, iso, ip, l) * dnst(iso, l);
 
 
 				for (int igs = 0; igs < _ng; igs++)
@@ -108,7 +145,7 @@ __host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst,
 
 	for (int i = 0; i < NNIS; i++)
 	{
-		int iso = ISOFIS[i];
+		int iso = ISONIS[i];
 
 		for (int ig = 0; ig < _ng; ig++)
 		{
@@ -141,11 +178,11 @@ __host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst,
 
 }
 
-__host__ __device__ void CrossSection::updateXS(const float* dnst, const float& dppm, const float* dtf, const float* dtm)
+__host__ __device__ void CrossSection::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
 {
 	for (size_t l = 0; l < _nxyz; l++)
 	{
-		updateXS(l, dnst, dppm, dtf[l], dtm[l]);
+		updateXS(l, dnst, dppm[l], dtf[l], dtm[l]);
 	}
 
 }

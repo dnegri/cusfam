@@ -90,6 +90,12 @@ DepletionChain::DepletionChain(Geometry& g) : _g(g) {
 
 	_dnst = new float[NISO * g.nxyz()]{};
 	_burn = new float[g.nxyz()]{};
+	_h2on = new float[g.nxyz()]{};
+	
+
+	_b10ap = 19.8;
+	_b10fac = _b10ap / (_b10ap * B10AW + (100. - _b10ap) * B11AW);
+	_b10wp = 100. * B10AW * _b10fac;
 }
 
 DepletionChain::~DepletionChain() {
@@ -337,6 +343,13 @@ void DepletionChain::pickData(const int& l, const float* xsmica, const float* xs
 
 	//   (n,2n) reaction rate
 	_tn2n[l] = xsmic2n(0, l) * phi(0, l) * 1.0E-24;
+}
+
+void DepletionChain::updateH2ODensity(const int& l, const float* dm, const float& ppm)
+{
+	dnst(H2O, l) = h2on(l) * dm[l];
+	dnst(SB10, l) = 1.0E-06 * ppm * H2OAW * dnst(H2O, l) * _b10fac;
+
 }
 
 

@@ -44,7 +44,7 @@ extern "C" void initCudaGeometry(int* ng, int* nxy, int* nz, int* nx, int* ny, i
 extern "C" void initCudaXS(int* ng, int* nxy, int* nz, XS_PRECISION *xsdf, XS_PRECISION * xstf, XS_PRECISION * xsnf,
 	XS_PRECISION* xssf, XS_PRECISION * xschif, XS_PRECISION * xsadf)
 {
-	xs = new CrossSection(g->ng(), g->nxyz(), xsdf, xstf, xsnf, xssf, xschif, xsadf);
+	//xs = new CrossSection(g->ng(), g->nxyz(), xsdf, xstf, xsnf, xssf, xschif, xsadf);
 }
 
 extern "C" void initCudaSolver()
@@ -194,9 +194,9 @@ extern "C" void runCMFD(double* reigv_, double* psi, double* phif, double* jnet)
 
 	NodalCPU nodal(*g, *xs);
 	cmfd.upddtil();
-	cmfd.setls();
+	cmfd.setls(1./(*reigv_));
 	for (int i = 0; i < 50; ++i) {
-		cmfd.drive(*reigv_, phif, psi, errl2);
+		cmfd.drive(*reigv_, phif, errl2);
 		//cmfd.updjnet(phif, jnet);
 		//nodal.reset(*xs, *reigv_, jnet, phif);
 		//nodal.drive(jnet);

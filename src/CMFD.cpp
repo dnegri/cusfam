@@ -11,12 +11,16 @@ CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
     _cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
     _src = new double[_g.nxyz() * _g.ng()]{};
     _psi = new double[_g.nxyz()]{};
-    _eshift = 0.0;
     _epsl2 = 1.E-5;
 }
 
 CMFD::~CMFD() {
-
+    delete[] _dtil;
+    delete[] _dhat;
+    delete[] _diag;
+    delete[] _cc;
+    delete[] _src;
+    delete[] _psi;
 }
 
 void CMFD::upddtil(const int& ls)
@@ -84,7 +88,7 @@ void CMFD::setls(const int &l) {
         {
             int ln = _g.neib(LEFT, idir, l);
 
-            if (ln >= 0) {
+            if (ln >= 0 && ln != l) {
                 int ls = _g.lktosfc(LEFT, idir, l);
 
                 cc(LEFT,idir,ige,l) =(-dtil(ige, ls) + dhat(ige, ls))* area[idir];
@@ -96,7 +100,7 @@ void CMFD::setls(const int &l) {
         {
             int ln = _g.neib(RIGHT, idir, l);
 
-            if (ln >= 0) {
+            if (ln >= 0 && ln != l) {
                 int ls = _g.lktosfc(RIGHT, idir, l);
                 cc(RIGHT,idir,ige,l) =(-dtil(ige, ls) - dhat(ige, ls))* area[idir];
                 diag(ige,ige,l) += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
@@ -109,10 +113,6 @@ void CMFD::setNcmfd(int ncmfd) {
     _ncmfd = ncmfd;
 }
 
-void CMFD::setEshift(float eshift) {
-    _eshift = eshift;
-}
-
 void CMFD::setEpsl2(float epsl2) {
     _epsl2 = epsl2;
 }
@@ -121,12 +121,10 @@ void CMFD::updpsi(const int& l, const double* flux) {
 
     _psi[l] = 0.0;
 
-    for (int ig = 0; ig < _ng; ig++)
+    for (int ig = 0; ig < _g.ng(); ig++)
     {
         _psi[l] += flux(ig,l) * _x.xsnf(ig, l);
     }
     _psi[l] = _psi[l] * _g.vol(l);
 
 }
-
-

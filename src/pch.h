@@ -148,6 +148,16 @@ __constant__ static const int ISONIS[]{ PM47, PS48, PM48, PM49, SM49,
                                         I135, XE45, SB10, H2O};
 
 __constant__ static const int NPTM = 2;
+
+__constant__ static const float HAW = 1.0079;
+__constant__ static const float OAW = 15.994915;
+__constant__ static const float H2OAW = 18.010715;
+
+__constant__ static const float AVOG = 0.6022045;
+__constant__ static const float B10AW = 10.012937;
+__constant__ static const float B11AW = 11.009305;
+
+__constant__ static const int TF_POINT = 20;
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 

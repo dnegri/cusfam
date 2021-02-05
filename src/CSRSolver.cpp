@@ -31,7 +31,7 @@ void CSRSolver::initialize()
 		{
 			int ln = _g.neib(LEFT, idir, l);
 
-			if (ln >= 0) {
+			if (ln >= 0 && ln != l) {
 				idx_col_onerow[idir] = ln;
 			}
 		}
@@ -40,7 +40,7 @@ void CSRSolver::initialize()
 		{
 			int ln = _g.neib(RIGHT, idir, l);
 
-			if (ln >= 0) {
+			if (ln >= 0 && ln != l) {
 				idx_col_onerow[NDIRMAX+idir] = ln;
 			}
 		}
@@ -65,7 +65,7 @@ void CSRSolver::initialize()
 			{
 				int ln = _g.neib(LEFT, idir, l);
 
-				if(ln >= 0 && fac(LEFT, idir, l) != 0) {
+				if(ln >= 0 && ln != l && fac(LEFT, idir, l) != 0) {
 					_idx_col[nnz] = ln * _g.ng() + ige;
 					++nnz;
 				}
@@ -84,7 +84,7 @@ void CSRSolver::initialize()
 			{
 				int ln = _g.neib(RIGHT, idir, l);
 
-				if (ln >= 0 && fac(RIGHT, idir, l) != 0) {
+				if (ln >= 0 && ln != l && fac(RIGHT, idir, l) != 0) {
 					_idx_col[nnz] = ln * _g.ng() + ige;
 					++nnz;
 				}

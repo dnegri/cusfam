@@ -6,13 +6,15 @@
 
 #define flux(ig, l)   (flux[(l)*_g.ng()+ig])
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
-#define psi(l)  (psi[(l)])
 
 BICGCMFD::BICGCMFD(Geometry &g, CrossSection &x) : CMFD(g, x) {
     _ls = new BICGSolver(g);
-    _eshift_diag = new double [g.ng2()*g.nxyz()];
     _epsbicg = 1.E-4;
     _nmaxbicg = 3;
+
+    _eshift_diag = new double[g.ng2() * g.nxyz()];
+    _eshift = 0.0;
+
 }
 
 BICGCMFD::~BICGCMFD() {
@@ -20,68 +22,15 @@ BICGCMFD::~BICGCMFD() {
     delete[] _eshift_diag;
 }
 
-
-void BICGCMFD::upddtil() {
-    for (int ls = 0; ls < _g.nsurf(); ++ls) {
-        CMFD::upddtil(ls);
-    }
+void BICGCMFD::setEshift(float eshift) {
+    _eshift = eshift;
 }
 
-void BICGCMFD::upddhat(double* flux, double* jnet) {
-    for (int ls = 0; ls < _g.nsurf(); ++ls) {
-        CMFD::upddhat(ls, flux, jnet);
-    }
-
-}
-
-void BICGCMFD::setls() {
-    for (int l = 0; l < _g.nxyz(); ++l) {
-        setls(l);
-    }
-    _ls->facilu(_diag, _cc);
-}
-
-void BICGCMFD::setls(const int &l) {
-    CMFD::setls(l);
-}
-
-void BICGCMFD::updls(const double &reigvs) {
-    for (int l = 0; l < _g.nxyz(); ++l) {
-        updls(l, reigvs);
-    }
-    _ls->facilu(_diag, _cc);
-}
-
-void BICGCMFD::updjnet(double* flux, double* jnet)
-{
-    for (int ls = 0; ls < _g.nsurf(); ++ls) {
-        CMFD::updjnet(ls, flux, jnet);
-    }
-}
-
-void BICGCMFD::updls(const int &l, const double &reigvs) {
-    int idxrow = l * _g.ng();
-
-    for (int ige = 0; ige < _g.ng(); ++ige) {
-        for (int igs = 0; igs < _g.ng(); ++igs) {
-            eshift_diag(igs,ige,l) = diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
-        }
-    }
-}
-
-void BICGCMFD::axb(double *flux, double *aflux) {
-    for (int l = 0; l < _g.nxyz(); ++l) {
-        for (int ig = 0; ig < _g.ng(); ++ig) {
-            aflux(ig, l) = CMFD::axb(ig, l, flux);
-        }
-    }
-}
-
-double BICGCMFD::wiel(const int &icy, double *flux, double *psi, double &eigv, double &reigv, double &reigvs) {
-    double errl2 = 0;
+void BICGCMFD::wiel(const int& icy, const double* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
 
     double gamman = 0;
     double gammad = 0;
+    errl2 = 0;
 
     for (size_t l = 0; l < _g.nxyz(); l++) {
         double psid = psi(l);
@@ -108,7 +57,8 @@ double BICGCMFD::wiel(const int &icy, double *flux, double *psi, double &eigv, d
             summ += psi(l) * reigvs;
         }
         eigv = sumf / summ;
-    } else {
+    }
+    else {
         double gamma = gammad / gamman;
         eigv = 1 / (reigv * gamma + (1 - gamma) * reigvs);
     }
@@ -125,15 +75,14 @@ double BICGCMFD::wiel(const int &icy, double *flux, double *psi, double &eigv, d
     reigvs = 0;
     if (_eshift != 0.0) reigvs = 1 / eigvs;
 
-    return errl2;
 }
 
 
-double BICGCMFD::residual(const double &reigv, const double &reigvs, double *flux, double *psi) {
+double BICGCMFD::residual(const double& reigv, const double& reigvs, const double* flux) {
 
     double reigvdel = reigv - reigvs;
 
-//    axb(phi,aphi);
+    //    axb(phi,aphi);
     double r = 0.0;
     double psi2 = 0.0;
 
@@ -154,12 +103,85 @@ double BICGCMFD::residual(const double &reigv, const double &reigvs, double *flu
     return sqrt(r / psi2);
 }
 
-void BICGCMFD::drive(double &eigv, double *flux, double *psi, float &errl2) {
+
+void BICGCMFD::upddtil() {
+    for (int ls = 0; ls < _g.nsurf(); ++ls) {
+        CMFD::upddtil(ls);
+    }
+}
+
+void BICGCMFD::upddhat(double* flux, double* jnet) {
+    for (int ls = 0; ls < _g.nsurf(); ++ls) {
+        CMFD::upddhat(ls, flux, jnet);
+    }
+
+}
+
+void BICGCMFD::setls(const double& eigv) {
+    double reigvs = 0.0;
+    if(_eshift != 0.0) reigvs = 1. / (eigv + _eshift);
+
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        setls(l);
+        updls(l, reigvs);
+    }
+    _ls->facilu(_diag, _cc);
+}
+
+void BICGCMFD::setls(const int &l) {
+    CMFD::setls(l);
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            eshift_diag(igs, ige, l) = diag(igs, ige, l);
+        }
+    }
+}
+
+void BICGCMFD::updls(const double& reigvs) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        updls(l, reigvs);
+    }
+}
+void BICGCMFD::updls(const int &l, const double& reigvs) {
+    for (int ige = 0; ige < _g.ng(); ++ige) {
+        for (int igs = 0; igs < _g.ng(); ++igs) {
+            diag(igs,ige,l) = eshift_diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
+        }
+    }
+}
+
+void BICGCMFD::updjnet(double* flux, double* jnet)
+{
+    for (int ls = 0; ls < _g.nsurf(); ++ls) {
+        CMFD::updjnet(ls, flux, jnet);
+    }
+}
+
+void BICGCMFD::updpsi(const double* flux)
+{
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        CMFD::updpsi(l, flux);
+    }
+}
+
+
+void BICGCMFD::axb(double* flux, double* aflux) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        for (int ig = 0; ig < _g.ng(); ++ig) {
+            aflux(ig, l) = CMFD::axb(ig, l, flux);
+        }
+    }
+}
+
+
+void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
 
     int icy = 0;
     int icmfd = 0;
     double reigv = 1. / eigv;
     double reigvs = 0.0;
+
+    if(_eshift != 0.0) reigvs = 1. / (eigv + _eshift);
     double resid0;
 
     for (int iout = 0; iout < _ncmfd; ++iout) {
@@ -184,11 +206,11 @@ void BICGCMFD::drive(double &eigv, double *flux, double *psi, float &errl2) {
         }
 
         //wielandt shift
-        errl2 = wiel(icy, flux, psi, eigv, reigv, reigvs);
+        wiel(icy, flux, reigvs, eigv, reigv, errl2);
 
-        if(reigvs != 0) updls(reigvs);
+        if(reigvs != 0.0) updls(reigvs);
 
-        double resi = residual(reigv, reigvs, flux, psi);
+        double resi = residual(reigv, reigv, flux);
 
         if (iout == 0) resid0 = resi;
         double relresid = resi / resid0;

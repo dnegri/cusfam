@@ -85,13 +85,20 @@ private:
 
     float* _dnst;
     float* _burn;
+    float* _h2on;
 
+
+    float _b10ap;
+    float _b10wp;
+    float _b10fac;
 
 public:
     __host__  __device__ DepletionChain();
     __host__  __device__ DepletionChain(Geometry& g);
 
     __host__ __device__ virtual ~DepletionChain();
+    
+    __host__ __device__ float& h2on(const int& l) { return _h2on[l]; };
 
     __host__ __device__ float& burn(const int& l) { return _burn[l]; };
     __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*_mnucl + iiso]; } ;
@@ -99,6 +106,9 @@ public:
     __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*_mnucl + iiso]; } ;
     __host__ __device__ float& dcy(const int& iiso, const int& l) { return _dcy[l*_mnucl + iiso]; } ;
     __host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
+    __host__ __device__ float* dnst() { return _dnst; };
+    __host__ __device__ float* burn() { return _burn; };
+
     __host__ __device__ int& nheavy(const int& ichn) { return _nheavy[ichn]; };
     __host__ __device__ int& ihchn(const int& step, const int& ichn) { return _hvyids[_ihvys[ichn]+ step]; };
     __host__ __device__ int& idpct(const int& step, const int& ichn) { return _hvyupd[_ihvys[ichn] + step]; };
@@ -113,6 +123,7 @@ public:
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* phi);
 
+    __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);
 
 
 };

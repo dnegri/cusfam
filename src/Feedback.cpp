@@ -12,6 +12,7 @@ Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
     _tf = new float[g.nxyz()]{};
     _tm = new float[g.nxyz()]{};
     _dm = new float[g.nxyz()]{};
+    _dppm = new float[g.nxyz()]{};
     _dtf = new float[g.nxyz()]{};
     _dtm = new float[g.nxyz()]{};
     _ddm = new float[g.nxyz()]{};
@@ -20,12 +21,39 @@ Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
     _tm0 = new float[g.nxyz()]{};
     _dm0 = new float[g.nxyz()]{};
     _chflow = new float[g.nxy()]{};
+    _fueltype = new int[g.nxyz()];
+    _frodn = new float[g.nxy()];
+    int* _ntfpow;
+    int* _ntfbu;
+    float* _tfpow;
+    float* _tfbu;
+    float* _tftable;
+
 }
 
 Feedback::~Feedback()
 {
 }
 
+void Feedback::initDelta(const float& ppm) {
+
+    for (int l = 0; l < _g.nxy(); ++l)
+    {
+        dppm(l) = ppm * dm(l)/dm0(l) - ppm0(l);
+        dtf(l) = sqrt(tf(l)) - stf0(l);
+        dtm(l) = tm(l) - tm0(l);
+        ddm(l) = dm(l) - dm0(l);
+    }
+}
+void Feedback::initTFTable(const int& nft) {
+    
+    _nft = nft;
+    _ntfbu = new int[nft];
+    _ntfpow = new int[nft];
+    _tfbu = new float[nft*TF_POINT];
+    _tfpow = new float[nft * TF_POINT];
+    _tftable = new float[nft * TF_POINT * TF_POINT];
+}
 void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
 
     // powlin     : integrated nodal _power in w
@@ -33,9 +61,11 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     float qprime = pow3(l) / _g.hmesh(ZDIR, l) * _heatfrac;
     qprime = qprime / _g.npinbox();
 
+    int ift = fueltype(l);
+
     int i = 1;
-    for (; i < _ntfbu - 1; ++i) {
-        if (bu(l) < tfbu(i)) break;
+    for (; i < ntfbu(ift) - 1; ++i) {
+        if (bu(l) < tfbu(i, ift)) break;
     }
 
     int ib[2];
@@ -43,12 +73,12 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
 
     ib[0] = i - 1;
     ib[1] = i;
-    bus[0] = tfbu(ib[0]);
-    bus[1] = tfbu(ib[1]);
+    bus[0] = tfbu(ib[0], ift);
+    bus[1] = tfbu(ib[1], ift);
 
     i = 1;
-    for (; i < _ntfpow - 2; ++i) {
-        if (qprime < tfpow(i)) break;
+    for (; i < ntfpow(ift) - 2; ++i) {
+        if (qprime < tfpow(i, ift)) break;
     }
 
     int ip[3];
@@ -56,16 +86,16 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     ip[0] = i - 1;
     ip[1] = i;
     ip[2] = i + 1;
-    pws[0] = tfpow(ip[0]);
-    pws[1] = tfpow(ip[1]);
-    pws[2] = tfpow(ip[2]);
+    pws[0] = tfpow(ip[0], ift);
+    pws[1] = tfpow(ip[1], ift);
+    pws[2] = tfpow(ip[2], ift);
 
     float rx12 = 1. / (bus[1] - bus[1]);
 
     float yp[3];
     for (int idx = 0; idx < 3; ++idx) {
-        float y1 = tftable(ib[0], ip[idx]);
-        float y2 = tftable(ib[1], ip[idx]);
+        float y1 = tftable(ib[0], ip[idx], ift);
+        float y2 = tftable(ib[1], ip[idx], ift);
         yp[idx] = (y2 - y1) * rx12 * (bu(l) - bus[0]) + y1;
     }
 
@@ -107,7 +137,7 @@ void Feedback::updateTm(const int& l2d, const float* pow, int& nboiling) {
     }
 }
 
-__host__ __device__ void Feedback::udpateTf(const float* power, const float* burnup)
+__host__ __device__ void Feedback::updateTf(const float* power, const float* burnup)
 {
     for (size_t l = 0; l < _g.nxyz(); l++)
     {
@@ -124,17 +154,3 @@ __host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
         updateTm(l2d, power, nboiling);
     }
 }
-
-void
-Feedback::setTfTable(const int& ntfpow, const int& ntfbu, const float* tfpow, const float* tfbu, const float* tftable) {
-    _ntfpow = ntfpow;
-    _ntfbu = ntfbu;
-    _tfpow = new float[_ntfpow];
-    _tfbu = new float[_ntfbu];
-    _tftable = new float[_ntfbu * _ntfpow];
-
-    copy(tfpow, tfpow + _ntfpow, _tfpow);
-    copy(tfbu, tfbu + _ntfbu, _tfbu);
-    copy(tftable, tfbu + _ntfbu * _ntfpow, _tftable);
-}
-
