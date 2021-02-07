@@ -1,7 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
-project(cusfam CXX)
+project(cusfam CXX Fortran)
 set(CMAKE_CXX_STANDARD 14)
-add_compile_definitions(CPU BZ_DEBUG)
+add_compile_definitions(CPU)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY omp)
+endif()
+
+find_package(Ginkgo REQUIRED)
+find_package(OpenMP REQUIRED)
 
 file(GLOB SOURCES
         ../src/pch.h
@@ -27,14 +36,16 @@ file(GLOB SOURCES
         ../src/SteamTable.*
         ../src/DepletionChain.*
         ../src/SuperLUSolver.*
+        ../src/GinkgoSolver.*
         )
 
-include_directories(/opt/homebrew/include)
-link_directories(/opt/homebrew/lib /opt/homebrew/Cellar/gcc/10.2.0_3/lib/gcc/10 cmake-build-debug-gdb/)
+include_directories(/opt/homebrew/include /usr/local/include/)
+link_directories(/opt/homebrew/lib /usr/local/lib/)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
+SET_SOURCE_FILES_PROPERTIES(../src/simondbreader.f90 PROPERTIES LANGUAGE Fortran )
 
 add_library(L${PROJECT_NAME} ${SOURCES} )
-add_executable(${PROJECT_NAME} ${SOURCES} )
-target_link_libraries(${PROJECT_NAME} blitz superlu blas gfortran simondb)
+add_executable(${PROJECT_NAME} ${SOURCES} ../src/simondbreader.f90)
+target_link_libraries(${PROJECT_NAME} superlu blas Ginkgo::ginkgo OpenMP::OpenMP_CXX)
 

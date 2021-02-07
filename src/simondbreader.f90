@@ -48,12 +48,10 @@ contains
         
     end subroutine
     
-    subroutine readstep(bucyc, buavg, efpd, ppm, eigv, power, fnorm)   bind(c, name="readStep")
+    subroutine readstep(bucyc, buavg, efpd)   bind(c, name="readStep")
         real(4)         :: bucyc, buavg, efpd
-        real(8)         :: ppm, eigv, power, fnorm
         
         read(ifile) bucyc, buavg, efpd
-        read(ifile) ppm, eigv, power, fnorm
         
     end subroutine
     
@@ -72,23 +70,9 @@ contains
         read(ifile) val
     
     end subroutine    
-
-    subroutine readnxyzi(nxyz, val)   bind(c, name="readNXYZI")
-        integer            :: val(nxyz)
-
-        read(ifile) val
-    
-    end subroutine        
     
     subroutine readnxyz(nxyz, val)   bind(c, name="readNXYZ")
         real(4)            :: val(nxyz)
-
-        read(ifile) val
-    
-    end subroutine        
-    
-    subroutine readnxyz8(nxyz, val)   bind(c, name="readNXYZ8")
-        real(8)            :: val(nxyz)
 
         read(ifile) val
     

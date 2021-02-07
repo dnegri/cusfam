@@ -352,4 +352,10 @@ void DepletionChain::updateH2ODensity(const int& l, const float* dm, const float
 
 }
 
+void DepletionChain::updateH2ODensity(const float* dm, const float& ppm) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        updateH2ODensity(l, dm, ppm);
+    }
+}
+
 

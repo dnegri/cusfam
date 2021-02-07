@@ -7,6 +7,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 #ifndef CPU
     #include <cuda_runtime.h>

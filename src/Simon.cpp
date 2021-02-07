@@ -8,8 +8,8 @@ void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys
 void readBoundary(int* symopt, int* symang, float* albedo);
 void readNXNY(const int* nx, const int* ny, float* val);
 void readNXYZ(const int* nxyz, float* val);
-void readNXYZ8(const int* nxyz, double* val);
-void readNXYZI(const int* nxyz, int* val);
+//void readNXYZ8(const int* nxyz, double* val);
+//void readNXYZI(const int* nxyz, int* val);
 
 void readStep(float* bucyc, float* buavg, float* efpd, double* ppm, double* eigv, double* power, double* fnorm);
 void readXS(const int* niso, float* xs);
@@ -89,13 +89,13 @@ void Simon::initialize(const char* dbfile) {
     readNXYZ(&(_g->nxyz()), &(_f->dm0(0)));
     readNXYZ(&(_g->nxyz()), &(_d->h2on(0)));
     int one = 1;
-    readNXYZI(&nxyz, &(_f->fueltype(0)));
+//    readNXYZI(&nxyz, &(_f->fueltype(0)));
     readNXYZ(&nxy, &(_f->frodn(0)));
-    readNXYZI(&one, &(_f->nft()));
+//    readNXYZI(&one, &(_f->nft()));
 
     _f->initTFTable(_f->nft());
-    readNXYZI(&(_f->nft()), &(_f->ntfbu(0)));
-    readNXYZI(&(_f->nft()), &(_f->ntfpow(0)));
+//    readNXYZI(&(_f->nft()), &(_f->ntfbu(0)));
+//    readNXYZI(&(_f->nft()), &(_f->ntfpow(0)));
     int size = TF_POINT * _f->nft();
     readNXYZ(&size, &(_f->tfbu(0,0)));
     readNXYZ(&size, &(_f->tfpow(0, 0)));
@@ -142,7 +142,7 @@ void Simon::setBurnup(const float& burnup) {
     readDensity(&NISO, &(_d->dnst(0, 0)));
     readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
     readNXYZ(&(_g->nxyz()), _power);
-    readNXYZ8(&(_g->ngxyz()), _flux);
+//    readNXYZ8(&(_g->ngxyz()), _flux);
     readNXYZ(&(_g->nxyz()), &(_f->tf(0)));
     readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
     readNXYZ(&(_g->nxyz()), &(_f->dm(0)));

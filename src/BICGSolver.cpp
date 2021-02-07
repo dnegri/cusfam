@@ -204,6 +204,7 @@ void BICGSolver::sol2d(double *cc, const int &k, double *b, double *x) {
 void BICGSolver::minv(double *cc, double *b, double *x) {
 
     // forward solve
+//    #pragma omp parallel for
     for (int k = 0; k < _g.nz(); ++k) {
         if(k == 0) {
             for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
@@ -229,6 +230,7 @@ void BICGSolver::minv(double *cc, double *b, double *x) {
 
 
     // backward solve
+//    #pragma omp parallel for
     for (int k = _g.nz() - 2; k >= 0; --k) {
         for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
             int ln = _g.neib(TOP, l);

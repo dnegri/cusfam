@@ -82,7 +82,7 @@ double BICGCMFD::residual(const double& reigv, const double& reigvs, const doubl
 
     double reigvdel = reigv - reigvs;
 
-    //    axb(phi,aphi);
+//    axb(phi,aphi);
     double r = 0.0;
     double psi2 = 0.0;
 
@@ -209,11 +209,6 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
         wiel(icy, flux, reigvs, eigv, reigv, errl2);
 
         if(reigvs != 0.0) updls(reigvs);
-
-        double resi = residual(reigv, reigv, flux);
-
-        if (iout == 0) resid0 = resi;
-        double relresid = resi / resid0;
 
         int negative = 0;
         for (int l = 0; l < _g.nxyz(); ++l) {

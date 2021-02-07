@@ -123,6 +123,7 @@ public:
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* phi);
 
+    __host__ __device__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);
 
 

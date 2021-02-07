@@ -154,3 +154,9 @@ __host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
         updateTm(l2d, power, nboiling);
     }
 }
+
+void Feedback::updatePPM(const float& ppm) {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        dppm(l) = ppm * dm(l)/dm0(l) - ppm0(l);
+    }
+}
