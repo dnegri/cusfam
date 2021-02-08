@@ -24,7 +24,7 @@ public:
     SuperLUSolver(Geometry &g);
 
 public:
-    void solve(double *b, double *x) override;
+    void solve(CMFD_VAR *b, double *x) override;
     void prepare() override;
 
 };

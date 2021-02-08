@@ -164,6 +164,7 @@ __host__ __device__ void Feedback::updateTin(const float& tin)
 
 __host__ __device__ void Feedback::updateTf(const float* power, const float* burnup)
 {
+#pragma omp parallel for
     for (size_t l = 0; l < _g.nxyz(); l++)
     {
         updateTf(l, power, burnup);
@@ -173,7 +174,7 @@ __host__ __device__ void Feedback::updateTf(const float* power, const float* bur
 __host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
 {
     nboiling = 0;
-
+#pragma omp parallel for
     for (size_t l2d = 0; l2d < _g.nxy(); l2d++)
     {
         updateTm(l2d, power, nboiling);
@@ -181,6 +182,7 @@ __host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
 }
 
 void Feedback::updatePPM(const float& ppm) {
+#pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
         dppm(l) = ppm * dm(l)/dm0(l) - ppm0(l);
     }

@@ -159,9 +159,10 @@ __constant__ static const float B10AW = 10.012937;
 __constant__ static const float B11AW = 11.009305;
 
 __constant__ static const int TF_POINT = 20;
+
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 
-
-
+#define CMFD_VAR    float
+#define SOL_VAR    float
 #endif /* PCH_H_ */

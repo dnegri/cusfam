@@ -1,0 +1,2 @@
+      COMMON /COEFIG/ WA0(1:8), WGAM0(4:8)
+

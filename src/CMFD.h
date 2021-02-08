@@ -12,12 +12,12 @@ protected:
 
 	int _ncmfd;
 
-	double* _dtil;
-    double* _dhat;
-    double* _diag;
-    double* _cc;
-	double* _src;
-	double* _psi;
+    CMFD_VAR* _dtil;
+    CMFD_VAR* _dhat;
+    CMFD_VAR* _diag;
+    CMFD_VAR* _cc;
+    CMFD_VAR* _src;
+    CMFD_VAR* _psi;
 
     float _epsl2;
 
@@ -40,16 +40,16 @@ public:
 
     __host__ __device__ void setNcmfd(int ncmfd);
     __host__ __device__ void setEpsl2(float epsl2);
-    __host__ __device__ double& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
-    __host__ __device__ double& dhat(const int& ig, const int& ls) {return _dhat[ls*_g.ng()+ig];};
-    __host__ __device__ double& diag(const int& igs, const int& ige, const int& l) {return _diag[l*_g.ng2()+ige*_g.ng()+igs];};
-    __host__ __device__ double& cc(const int& lr,const int& idir, const int& ig, const int& l) {
+    __host__ __device__ CMFD_VAR& dtil(const int& ig, const int& ls) {return _dtil[ls*_g.ng()+ig];};
+    __host__ __device__ CMFD_VAR& dhat(const int& ig, const int& ls) {return _dhat[ls*_g.ng()+ig];};
+    __host__ __device__ CMFD_VAR& diag(const int& igs, const int& ige, const int& l) {return _diag[l*_g.ng2()+ige*_g.ng()+igs];};
+    __host__ __device__ CMFD_VAR& cc(const int& lr,const int& idir, const int& ig, const int& l) {
         return _cc[l*_g.ng()*NDIRMAX*LR+ig*NDIRMAX*LR+idir*LR+lr];
     };
-    __host__ __device__ double& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
-    __host__ __device__ double& psi(const int& l) {return _psi[l];};
+    __host__ __device__ CMFD_VAR& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
+    __host__ __device__ CMFD_VAR& psi(const int& l) {return _psi[l];};
 
-    __host__ __device__ double axb(const int& ig, const int& l, const double* flux) {
+    __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, const double* flux) {
 
         double ab = 0.0;
         for (int igs = 0; igs < _g.ng(); ++igs) {

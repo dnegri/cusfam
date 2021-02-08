@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C           *** WCONST.CMN ***                                        C
+C THIS FILE CONTAINS VARIOUS WATER-SPECIFIC CONSTANTS                 C
+C                                                                     C
+C MAINTENANCE:                                                        C
+C                                                                     C
+C 21MAY97 - AHH: PUT INTO PARAMETER STATEMENTS RATHER THAN BLOCK DATA C
+C                                                                     C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      PARAMETER (TCW=647.096D0, PCW=22.064D0, RHOCW=322.D0)
+      PARAMETER (RW=0.46151805D0, WMMASS=18.015268D0)
+      PARAMETER (TTRIPW=273.16D0, PTRIPW=611.657D-6)

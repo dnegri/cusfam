@@ -1,16 +1,20 @@
 #pragma once
 #include "CMFD.h"
 #include "BICGSolver.h"
+#include "JacobiBicgSolver.h"
 
 class BICGCMFD : public CMFD {
 private:
-    BICGSolver* _ls;
+//    BICGSolver* _ls;
+    JacobiBicgSolver* _ls;
 
     int _nmaxbicg;
     double _epsbicg;
 
     double* _eshift_diag;
     float _eshift;
+
+    int iter;
 
 
 public:
@@ -24,7 +28,7 @@ public:
     __host__ __device__ void updpsi(const double* flux) override;
     __host__ __device__ void drive(double& eigv, double* flux, float& errl2) override;
 
-
+    __host__ __device__ void resetIteration();
     __host__ __device__ void setEshift(float eshift0);
     __host__ __device__ void setls(const int &l);
     __host__ __device__ void updls(const double& reigvs);

@@ -1,0 +1,6 @@
+      COMMON /COEFR/ WN(1:56), WT(1:7), WGAM(52:54), WA(55:56), 
+     1               WB(55:56), WAA(55:56), WBB(55:56), WBET(55:56)
+      COMMON /COEFI/ IWC(8:51), IWD(1:54), IWT(8:54), IWALF(52:54),
+     1               IWBET(52:54), IWEPS(52:54), IWCC(55:56), 
+     2               IWDD(55:56)
+

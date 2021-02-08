@@ -14,8 +14,9 @@
 int main() {
     Simon simon;
 
-    simon.initialize("simondb0");
+    simon.initialize("../run/simondb0");
     simon.setBurnup(1000);
+//    simon.runKeff(100);
     simon.runECP(100, 1.0);
 }
 

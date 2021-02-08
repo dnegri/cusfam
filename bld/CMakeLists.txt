@@ -37,15 +37,18 @@ file(GLOB SOURCES
         ../src/DepletionChain.*
         ../src/SuperLUSolver.*
         ../src/GinkgoSolver.*
+        ../src/JacobiBicgSolver.*
         )
 
+file(GLOB FortranSources ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)
+
+set(CMAKE_Fortran_FLAGS "-finit-local-zero -fno-automatic -fdefault-real-8")
 include_directories(/opt/homebrew/include /usr/local/include/)
 link_directories(/opt/homebrew/lib /usr/local/lib/)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
-SET_SOURCE_FILES_PROPERTIES(../src/simondbreader.f90 PROPERTIES LANGUAGE Fortran )
+SET_SOURCE_FILES_PROPERTIES(${FortranSources} PROPERTIES LANGUAGE Fortran )
 
-add_library(L${PROJECT_NAME} ${SOURCES} )
-add_executable(${PROJECT_NAME} ${SOURCES} ../src/simondbreader.f90)
+add_executable(${PROJECT_NAME} ${SOURCES} ${FortranSources})
 target_link_libraries(${PROJECT_NAME} superlu blas Ginkgo::ginkgo OpenMP::OpenMP_CXX)
 

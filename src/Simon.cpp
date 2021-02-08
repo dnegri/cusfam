@@ -1,4 +1,5 @@
 #include "Simon.h"
+#include "myblas.h"
 
 extern "C" {
 void opendb(int* length, const char* file);
@@ -111,8 +112,8 @@ void Simon::initialize(const char* dbfile) {
     _nstep = 3;
 
     cmfd = new BICGCMFD(*_g, *_x);
-    cmfd->setNcmfd(7);
-    cmfd->setEshift(0.01);
+    cmfd->setNcmfd(3);
+    cmfd->setEshift(0.04);
 
     _bucyc = new float[_nstep] {0.0};
 
@@ -205,16 +206,29 @@ void Simon::setBurnup(const float& burnup) {
     _f->initDelta(_ppm);
     _x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
 
-    FILE* fp;
-    fp = fopen("file.txt", "r");
-    for (size_t l = 0; l < _g->nxyz(); l++)
-    {
-        for (size_t ig = 0; ig < _g->ng(); ig++)
-        {
-            fscanf(fp, " %12.5e %12.5e %12.5e %12.5e\n", _x->xsdf(ig, l), _x->xstf(ig, l), _x->xsnf(ig, l), _x->xssf(ig,1,l));
-        }
-    }
-    fclose(fp);
+//    for (int l = 0; l < _g->nxyz(); ++l) {
+//        printf("%.3f\n", _f->tm(l));
+//    }
+//    int nb=0;
+//     _f->updateTm(_power, nb);
+//
+//    printf("\n\n\n");
+//    for (int l = 0; l < _g->nxyz(); ++l) {
+//        printf("%.3f\n", _f->tm(l));
+//    }
+//
+//    exit(0);
+
+//    FILE* fp;
+//    fp = fopen("file.txt", "r");
+//    for (size_t l = 0; l < _g->nxyz(); l++)
+//    {
+//        for (size_t ig = 0; ig < _g->ng(); ig++)
+//        {
+//            fscanf(fp, " %12.5e %12.5e %12.5e %12.5e\n", _x->xsdf(ig, l), _x->xstf(ig, l), _x->xsnf(ig, l), _x->xssf(ig,1,l));
+//        }
+//    }
+//    fclose(fp);
     //exit(0);
 }
 
@@ -231,12 +245,22 @@ void Simon::runKeff(const int& nmaxout) {
 
     cmfd->updpsi(_flux);
 
-    //_f->updatePPM(_ppm);
-    //_d->updateH2ODensity(_f->dm(), _ppm);
-    //_x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
+    _ppm = 100.0;
+    _f->updatePPM(_ppm);
+    _d->updateH2ODensity(_f->dm(), _ppm);
+    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
     cmfd->upddtil();
     cmfd->setls(_eigv);
     cmfd->drive(_eigv, _flux, errl2);
+
+    _ppm = 1000.0;
+    _f->updatePPM(_ppm);
+    _d->updateH2ODensity(_f->dm(), _ppm);
+    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
+    cmfd->upddtil();
+    cmfd->setls(_eigv);
+    cmfd->drive(_eigv, _flux, errl2);
+exit(0);
     normalize();
 }
 
@@ -244,14 +268,12 @@ void Simon::runECP(const int& nmaxout, const double& eigvt) {
     float errl2 = 0.0;
     int nboiling = 0;
 
+    _ppm = 100.0;
+    cmfd->setNcmfd(3);
     cmfd->updpsi(_flux);
 
     float ppmd = _ppm;
     double eigvd = _eigv;
-    _f->updatePPM(_ppm);
-    _d->updateH2ODensity(_f->dm(), _ppm);
-    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
-    cmfd->upddtil();
 
     for (size_t iout = 0; iout < nmaxout; iout++)
     {
@@ -263,7 +285,7 @@ void Simon::runECP(const int& nmaxout, const double& eigvt) {
         cmfd->drive(_eigv, _flux, errl2);
         normalize();
 
-        if (errl2 < 1.E-5) break;
+        if (iout > 3 && errl2 < 1.E-5) break;
 
 
         double temp = _ppm;
@@ -272,14 +294,21 @@ void Simon::runECP(const int& nmaxout, const double& eigvt) {
             _ppm = _ppm + (_eigv - eigvt) * 1E5 / 10.0;
         else
             _ppm = (_ppm - ppmd) / (_eigv - eigvd) * (eigvt - _eigv) + _ppm;
-        
+
+//        if(_ppm > temp+300.0) {
+//            _ppm = temp+300.0;
+//        } else if(_ppm < temp-300.0) {
+//            _ppm = temp-300.0;
+//        }
+
         ppmd = temp;
         eigvd = _eigv;
 
-        //search critical
-        _f->updateTf(_power, _d->burn());
-        _f->updateTm(_power, nboiling);
+        printf("CHANGE PPM : %.2f --> %.2f\n", ppmd, _ppm);
 
+        //search critical
+        _f->updateTm(_power, nboiling);
+        _f->updateTf(_power, _d->burn());
     }
 }
 

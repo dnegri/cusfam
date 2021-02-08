@@ -12,33 +12,33 @@ contains
             allocate(stable)
         endif
         
-        call reset(stable, press)
+        call stable%reset(dble(press))
     end subroutine
     
     subroutine getTHSatTemperature(tm)  bind(C, name="getTHSatTemperature")
         real(4)    :: tm
-        tm = getSatTemperature(stable)
+        tm = stable%getSatTemperature()
         
     end subroutine
     subroutine getTHDensity(h, dm)  bind(C, name="getTHDensity")
         real(4)    :: h, dm
-        dm = getDensity(stable, h)
+        dm = stable%getDensity(dble(h))
     end subroutine
     
     subroutine getTHTemperature(h, tm)  bind(C, name="getTHTemperature")
         real(4)    :: h, tm
-        tm = getTemperature(stable, h)
+        tm = stable%getTemperature(dble(h))
     end subroutine
 
     subroutine getTHEnthalpy(tm, h)  bind(C, name="getTHEnthalpy")
         real(4)    :: h, tm
-        h = getEnthalpy(stable, tm)
+        h = stable%getEnthalpy(dble(tm))
     end subroutine
     
     subroutine getTHCheckEnthalpy(h, err)  bind(C, name="checkTHEnthalpy")
         real(4)    :: h
         integer     :: err
-        err = checkEnthalpy(stable, h)
+        err = stable%checkEnthalpy(dble(h))
     end subroutine
 
     

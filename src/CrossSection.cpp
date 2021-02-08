@@ -116,6 +116,7 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 
 __host__ __device__ void CrossSection::updateMacroXS(float* dnst)
 {
+#pragma omp parallel for
 	for (size_t l = 0; l < _nxyz; l++)
 	{
 		updateMacroXS(l, dnst);
@@ -180,6 +181,7 @@ __host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst,
 
 __host__ __device__ void CrossSection::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
 {
+    #pragma omp parallel for
 	for (size_t l = 0; l < _nxyz; l++)
 	{
 		updateXS(l, dnst, dppm[l], dtf[l], dtm[l]);

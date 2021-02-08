@@ -8,13 +8,13 @@
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
 
 BICGCMFD::BICGCMFD(Geometry &g, CrossSection &x) : CMFD(g, x) {
-    _ls = new BICGSolver(g);
+    _ls = new JacobiBicgSolver(g);
     _epsbicg = 1.E-4;
-    _nmaxbicg = 3;
+    _nmaxbicg = 10;
 
     _eshift_diag = new double[g.ng2() * g.nxyz()];
     _eshift = 0.0;
-
+    iter = 0;
 }
 
 BICGCMFD::~BICGCMFD() {
@@ -176,7 +176,6 @@ void BICGCMFD::axb(double* flux, double* aflux) {
 
 void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
 
-    int icy = 0;
     int icmfd = 0;
     double reigv = 1. / eigv;
     double reigvs = 0.0;
@@ -185,8 +184,7 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
     double resid0;
 
     for (int iout = 0; iout < _ncmfd; ++iout) {
-        icy = icy + 1;
-        icmfd = icmfd + 1;
+        ++iter; ++icmfd;
         double reigvdel = reigv - reigvs;
         for (int l = 0; l < _g.nxyz(); ++l) {
             double fs = psi(l) * reigvdel;
@@ -206,7 +204,7 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
         }
 
         //wielandt shift
-        wiel(icy, flux, reigvs, eigv, reigv, errl2);
+        wiel(iter, flux, reigvs, eigv, reigv, errl2);
 
         if(reigvs != 0.0) updls(reigvs);
 
@@ -218,12 +216,21 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
                 }
             }
         }
+        if(negative == _g.ngxyz()) {
+            negative = 0;
+        }
 
-        printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iout, eigv, errl2, negative);
+        if(negative != 0 && icmfd < 5*_ncmfd) iout--;
+
+        printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iter, eigv, errl2, negative);
 
         if (errl2 < _epsl2) break;
 
     }
+}
+
+void BICGCMFD::resetIteration() {
+    iter = 0;
 }
 
 
