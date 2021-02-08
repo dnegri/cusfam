@@ -34,8 +34,13 @@ private:
     double _eigv;
     double _pload;
     double _fnorm;
-    double _ppm;
 
+    float _ppm;
+    float _press;
+    float _tin;
+
+    bool _feed_tf;
+    bool _feed_tm;
 
 public:
 
@@ -50,7 +55,10 @@ public:
 
     void initialize(const char* dbfile);
     void setBurnup(const float& burnup);
-    void runStatic(const int& nmaxout);
+    void setFeedbackOption(bool feed_tf, bool feed_tm);
+
+    void runKeff(const int& nmaxout);
+    void runECP(const int& nmaxout, const double& eigvt);
     void runDepletion(const float& dburn);
     void runXenonTransient();
 

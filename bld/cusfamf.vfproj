@@ -14,7 +14,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/></Configuration>
 		<Configuration Name="Debug|x64" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" RealKIND="realKIND8" CallingConvention="callConventionStdCall" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" RealKIND="realKIND8" LocalVariableStorage="localStorageSave" LocalSavedScalarsZero="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -44,6 +44,41 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<Filter Name="steamf">
+		<File RelativePath="..\src.steamf\comt1.f"/>
+		<File RelativePath="..\src.steamf\comt2.f"/>
+		<File RelativePath="..\src.steamf\comt3.f"/>
+		<File RelativePath="..\src.steamf\condv.f"/>
+		<File RelativePath="..\src.steamf\cppt1.f"/>
+		<File RelativePath="..\src.steamf\cppt2.f"/>
+		<File RelativePath="..\src.steamf\cpvt3.f"/>
+		<File RelativePath="..\src.steamf\grs.f"/>
+		<File RelativePath="..\src.steamf\h2oscn.f"/>
+		<File RelativePath="..\src.steamf\hpt1.f"/>
+		<File RelativePath="..\src.steamf\hpt2.f"/>
+		<File RelativePath="..\src.steamf\hptl.f"/>
+		<File RelativePath="..\src.steamf\hss.f"/>
+		<File RelativePath="..\src.steamf\hvt3.f"/>
+		<File RelativePath="..\src.steamf\p23t.f"/>
+		<File RelativePath="..\src.steamf\prliq.f"/>
+		<File RelativePath="..\src.steamf\prstm.f"/>
+		<File RelativePath="..\src.steamf\psl.f"/>
+		<File RelativePath="..\src.steamf\pvt3.f"/>
+		<File RelativePath="..\src.steamf\satur.f"/>
+		<File RelativePath="..\src.steamf\sigma.f"/>
+		<File RelativePath="..\src.steamf\spt1.f"/>
+		<File RelativePath="..\src.steamf\spt2.f"/>
+		<File RelativePath="..\src.steamf\srsort.f"/>
+		<File RelativePath="..\src.steamf\steamf.f"/>
+		<File RelativePath="..\src.steamf\ster.f"/>
+		<File RelativePath="..\src.steamf\svt3.f"/>
+		<File RelativePath="..\src.steamf\tsl.f"/>
+		<File RelativePath="..\src.steamf\visl.f"/>
+		<File RelativePath="..\src.steamf\vpt1.f"/>
+		<File RelativePath="..\src.steamf\vpt2.f"/>
+		<File RelativePath="..\src.steamf\vpt3.f"/>
+		<File RelativePath="..\src.steamf\vptd.f"/></Filter>
+		<File RelativePath="..\src\CSteamTable.f90"/>
 		<File RelativePath="..\src\cusfam.f90"/>
 		<File RelativePath="..\src\simondbreader.f90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

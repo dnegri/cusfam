@@ -8,10 +8,14 @@ void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys
 void readBoundary(int* symopt, int* symang, float* albedo);
 void readNXNY(const int* nx, const int* ny, float* val);
 void readNXYZ(const int* nxyz, float* val);
-//void readNXYZ8(const int* nxyz, double* val);
-//void readNXYZI(const int* nxyz, int* val);
+void readNXYZ8(const int* nxyz, double* val);
+void readNXYZI(const int* nxyz, int* val);
 
-void readStep(float* bucyc, float* buavg, float* efpd, double* ppm, double* eigv, double* power, double* fnorm);
+void readStep(float* bucyc, float* buavg, float* efpd, double* eigv, double* power, double* fnorm);
+void readConstantF(const int& n, float* data);
+void readConstantD(const int& n, double* data);
+void readConstantI(const int& n, int* data);
+
 void readXS(const int* niso, float* xs);
 void readXSS(const int* niso, float* xs);
 void readXSD(const int* niso, float* xs);
@@ -68,7 +72,7 @@ void Simon::initialize(const char* dbfile) {
 
     _g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
     _g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
-    _g->setBoudnaryCondition(&symopt, &symang, albedo);
+    _g->setBoundaryCondition(&symopt, &symang, albedo);
 
     _x = new CrossSection(ng, NISO, NFIS, NNIS, NPTM, nxyz);
 
@@ -77,25 +81,21 @@ void Simon::initialize(const char* dbfile) {
     _steam = new SteamTable();
     _f = new Feedback(*_g, *_steam);
 
-    cmfd = new BICGCMFD(*_g, *_x);
-    cmfd->setNcmfd(5);
-    cmfd->setEshift(0.04);
-
-
     readNXYZ(&nxy, &(_f->chflow(0)));
     readNXYZ(&(_g->nxyz()), &(_f->ppm0(0)));
     readNXYZ(&(_g->nxyz()), &(_f->stf0(0)));
     readNXYZ(&(_g->nxyz()), &(_f->tm0(0)));
     readNXYZ(&(_g->nxyz()), &(_f->dm0(0)));
     readNXYZ(&(_g->nxyz()), &(_d->h2on(0)));
+
     int one = 1;
-//    readNXYZI(&nxyz, &(_f->fueltype(0)));
+    readNXYZI(&nxyz, &(_f->fueltype(0)));
     readNXYZ(&nxy, &(_f->frodn(0)));
-//    readNXYZI(&one, &(_f->nft()));
+    readNXYZI(&one, &(_f->nft()));
 
     _f->initTFTable(_f->nft());
-//    readNXYZI(&(_f->nft()), &(_f->ntfbu(0)));
-//    readNXYZI(&(_f->nft()), &(_f->ntfpow(0)));
+    readNXYZI(&(_f->nft()), &(_f->ntfbu(0)));
+    readNXYZI(&(_f->nft()), &(_f->ntfpow(0)));
     int size = TF_POINT * _f->nft();
     readNXYZ(&size, &(_f->tfbu(0,0)));
     readNXYZ(&size, &(_f->tfpow(0, 0)));
@@ -109,6 +109,11 @@ void Simon::initialize(const char* dbfile) {
 
     //readBurnupList
     _nstep = 3;
+
+    cmfd = new BICGCMFD(*_g, *_x);
+    cmfd->setNcmfd(7);
+    cmfd->setEshift(0.01);
+
     _bucyc = new float[_nstep] {0.0};
 
     delete[] nxs;
@@ -135,14 +140,21 @@ void Simon::setBurnup(const float& burnup) {
 
     //read (i)-th burnup data
     float bucyc, buavg, efpd;
-    readStep(&bucyc, &buavg, &efpd, &_ppm, &_eigv, &_pload, &_fnorm);
+    readStep(&bucyc, &buavg, &efpd, &_eigv, &_pload, &_fnorm);
 
     _reigv = 1. / _eigv;
 
     readDensity(&NISO, &(_d->dnst(0, 0)));
     readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
     readNXYZ(&(_g->nxyz()), _power);
-//    readNXYZ8(&(_g->ngxyz()), _flux);
+    readNXYZ8(&(_g->ngxyz()), _flux);
+
+    float data[100];
+    readConstantF(3, data);
+    _press = data[0];
+    _tin   = data[1];
+    _ppm   = data[2];
+
     readNXYZ(&(_g->nxyz()), &(_f->tf(0)));
     readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
     readNXYZ(&(_g->nxyz()), &(_f->dm(0)));
@@ -188,31 +200,86 @@ void Simon::setBurnup(const float& burnup) {
     if(dburn > _epsbu) runDepletion(dburn);
     _x->updateMacroXS(&(_d->dnst(0, 0)));
 
-
+    _f->updatePressure(_press);
+    _f->updateTin(_tin);
     _f->initDelta(_ppm);
     _x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
+
+    FILE* fp;
+    fp = fopen("file.txt", "r");
+    for (size_t l = 0; l < _g->nxyz(); l++)
+    {
+        for (size_t ig = 0; ig < _g->ng(); ig++)
+        {
+            fscanf(fp, " %12.5e %12.5e %12.5e %12.5e\n", _x->xsdf(ig, l), _x->xstf(ig, l), _x->xsnf(ig, l), _x->xssf(ig,1,l));
+        }
+    }
+    fclose(fp);
+    //exit(0);
 }
 
-void Simon::runStatic(const int& nmaxout) {
-    float errl2 = 0.0;
+void Simon::setFeedbackOption(bool feed_tf, bool feed_tm)
+{
+    _feed_tf = feed_tf;
+    _feed_tm = feed_tm;
+}
 
-    cmfd->setEshift(0.04);
+void Simon::runKeff(const int& nmaxout) {
+    float errl2 = 0.0;
+    int nboiling = 0;
+    cmfd->setNcmfd(nmaxout);
+
     cmfd->updpsi(_flux);
+
+    //_f->updatePPM(_ppm);
+    //_d->updateH2ODensity(_f->dm(), _ppm);
+    //_x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
+    cmfd->upddtil();
+    cmfd->setls(_eigv);
+    cmfd->drive(_eigv, _flux, errl2);
+    normalize();
+}
+
+void Simon::runECP(const int& nmaxout, const double& eigvt) {
+    float errl2 = 0.0;
+    int nboiling = 0;
+
+    cmfd->updpsi(_flux);
+
+    float ppmd = _ppm;
+    double eigvd = _eigv;
+    _f->updatePPM(_ppm);
+    _d->updateH2ODensity(_f->dm(), _ppm);
+    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
+    cmfd->upddtil();
 
     for (size_t iout = 0; iout < nmaxout; iout++)
     {
+        _f->updatePPM(_ppm);
+        _d->updateH2ODensity(_f->dm(), _ppm);
         _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
         cmfd->upddtil();
         cmfd->setls(_eigv);
-        cmfd->drive(_reigv, _flux, errl2);
+        cmfd->drive(_eigv, _flux, errl2);
         normalize();
+
+        if (errl2 < 1.E-5) break;
+
+
+        double temp = _ppm;
+
+        if(iout == 0)
+            _ppm = _ppm + (_eigv - eigvt) * 1E5 / 10.0;
+        else
+            _ppm = (_ppm - ppmd) / (_eigv - eigvd) * (eigvt - _eigv) + _ppm;
+        
+        ppmd = temp;
+        eigvd = _eigv;
+
         //search critical
         _f->updateTf(_power, _d->burn());
-        int nboiling = 0;
         _f->updateTm(_power, nboiling);
 
-        _eigv = 1. / _reigv;
-        if (errl2 < 1.E-5) break;
     }
 }
 
@@ -232,8 +299,9 @@ void Simon::normalize()
         power(l) = 0.0;
         for (size_t ig = 0; ig < _g->ng(); ig++)
         {
-            power(l) += flux(ig, l) * _x->xskf(ig, l);
+            power(l) += flux(ig, l) * _x->xskf(ig, l) ;
         }
+        power(l) *= _g->vol(l);
         ptotal += power(l);
     }
 
@@ -242,10 +310,6 @@ void Simon::normalize()
     for (size_t l = 0; l < _g->nxyz(); l++)
     {
         power(l) *= _fnorm;
-        for (size_t ig = 0; ig < _g->ng(); ig++)
-        {
-            flux(ig, l) *= _fnorm;
-        }
     }
 
 }

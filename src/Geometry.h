@@ -69,15 +69,11 @@ private:
 	float* _hmesh;
 	float* _vol;
 
-	int _npinbox;
-
-
-
 public:
 	__host__ Geometry();
 	__host__ virtual ~Geometry();
 
-	__host__ __device__ void setBoudnaryCondition(int* symopt, int* symang, float* albedo);
+	__host__ __device__ void setBoundaryCondition(int* symopt, int* symang, float* albedo);
 	__host__ __device__ void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
     __host__ __device__ void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
 
@@ -91,7 +87,6 @@ public:
 	__host__ __device__ inline int& nsurf() { return _nsurf; };
 	__host__ __device__ inline int& nx() { return _nx; };
 	__host__ __device__ inline int& ny() { return _ny; };
-    __host__ __device__ inline int& npinbox() { return _npinbox; };
 
 	__host__ __device__ inline int& nxs(const int& j) { return _nxs[j]; };
 	__host__ __device__ inline int& nxe(const int& j) { return _nxe[j]; };

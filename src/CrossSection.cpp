@@ -97,16 +97,16 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 		{
 			for (int ig = 0; ig < _ng; ig++)
 			{
-				dmmacd(ig, ip, l) = dmmacd(ig, ip, l) + xdmmicd(ig, iso, ip, l) * dnst(iso, l);
-				dmmaca(ig, ip, l) = dmmaca(ig, ip, l) + xdmmica(ig, iso, ip, l) * dnst(iso, l);
-				dmmacf(ig, ip, l) = dmmacf(ig, ip, l) + xdmmicf(ig, iso, ip, l) * dnst(iso, l);
-				dmmacn(ig, ip, l) = dmmacn(ig, ip, l) + xdmmicn(ig, iso, ip, l) * dnst(iso, l);
-				dmmack(ig, ip, l) = dmmack(ig, ip, l) + xdmmick(ig, iso, ip, l) * dnst(iso, l);
+				dmmacd(ig, ip, l) = dmmacd(ig, ip, l) + xdmmicd(ig, ip, iso, l) * dnst(iso, l);
+				dmmaca(ig, ip, l) = dmmaca(ig, ip, l) + xdmmica(ig, ip, iso, l) * dnst(iso, l);
+				dmmacf(ig, ip, l) = dmmacf(ig, ip, l) + xdmmicf(ig, ip, iso, l) * dnst(iso, l);
+				dmmacn(ig, ip, l) = dmmacn(ig, ip, l) + xdmmicn(ig, ip, iso, l) * dnst(iso, l);
+				dmmack(ig, ip, l) = dmmack(ig, ip, l) + xdmmick(ig, ip, iso, l) * dnst(iso, l);
 
 
 				for (int igs = 0; igs < _ng; igs++)
 				{
-					dmmacs(igs, ig, ip, l) = dmmacs(igs, ig, ip, l) + xdmmics(igs, ig, iso, ip, l) * dnst(iso, l);
+					dmmacs(igs, ig, ip, l) = dmmacs(igs, ig, ip, l) + xdmmics(igs, ig, ip, iso, l) * dnst(iso, l);
 
 				}
 			}

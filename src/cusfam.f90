@@ -1,40 +1,45 @@
 module cusfam
     use iso_c_binding
+    use CSteamTable
     implicit none
     
+    type(SteamTable), pointer :: stable
+contains
     
-interface
-    subroutine initCudaGeometry(ng, nxy, nz, nx, ny, nxs, nxe, nys, nye, nsurf, ijtol, neibr, hmesh, symopt, symang, albedo) bind(C,name="initCudaGeometry")
-        use iso_c_binding
-        integer         :: symopt, symang
-        real            :: albedo(*)
-        integer         :: ng, nxy, nz, nx, ny, nsurf
-        integer         :: nxs(ny), nxe(ny), nys(nx), nye(nx), neibr(4,nxy), ijtol(nx,ny)
-        real            :: hmesh(3, nxy, nz) 
+    subroutine setTHPressure(press)   bind(C, name="setTHPressure")
+        real(4)    :: press
+        if(.not.associated(stable)) then
+            allocate(stable)
+        endif
+        
+        call reset(stable, press)
     end subroutine
     
-    subroutine initCudaXS(ng, nxy, nz, xsdf, xstf, xsnf, xssf, xschif, xsadf) bind(C, name="initCudaXS")
-        integer              :: ng, nxy, nz    
-        real  :: xsdf(ng, nxy, nz), xstf(ng, nxy, nz), xsnf(ng, nxy, nz), &
-                xssf(ng, ng, nxy, nz), xschif(ng, nxy, nz), xsadf(ng, nxy, nz)
+    subroutine getTHSatTemperature(tm)  bind(C, name="getTHSatTemperature")
+        real(4)    :: tm
+        tm = getSatTemperature(stable)
+        
+    end subroutine
+    subroutine getTHDensity(h, dm)  bind(C, name="getTHDensity")
+        real(4)    :: h, dm
+        dm = getDensity(stable, h)
     end subroutine
     
-    subroutine initCudaSolver() bind(C, name="initCudaSolver")
+    subroutine getTHTemperature(h, tm)  bind(C, name="getTHTemperature")
+        real(4)    :: h, tm
+        tm = getTemperature(stable, h)
     end subroutine
-    subroutine updateCuda(reigv, jnet, phif) bind(C, name="updateCuda")
-        real        :: reigv, jnet(*), phif(*)
-    end subroutine
-    
-    subroutine runCuda(jnet) bind(C, name="runCuda")
-    real        :: jnet(*)
-    end subroutine
-    
-    subroutine runCMFD(reigv, psi, jnet, phif) bind(C, name="runCMFD")
-        real        :: reigv, psi(*), jnet(*), phif(*)
-    end subroutine
-    
-end interface
 
+    subroutine getTHEnthalpy(tm, h)  bind(C, name="getTHEnthalpy")
+        real(4)    :: h, tm
+        h = getEnthalpy(stable, tm)
+    end subroutine
+    
+    subroutine getTHCheckEnthalpy(h, err)  bind(C, name="checkTHEnthalpy")
+        real(4)    :: h
+        integer     :: err
+        err = checkEnthalpy(stable, h)
+    end subroutine
 
     
     

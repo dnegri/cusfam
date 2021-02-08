@@ -16,6 +16,8 @@ private:
 
     float _heatfrac;
     float _hin;
+    float _din;
+    float _tin;
 
     float* _chflow;
 
@@ -54,6 +56,10 @@ public:
     __host__ __device__ float& dtf(const int& l) { return _dtf[l]; };
     __host__ __device__ float& dtm(const int& l) { return _dtm[l]; };
     __host__ __device__ float& ddm(const int& l) { return _ddm[l]; };
+    __host__ __device__ float* tf() { return _tf; };
+    __host__ __device__ float* tm() { return _tm; };
+    __host__ __device__ float* dm() { return _dm; };
+
     __host__ __device__ float& tf(const int& l) { return _tf[l]; };
     __host__ __device__ float& tm(const int& l) { return _tm[l]; };
     __host__ __device__ float& dm(const int& l) { return _dm[l]; };
@@ -68,6 +74,8 @@ public:
     __host__ __device__ float& chflow(const int& l2d) { return _chflow[l2d]; };
     __host__ __device__ void updateTf(const int& l, const float* pow, const float* bu);
     __host__ __device__ void updateTm(const int& l2d, const float* pow, int& nboiling);
+    __host__ __device__ void updateTin(const float& tin);
+    __host__ __device__ void updatePressure(const float& press);
 
     __host__ __device__ virtual void updateTf(const float* power, const float* burnup);
     __host__ __device__ virtual void updateTm(const float* power, int& nboiling);

@@ -8,6 +8,7 @@
 #define pow3(l)  pow[l]
 #define bu(l)  bu[l]
 
+
 Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
     _tf = new float[g.nxyz()]{};
     _tm = new float[g.nxyz()]{};
@@ -23,11 +24,8 @@ Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
     _chflow = new float[g.nxy()]{};
     _fueltype = new int[g.nxyz()];
     _frodn = new float[g.nxy()];
-    int* _ntfpow;
-    int* _ntfbu;
-    float* _tfpow;
-    float* _tfbu;
-    float* _tftable;
+
+    _heatfrac = 1.0;
 
 }
 
@@ -37,7 +35,7 @@ Feedback::~Feedback()
 
 void Feedback::initDelta(const float& ppm) {
 
-    for (int l = 0; l < _g.nxy(); ++l)
+    for (int l = 0; l < _g.nxyz(); ++l)
     {
         dppm(l) = ppm * dm(l)/dm0(l) - ppm0(l);
         dtf(l) = sqrt(tf(l)) - stf0(l);
@@ -58,10 +56,12 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
 
     // powlin     : integrated nodal _power in w
     // qprime     : node average linear _power density in w/cm
-    float qprime = pow3(l) / _g.hmesh(ZDIR, l) * _heatfrac;
-    qprime = qprime / _g.npinbox();
 
     int ift = fueltype(l);
+    if (ift < 0) return;
+
+    float qprime = pow3(l) / _g.hmesh(ZDIR, l) * _heatfrac;
+    qprime = qprime / frodn(l % _g.nxy());
 
     int i = 1;
     for (; i < ntfbu(ift) - 1; ++i) {
@@ -90,7 +90,7 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     pws[1] = tfpow(ip[1], ift);
     pws[2] = tfpow(ip[2], ift);
 
-    float rx12 = 1. / (bus[1] - bus[1]);
+    float rx12 = 1. / (bus[1] - bus[0]);
 
     float yp[3];
     for (int idx = 0; idx < 3; ++idx) {
@@ -113,28 +113,53 @@ void Feedback::updateTm(const int& l2d, const float* pow, int& nboiling) {
 
     float hlow = _hin;
 
-    int l = l2d;
-    for (int k = 0; k < _g.nz(); ++k) {
-        float hup = hlow + pow2(l2d, k) / chflow(l2d);
-        float havg = (hlow + hup) * 0.5;
+    if (chflow(l2d) != 0.0) {
+        int l = l2d;
+        for (int k = 0; k < _g.nz(); ++k) {
+            float hup = hlow + pow2(l2d, k) / chflow(l2d);
+            float havg = (hlow + hup) * 0.5;
 
-        SteamError err = _steam.checkEnthalpy(havg);
-        if (err == STEAM_TABLE_ERROR_MAXENTH) {
-            nboiling = nboiling + 1;
-            tm(l2d, k) = _steam.getSatTemperature();
-            dm(l2d, k) = _steam.getDensity(havg);
-        } else {
-            tm(l2d, k) = _steam.getTemperature(havg);
-            dm(l2d, k) = _steam.getDensity(havg);
+            SteamError err;
+            _steam.checkEnthalpy(havg, err);
+            if (err == STEAM_TABLE_ERROR_MAXENTH) {
+                nboiling = nboiling + 1;
+                _steam.getSatTemperature(tm(l2d, k));
+                _steam.getDensity(havg, dm(l2d, k));
+            }
+            else {
+                _steam.getTemperature(havg, tm(l2d, k));
+                _steam.getDensity(havg, dm(l2d, k));
+            }
+
+            dtm(l) = tm(l2d, k) - tm0(l);
+            ddm(l) = dm(l2d, k) - dm0(l);
+
+            hlow = hup;
+
+            l = l2d + _g.nxy();
         }
-
-        dtm(l) = tm(l2d, k) - tm0(l);
-        ddm(l) = dm(l2d, k) - dm0(l);
-
-        hlow = hup;
-
-        l = l2d + _g.nxy();
     }
+    else {
+        int l = l2d;
+        for (int k = 0; k < _g.nz(); ++k) {
+            tm(l2d, k) = _tin;
+            dm(l2d, k) = _din;
+            dtm(l) = tm(l2d, k) - tm0(l);
+            ddm(l) = dm(l2d, k) - dm0(l);
+            l = l2d + _g.nxy();
+        }
+    }
+}
+
+void Feedback::updatePressure(const float& press) {
+    _steam.setPressure(press);
+}
+
+__host__ __device__ void Feedback::updateTin(const float& tin)
+{
+    _tin = tin;
+    _steam.getEnthalpy(tin, _hin);
+    _steam.getDensity(tin, _din);
 }
 
 __host__ __device__ void Feedback::updateTf(const float* power, const float* burnup)

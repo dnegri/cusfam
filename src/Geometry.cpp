@@ -8,7 +8,7 @@ Geometry::~Geometry()
 {
 }
 
-void Geometry::setBoudnaryCondition(int* symopt, int* symang, float* albedo)
+void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
 {
 	_symopt = *symopt;
 	_symang = *symang;

@@ -39,6 +39,29 @@ contains
         
     end subroutine
     
+    subroutine readConstantI(n, cnst)   bind(c, name="readConstantI")
+        integer         :: n
+        integer         :: cnst(n)
+        read(ifile) cnst(1:n)
+        
+    end subroutine
+    
+    subroutine readConstantF(n, cnst)   bind(c, name="readConstantF")
+        integer         :: n
+        real(4)         :: cnst(n)
+        
+        read(ifile) cnst(1:n)
+        
+    end subroutine
+
+    subroutine readConstantD(n, cnst)   bind(c, name="readConstantD")
+        integer         :: n
+        real(8)         :: cnst(n)
+        
+        read(ifile) cnst(1:n)
+        
+    end subroutine
+    
     subroutine readBoundary(symopt, symang, albedo)   bind(c, name="readBoundary")
         integer         :: symopt, symang
         real(4)         :: albedo(2,3)
@@ -48,10 +71,12 @@ contains
         
     end subroutine
     
-    subroutine readstep(bucyc, buavg, efpd)   bind(c, name="readStep")
+    subroutine readstep(bucyc, buavg, efpd, eigv, power, fnorm)   bind(c, name="readStep")
         real(4)         :: bucyc, buavg, efpd
+        real(8)         :: eigv, power, fnorm
         
         read(ifile) bucyc, buavg, efpd
+        read(ifile) eigv, power, fnorm
         
     end subroutine
     
@@ -70,9 +95,23 @@ contains
         read(ifile) val
     
     end subroutine    
+
+    subroutine readnxyzi(nxyz, val)   bind(c, name="readNXYZI")
+        integer            :: val(nxyz)
+
+        read(ifile) val
+    
+    end subroutine        
     
     subroutine readnxyz(nxyz, val)   bind(c, name="readNXYZ")
         real(4)            :: val(nxyz)
+
+        read(ifile) val
+    
+    end subroutine        
+    
+    subroutine readnxyz8(nxyz, val)   bind(c, name="readNXYZ8")
+        real(8)            :: val(nxyz)
 
         read(ifile) val
     

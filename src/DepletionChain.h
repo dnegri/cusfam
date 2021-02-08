@@ -70,14 +70,18 @@ private:
     int* _xeids;          //(:)
 
     // 3. Decay Constant Define
+    int _dcyI135;
+    int _dcyXE45;
     int _ndcy;
     int* _dcyids;         //(:)
-    float* _dcnst;              //(:)
+    float* _dcy;
+
+
+
 
     float* _cap;
     float* _rem;
     float* _fis;
-    float* _dcy;
     float* _tn2n;
 
     int ixe;
@@ -104,7 +108,10 @@ public:
     __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*_mnucl + iiso]; } ;
     __host__ __device__ float& rem(const int& iiso, const int& l) { return _rem[l*_mnucl + iiso]; } ;
     __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*_mnucl + iiso]; } ;
-    __host__ __device__ float& dcy(const int& iiso, const int& l) { return _dcy[l*_mnucl + iiso]; } ;
+
+    __host__ __device__ float& dcy(const int& idcy) { return _dcy[idcy]; };
+
+
     __host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
     __host__ __device__ float* dnst() { return _dnst; };
     __host__ __device__ float* burn() { return _burn; };
@@ -115,6 +122,8 @@ public:
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };
     __host__ __device__ float& fyld(const int& fpiso, const int& fiso) { return _fyld[fiso*_nfpiso + fpiso]; };
 
+    __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm);
+    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm);
 
     __host__ __device__ void dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
