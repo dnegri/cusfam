@@ -10,28 +10,13 @@
 
 
 Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
-    _tf = new float[g.nxyz()]{};
-    _tm = new float[g.nxyz()]{};
-    _dm = new float[g.nxyz()]{};
-    _dppm = new float[g.nxyz()]{};
-    _dtf = new float[g.nxyz()]{};
-    _dtm = new float[g.nxyz()]{};
-    _ddm = new float[g.nxyz()]{};
-    _ppm0 = new float[g.nxyz()]{};
-    _stf0 = new float[g.nxyz()]{};
-    _tm0 = new float[g.nxyz()]{};
-    _dm0 = new float[g.nxyz()]{};
-    _chflow = new float[g.nxy()]{};
-    _fueltype = new int[g.nxyz()];
-    _frodn = new float[g.nxy()];
-
-    _heatfrac = 1.0;
 
 }
 
 Feedback::~Feedback()
 {
 }
+
 
 void Feedback::initDelta(const float& ppm) {
 
@@ -43,15 +28,34 @@ void Feedback::initDelta(const float& ppm) {
         ddm(l) = dm(l) - dm0(l);
     }
 }
+void Feedback::allocate() {
+
+    _tf = new float[_g.nxyz()]{};
+    _tm = new float[_g.nxyz()]{};
+    _dm = new float[_g.nxyz()]{};
+    _dppm = new float[_g.nxyz()]{};
+    _dtf = new float[_g.nxyz()]{};
+    _dtm = new float[_g.nxyz()]{};
+    _ddm = new float[_g.nxyz()]{};
+    _ppm0 = new float[_g.nxyz()]{};
+    _stf0 = new float[_g.nxyz()]{};
+    _tm0 = new float[_g.nxyz()]{};
+    _dm0 = new float[_g.nxyz()]{};
+    _chflow = new float[_g.nxy()]{};
+    _fueltype = new int[_g.nxyz()];
+    _frodn = new float[_g.nxy()];
+}
+
 void Feedback::initTFTable(const int& nft) {
-    
+
     _nft = nft;
     _ntfbu = new int[nft];
     _ntfpow = new int[nft];
-    _tfbu = new float[nft*TF_POINT];
+    _tfbu = new float[nft * TF_POINT];
     _tfpow = new float[nft * TF_POINT];
     _tftable = new float[nft * TF_POINT * TF_POINT];
 }
+
 void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
 
     // powlin     : integrated nodal _power in w

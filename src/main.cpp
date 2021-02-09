@@ -4,20 +4,41 @@
 #include "CMFDCPU.h"
 #include "BICGCMFD.h"
 #include "Geometry.h"
+#include "GeometryCuda.h"
 #include "DepletionChain.h"
 #include "CrossSection.h"
+#include "CrossSectionCuda.h"
 #include "Feedback.h"
 #include "omp.h"
-#include "Simon.h"
+#include "SimonCPU.h"
 
+dim3 BLOCKS_NODE;
+dim3 THREADS_NODE;
+dim3 BLOCKS_SURFACE;
+dim3 THREADS_SURFACE;
+
+
+__global__ void test(void* a)
+{
+    printf("CUDA : %f\n", ((Geometry*)a)->albedo(1, 1));
+}
 
 int main() {
-    Simon simon;
-
+    SimonCPU simon;
     simon.initialize("../run/simondb0");
+    BLOCKS_NODE = dim3(simon.g().nxyz() / NTHREADSPERBLOCK + 1, 1, 1);
+    THREADS_NODE = dim3(NTHREADSPERBLOCK, 1, 1);
+    BLOCKS_SURFACE = dim3(simon.g().nsurf() / NTHREADSPERBLOCK + 1, 1, 1);
+    THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
+
     simon.setBurnup(1000);
-//    simon.runKeff(100);
+    //simon.runKeff(100);
     simon.runECP(100, 1.0);
+    //GeometryCuda* g_cuda = new GeometryCuda(simon.g());
+    //CrossSectionCuda* x_cuda = new CrossSectionCuda(simon.x());
+    //x_cuda->updateXS(x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca());
+    //test<<<1,1>>>(g_cuda);
+    //cudaDeviceSynchronize();
 }
 
 // function to call if operator new can't allocate enough memory or error arises
@@ -26,6 +47,8 @@ void outOfMemHandler() {
 
     std::exit(-1);
 }
+
+
 
 //extern "C" {
 //void opendb(int* length, const char* file);

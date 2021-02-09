@@ -19,7 +19,7 @@ public:
 	MKLSolver(Geometry& g);
 	virtual ~MKLSolver();
 
-	void solve(double* b, double* x);
+	void solve(CMFD_VAR* b, double* x);
 	void prepare();
 };
 

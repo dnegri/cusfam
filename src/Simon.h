@@ -4,6 +4,7 @@
 #include "CrossSection.h"
 #include "Geometry.h"
 #include "SteamTable.h"
+#include "SteamTable.h"
 #include "NodalCPU.h"
 #include "CMFDCPU.h"
 #include "BICGCMFD.h"
@@ -13,15 +14,13 @@
 #include "Feedback.h"
 
 
-class Simon {
-private:
+class Simon : public Managed {
+protected:
     Geometry* _g;
     SteamTable* _steam;
     CrossSection* _x;
     DepletionChain* _d;
     Feedback* _f;
-
-    BICGCMFD* cmfd;
 
     int _nstep;
     float _epsbu;
@@ -44,29 +43,29 @@ private:
 
 public:
 
-    Simon();
-    virtual ~Simon();
+    __host__ Simon();
+    __host__ virtual ~Simon();
 
-    Geometry& g() { return *_g; };
-    CrossSection& x() { return *_x; };
-    Feedback& f() { return *_f; };
-    DepletionChain& d() { return *_d; };
-    SteamTable& steam() { return *_steam; };
+    __host__ __device__ Geometry& g() { return *_g; };
+    __host__ __device__ CrossSection& x() { return *_x; };
+    __host__ __device__ Feedback& f() { return *_f; };
+    __host__ __device__ DepletionChain& d() { return *_d; };
+    __host__ __device__ SteamTable& steam() { return *_steam; };
 
-    void initialize(const char* dbfile);
-    void setBurnup(const float& burnup);
-    void setFeedbackOption(bool feed_tf, bool feed_tm);
+    __host__ void initialize(const char* dbfile);
+    __host__ void setBurnup(const float& burnup);
+    __host__ void setFeedbackOption(bool feed_tf, bool feed_tm);
 
-    void runKeff(const int& nmaxout);
-    void runECP(const int& nmaxout, const double& eigvt);
-    void runDepletion(const float& dburn);
-    void runXenonTransient();
+    __host__ virtual void runKeff(const int& nmaxout)=0;
+    __host__ virtual void runECP(const int& nmaxout, const double& eigvt) =0;
+    __host__ virtual void runDepletion(const float& dburn) = 0;
+    __host__ virtual void runXenonTransient() = 0;
+    __host__ virtual void normalize() = 0;
 
-    inline float* power() {return _power;};
-    inline float& power(const int& l) { return _power[l]; };
-    inline double& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
+    __host__ inline float* power() {return _power;};
+    __host__ inline float& power(const int& l) { return _power[l]; };
+    __host__ inline double& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
 
-    void normalize();
 
 
 

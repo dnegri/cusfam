@@ -2,28 +2,28 @@
 #include "myblas.h"
 
 extern "C" {
-void opendb(int* length, const char* file);
-void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
-void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr,
-               float* hmesh);
-void readBoundary(int* symopt, int* symang, float* albedo);
-void readNXNY(const int* nx, const int* ny, float* val);
-void readNXYZ(const int* nxyz, float* val);
-void readNXYZ8(const int* nxyz, double* val);
-void readNXYZI(const int* nxyz, int* val);
+    void opendb(int* length, const char* file);
+    void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
+    void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr,
+                   float* hmesh);
+    void readBoundary(int* symopt, int* symang, float* albedo);
+    void readNXNY(const int* nx, const int* ny, float* val);
+    void readNXYZ(const int* nxyz, float* val);
+    void readNXYZ8(const int* nxyz, double* val);
+    void readNXYZI(const int* nxyz, int* val);
 
-void readStep(float* bucyc, float* buavg, float* efpd, double* eigv, double* power, double* fnorm);
-void readConstantF(const int& n, float* data);
-void readConstantD(const int& n, double* data);
-void readConstantI(const int& n, int* data);
+    void readStep(float* bucyc, float* buavg, float* efpd, double* eigv, double* power, double* fnorm);
+    void readConstantF(const int& n, float* data);
+    void readConstantD(const int& n, double* data);
+    void readConstantI(const int& n, int* data);
 
-void readXS(const int* niso, float* xs);
-void readXSS(const int* niso, float* xs);
-void readXSD(const int* niso, float* xs);
-void readXSSD(const int* niso, float* xs);
-void readXSDTM(const int* niso, float* xs);
-void readXSSDTM(const int* niso, float* xs);
-void readDensity(const int* niso, float* dnst);
+    void readXS(const int* niso, float* xs);
+    void readXSS(const int* niso, float* xs);
+    void readXSD(const int* niso, float* xs);
+    void readXSSD(const int* niso, float* xs);
+    void readXSDTM(const int* niso, float* xs);
+    void readXSSDTM(const int* niso, float* xs);
+    void readDensity(const int* niso, float* dnst);
 
 }
 
@@ -80,7 +80,10 @@ void Simon::initialize(const char* dbfile) {
     _d = new DepletionChain(*_g);
 
     _steam = new SteamTable();
+    _steam->setPressure(155.13);
+
     _f = new Feedback(*_g, *_steam);
+    _f->allocate();
 
     readNXYZ(&nxy, &(_f->chflow(0)));
     readNXYZ(&(_g->nxyz()), &(_f->ppm0(0)));
@@ -110,10 +113,6 @@ void Simon::initialize(const char* dbfile) {
 
     //readBurnupList
     _nstep = 3;
-
-    cmfd = new BICGCMFD(*_g, *_x);
-    cmfd->setNcmfd(3);
-    cmfd->setEshift(0.04);
 
     _bucyc = new float[_nstep] {0.0};
 
@@ -206,139 +205,10 @@ void Simon::setBurnup(const float& burnup) {
     _f->initDelta(_ppm);
     _x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
 
-//    for (int l = 0; l < _g->nxyz(); ++l) {
-//        printf("%.3f\n", _f->tm(l));
-//    }
-//    int nb=0;
-//     _f->updateTm(_power, nb);
-//
-//    printf("\n\n\n");
-//    for (int l = 0; l < _g->nxyz(); ++l) {
-//        printf("%.3f\n", _f->tm(l));
-//    }
-//
-//    exit(0);
-
-//    FILE* fp;
-//    fp = fopen("file.txt", "r");
-//    for (size_t l = 0; l < _g->nxyz(); l++)
-//    {
-//        for (size_t ig = 0; ig < _g->ng(); ig++)
-//        {
-//            fscanf(fp, " %12.5e %12.5e %12.5e %12.5e\n", _x->xsdf(ig, l), _x->xstf(ig, l), _x->xsnf(ig, l), _x->xssf(ig,1,l));
-//        }
-//    }
-//    fclose(fp);
-    //exit(0);
 }
 
 void Simon::setFeedbackOption(bool feed_tf, bool feed_tm)
 {
     _feed_tf = feed_tf;
     _feed_tm = feed_tm;
-}
-
-void Simon::runKeff(const int& nmaxout) {
-    float errl2 = 0.0;
-    int nboiling = 0;
-    cmfd->setNcmfd(nmaxout);
-
-    cmfd->updpsi(_flux);
-
-    _ppm = 100.0;
-    _f->updatePPM(_ppm);
-    _d->updateH2ODensity(_f->dm(), _ppm);
-    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
-    cmfd->upddtil();
-    cmfd->setls(_eigv);
-    cmfd->drive(_eigv, _flux, errl2);
-
-    _ppm = 1000.0;
-    _f->updatePPM(_ppm);
-    _d->updateH2ODensity(_f->dm(), _ppm);
-    _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
-    cmfd->upddtil();
-    cmfd->setls(_eigv);
-    cmfd->drive(_eigv, _flux, errl2);
-exit(0);
-    normalize();
-}
-
-void Simon::runECP(const int& nmaxout, const double& eigvt) {
-    float errl2 = 0.0;
-    int nboiling = 0;
-
-    _ppm = 100.0;
-    cmfd->setNcmfd(3);
-    cmfd->updpsi(_flux);
-
-    float ppmd = _ppm;
-    double eigvd = _eigv;
-
-    for (size_t iout = 0; iout < nmaxout; iout++)
-    {
-        _f->updatePPM(_ppm);
-        _d->updateH2ODensity(_f->dm(), _ppm);
-        _x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
-        cmfd->upddtil();
-        cmfd->setls(_eigv);
-        cmfd->drive(_eigv, _flux, errl2);
-        normalize();
-
-        if (iout > 3 && errl2 < 1.E-5) break;
-
-
-        double temp = _ppm;
-
-        if(iout == 0)
-            _ppm = _ppm + (_eigv - eigvt) * 1E5 / 10.0;
-        else
-            _ppm = (_ppm - ppmd) / (_eigv - eigvd) * (eigvt - _eigv) + _ppm;
-
-//        if(_ppm > temp+300.0) {
-//            _ppm = temp+300.0;
-//        } else if(_ppm < temp-300.0) {
-//            _ppm = temp-300.0;
-//        }
-
-        ppmd = temp;
-        eigvd = _eigv;
-
-        printf("CHANGE PPM : %.2f --> %.2f\n", ppmd, _ppm);
-
-        //search critical
-        _f->updateTm(_power, nboiling);
-        _f->updateTf(_power, _d->burn());
-    }
-}
-
-void Simon::runDepletion(const float& dburn) {
-
-}
-
-void Simon::runXenonTransient() {
-
-}
-
-void Simon::normalize()
-{
-    double ptotal = 0;
-    for (size_t l = 0; l < _g->nxyz(); l++)
-    {
-        power(l) = 0.0;
-        for (size_t ig = 0; ig < _g->ng(); ig++)
-        {
-            power(l) += flux(ig, l) * _x->xskf(ig, l) ;
-        }
-        power(l) *= _g->vol(l);
-        ptotal += power(l);
-    }
-
-    _fnorm = _pload * 0.25 / ptotal;
-
-    for (size_t l = 0; l < _g->nxyz(); l++)
-    {
-        power(l) *= _fnorm;
-    }
-
 }

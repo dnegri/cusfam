@@ -122,7 +122,6 @@
     <CudaCompile Include="..\src\CMFDCPU.cpp" />
     <CudaCompile Include="..\src\CrossSection.cpp" />
     <CudaCompile Include="..\src\CSRSolver.cpp" />
-    <CudaCompile Include="..\src\CuSFAM.cpp" />
     <CudaCompile Include="..\src\DepletionChain.cpp" />
     <CudaCompile Include="..\src\Feedback.cpp" />
     <CudaCompile Include="..\src\Geometry.cpp" />
@@ -131,8 +130,14 @@
     <CudaCompile Include="..\src\NodalCuda.cu" />
     <CudaCompile Include="..\src\Simon.cpp" />
     <CudaCompile Include="..\src\Solution.cpp" />
-    <CudaCompile Include="..\src\SteamTable.cpp" />
     <CudaCompile Include="..\src\main.cpp" />
+    <CudaCompile Include="..\src\CrossSectionCuda.cpp" />
+    <CudaCompile Include="..\src\FeedbackCuda.cpp" />
+    <CudaCompile Include="..\src\GeometryCuda.cpp" />
+    <CudaCompile Include="..\src\SteamTable.cpp" />
+    <CudaCompile Include="..\src\SteamTableCuda.cpp" />
+    <CudaCompile Include="..\src\JacobiBicgSolver.cpp" />
+    <CudaCompile Include="..\src\SimonCPU.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/pch.h" />
@@ -142,21 +147,28 @@
     <ClInclude Include="..\src\CMFD.h" />
     <ClInclude Include="..\src\CMFDCPU.h" />
     <ClInclude Include="..\src\CrossSection.h" />
+    <ClInclude Include="..\src\CrossSectionCuda.h" />
     <ClInclude Include="..\src\CSRSolver.h" />
-    <ClInclude Include="..\src\CuSFAM.h" />
     <ClInclude Include="..\src\DepletionChain.h" />
+    <ClInclude Include="..\src\FeedbackCuda.h" />
     <ClInclude Include="..\src\Feedback.h" />
     <ClInclude Include="..\src\Geometry.h" />
+    <ClInclude Include="..\src\GeometryCuda.h" />
     <ClInclude Include="..\src\helper_cuda.h" />
     <ClInclude Include="..\src\helper_string.h" />
+    <ClInclude Include="..\src\JacobiBicgSolver.h" />
     <ClInclude Include="..\src\mat2g.h" />
     <ClInclude Include="..\src\MKLSolver.h" />
     <ClInclude Include="..\src\myblas.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
     <ClInclude Include="..\src\Simon.h" />
+    <ClInclude Include="..\src\SimonCPU.h" />
     <ClInclude Include="..\src\Solution.h" />
     <ClInclude Include="..\src\SteamTable.h" />
+    <ClInclude Include="..\src\SteamTableCuda.h" />
+  </ItemGroup>
+  <ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

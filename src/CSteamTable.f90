@@ -49,18 +49,17 @@ module CSteamTable
    integer, public, parameter   :: STEAM_TABLE_ERROR_MAXTEMP = 3
    integer, public, parameter   :: STEAM_TABLE_ERROR_MINTEMP = 4
 
-   integer, parameter         :: NPROP = 6
-   integer, parameter         :: PROP_TEMP = 1
-   integer, parameter         :: PROP_ENTH = 2
-   integer, parameter         :: PROP_DENS = 3
-   integer, parameter         :: PROP_VISC = 4
-   integer, parameter         :: PROP_TCON = 5
-   integer, parameter         :: PROP_SPCH = 6
+   integer, public, parameter         :: NPROP = 6
+   integer, public, parameter         :: PROP_TEMP = 1
+   integer, public, parameter         :: PROP_ENTH = 2
+   integer, public, parameter         :: PROP_DENS = 3
+   integer, public, parameter         :: PROP_VISC = 4
+   integer, public, parameter         :: PROP_TCON = 5
+   integer, public, parameter         :: PROP_SPCH = 6
 
    integer                      :: nSteamTablePoints = 100
 
    type, public   :: SteamTable
-      private
 
       integer        :: npnts
 
@@ -164,7 +163,6 @@ contains
       this%vismax = sprop(PROP_VISC)
       this%tcmax  = sprop(PROP_TCON)
       this%shmax  = sprop(PROP_SPCH)
-      print *, 'MAX : ', this%tmax, this%hmax, this%dmax
       this%hgas   = sprop(PROP_ENTH+NPROP)
       this%dgas   = sprop(PROP_DENS+NPROP)
       this%visgas = sprop(PROP_VISC+NPROP)
@@ -390,7 +388,6 @@ contains
       integer           :: index
 
       index = (temperature-this%tmin)*this%rtdel + 1
-      print *, 'INDEX : ', temperature, this%tmin, this%rtdel, index
       index = max(index, 1)
       index = min(index, this%npnts)
       enthalpy= this%hmod(1,index)*temperature + this%hmod(2,index)

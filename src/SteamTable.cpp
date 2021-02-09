@@ -1,46 +1,179 @@
-//
-// Created by JOO IL YOON on 2021/02/01.
-//
-
 #include "SteamTable.h"
 
 extern "C" {
-    void setTHPressure(const float* press);
-    void getTHSatTemperature(float* tm);
-    void getTHDensity(const float* h, float* dm);
-    void getTHTemperature(const float* h, float* tm);
-    void checkTHEnthalpy(const float* h, int* err);
-    void getTHEnthalpy(const float* tm, float* h);
+	void copySteamTable(float* press
+		, float* tmin
+		, float* tmax
+		, float* dmin
+		, float* dmax
+		, float* dgas
+		, float* hmin
+		, float* hmax
+		, float* hgas
+		, float* vismin
+		, float* vismax
+		, float* visgas
+		, float* tcmin
+		, float* tcmax
+		, float* tcgas
+		, float* shmin
+		, float* shmax
+		, float* shgas
+		, float* rhdel
+		, float* rtdel
+		, float* rhdiff
+		, float* cmn
+		, float* propc
+		, float* hmod
+		, float* dmodref);
 }
 
-SteamTable::SteamTable() {}
+SteamTable::SteamTable()
+{
+	_cmn = new float[2 * 4]{};
+	_hmod = new float[_np*_npnts]{};
+	_dmodref = new float[_np * _npnts]{};
+	_propc = new float[_nprop*_np*_npnts] {};
+}
 
-SteamTable::~SteamTable() {
+SteamTable::~SteamTable()
+{
+}
+
+void SteamTable::setPressure(const float& press) {
+	_press = press;
+	copySteamTable(&_press
+		, &_tmin
+		, &_tmax
+		, &_dmin
+		, &_dmax
+		, &_dgas
+		, &_hmin
+		, &_hmax
+		, &_hgas
+		, &_vismin
+		, &_vismax
+		, &_visgas
+		, &_tcmin
+		, &_tcmax
+		, &_tcgas
+		, &_shmin
+		, &_shmax
+		, &_shgas
+		, &_rhdel
+		, &_rtdel
+		, &_rhdiff
+		, _cmn
+		, _propc
+		, _hmod
+		, _dmodref);
+}
+
+
+float SteamTable::getPressure() {
+	return _press;
+}
+
+void SteamTable::getDensity(const float& h, float& dm) {
+	int index;
+
+	if (h <= _hmax) {
+		index = (h - _hmin) * _rhdel;
+		index = max(index, 0);
+		index = min(index, _npnts - 1);
+
+		dm = propc(PROP_DENS, 0, index) * h + propc(PROP_DENS, 1, index);
+		dm = max(dm, _dmax);
+	}
+	else {
+		float x = (h - _hmax) * _rhdiff;
+
+		//modified martinelli - nelson
+		dm = getDensityByMartinelliNelson(x);
+	}
+}
+
+void SteamTable::getRefDensity(const float& tm, float& dm) {
+
+	int index;
+
+	index = (tm - _tmin) * _rtdel;
+	index = max(index, 0);
+	index = min(index, _npnts - 1);
+
+	dm = dmodref(0, index) * tm + dmodref(1, index);
+
+	dm = max(dm, _dmax);
+}
+
+
+float SteamTable::getDensityByMartinelliNelson(const float& x) {
+
+	static const float PRESS_BOUNDARY = 127.55;
+	float alpha; // void fraction
+
+	if (_press < PRESS_BOUNDARY) {
+		if (x < 0.01) {
+			alpha = 0.0;
+		}
+		else if (x < 0.1) {
+			alpha = cmn(0, 0) + cmn(1, 0) * x + cmn(2, 0) * x*x + cmn(3, 0) * x * x*x;
+		}
+		else if (x < 0.9) {
+			alpha = cmn(0, 1) + cmn(1, 1) * x + cmn(2, 1) * x * x + cmn(3, 1) * x * x * x;
+		}
+		else {
+			alpha = 1.0;
+		}
+	}
+	else {
+		alpha = x / _dgas / ((1.0 - x) / _dmax + x / _dgas);
+	}
+
+	float dm = (1. - alpha) * _dmax + alpha * _dgas;
+	return dm;
+}
+
+void SteamTable::getTemperature(const float& h, float& tm) {
+
+	int index;
+
+	index = (h - _hmin) * _rhdel;
+	index = max(index, 0);
+	index = min(index, _npnts - 1);
+
+	tm = propc(PROP_TEMP, 0, index) * h + propc(PROP_TEMP, 1, index);
+	tm = min(tm, _tmax);
+}
+
+
+void SteamTable::getEnthalpy(const float& tm, float& h) {
+	int index;
+
+	index = (tm - _tmin) * _rtdel;
+	index = max(index, 0);
+	index = min(index, _npnts - 1);
+	
+	h = hmod(0, index) * tm + hmod(1, index);
+
+	h = min(h, _hmax);
+}
+
+void SteamTable::getSatTemperature(float& tm) {
+
+	tm = _tmax;
 
 }
 
 void SteamTable::checkEnthalpy(const float& h, SteamError& err) {
-    checkTHEnthalpy(&h, (int*) &err);
-}
+	SteamError ierr;
 
-__host__ __device__ void SteamTable::setPressure(const float& press)
-{
-    setTHPressure(&press);
-}
+	if (h > _hmax) {
+		ierr = STEAM_TABLE_ERROR_MAXENTH;
+	} 
+	else {
+		ierr = NO_ERROR;
+	}
 
-void SteamTable::getSatTemperature(float& tm) {
-    getTHSatTemperature(&tm);
-}
-
-void SteamTable::getTemperature(const float& h, float& tm) {
-    getTHTemperature(&h, &tm);
-}
-
-void SteamTable::getDensity(const float& h, float& dm) {
-    getTHDensity(&h, &dm);
-}
-
-void SteamTable::getEnthalpy(const float& tm, float& h)
-{
-    getTHEnthalpy(&tm, &h);
+	err = ierr;
 }

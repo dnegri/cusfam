@@ -6,7 +6,7 @@
 #endif
 
 class CrossSection : public Managed {
-private:
+protected:
 	int _ng;
 	int _nxyz;
 	int _nnucl;
@@ -152,9 +152,9 @@ public:
 	__host__ __device__ CrossSection() {
 	};
 
-    __host__ __device__ CrossSection(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
-        init(ng, nnucl, nfcnt, nnis, nptm, nxyz);
-    }
+	__host__ __device__ CrossSection(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
+		init(ng, nnucl, nfcnt, nnis, nptm, nxyz);
+	}
 
 	__host__ __device__ void init(const int& ng, const int& nnucl, const int& nfcnt, const int& nnis, const int& nptm, const int& nxyz) {
 		_ng = ng;
@@ -303,11 +303,19 @@ public:
 		delete[] _xdpmics;
 	}
 
+
+	__host__ __device__ const int& ng() const { return _ng; }
+	__host__ __device__ const int& nxyz() const { return _nxyz; }
+	__host__ __device__ const int& nnucl() const { return _nnucl; }
+	__host__ __device__ const int& nnis() const { return _nnis; }
+	__host__ __device__ const int& nfcnt() const { return _nfcnt; }
+	__host__ __device__ const int& nptm() const { return _nptm; }
+
 	__host__ __device__ void updateMacroXS(const int& l, float* dnst);
 	__host__ __device__ void updateMacroXS(float* dnst);
 
 	__host__ __device__ void updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm);
-	__host__ __device__ void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
+	void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
 
 
 	__host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };
@@ -392,7 +400,80 @@ public:
 	__host__ __device__ inline XS_PRECISION& xsmacn0(const int& ig, const int& l) { return _xsmacn0[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xsmacs0(const int& igs, const int& ige, const int& l) { return _xsmacs0[l * _ng * _ng + ige * _ng + igs]; };
 
+	const XS_PRECISION* xsnf() const { return _xsnf; };
+	const XS_PRECISION* xsdf() const { return _xsdf; };
+	const XS_PRECISION* xstf() const { return _xstf; };
+	const XS_PRECISION* xskf() const { return _xskf; };
+	const XS_PRECISION* chif() const { return _chif; };
+	const XS_PRECISION* xssf() const { return _xssf; };
+	const XS_PRECISION* xsadf() const { return _xsadf; };
+	const XS_PRECISION* xsmacd0() const { return _xsmacd0; };
+	const XS_PRECISION* xsmaca0() const { return _xsmaca0; };
+	const XS_PRECISION* xsmacs0() const { return _xsmacs0; };
+	const XS_PRECISION* xsmacf0() const { return _xsmacf0; };
+	const XS_PRECISION* xsmack0() const { return _xsmack0; };
+	const XS_PRECISION* xsmacn0() const { return _xsmacn0; };
+	const XS_PRECISION* xsmicd() const { return _xsmicd; };
+	const XS_PRECISION* xsmica() const { return _xsmica; };
+	const XS_PRECISION* xsmics() const { return _xsmics; };
+	const XS_PRECISION* xsmicf() const { return _xsmicf; };
+	const XS_PRECISION* xsmick() const { return _xsmick; };
+	const XS_PRECISION* xsmicn() const { return _xsmicn; };
+	const XS_PRECISION* xsmic2n() const { return _xsmic2n; };
+	const XS_PRECISION* xsmicd0() const { return _xsmicd0; };
+	const XS_PRECISION* xsmica0() const { return _xsmica0; };
+	const XS_PRECISION* xsmics0() const { return _xsmics0; };
+	const XS_PRECISION* xsmicf0() const { return _xsmicf0; };
+	const XS_PRECISION* xsmick0() const { return _xsmick0; };
+	const XS_PRECISION* xsmicn0() const { return _xsmicn0; };
+	const XS_PRECISION* xdfmicd() const { return _xdfmicd; };
+	const XS_PRECISION* xdfmica() const { return _xdfmica; };
+	const XS_PRECISION* xddmicd() const { return _xddmicd; };
+	const XS_PRECISION* xddmica() const { return _xddmica; };
+	const XS_PRECISION* xdpmicd() const { return _xdpmicd; };
+	const XS_PRECISION* xdpmica() const { return _xdpmica; };
+	const XS_PRECISION* xdmmicd() const { return _xdmmicd; };
+	const XS_PRECISION* xdmmica() const { return _xdmmica; };
+	const XS_PRECISION* xddmics() const { return _xddmics; };
+	const XS_PRECISION* xdpmics() const { return _xdpmics; };
+	const XS_PRECISION* xdfmics() const { return _xdfmics; };
+	const XS_PRECISION* xdmmics() const { return _xdmmics; };
+	const XS_PRECISION* xdfmicn() const { return _xdfmicn; };
+	const XS_PRECISION* xddmicn() const { return _xddmicn; };
+	const XS_PRECISION* xdpmicn() const { return _xdpmicn; };
+	const XS_PRECISION* xdmmicn() const { return _xdmmicn; };
+	const XS_PRECISION* xdpmicf() const { return _xdpmicf; };
+	const XS_PRECISION* xdfmicf() const { return _xdfmicf; };
+	const XS_PRECISION* xddmicf() const { return _xddmicf; };
+	const XS_PRECISION* xdmmicf() const { return _xdmmicf; };
+	const XS_PRECISION* xdpmick() const { return _xdpmick; };
+	const XS_PRECISION* xdfmick() const { return _xdfmick; };
+	const XS_PRECISION* xddmick() const { return _xddmick; };
+	const XS_PRECISION* xdmmick() const { return _xdmmick; };
+	const XS_PRECISION* dpmacd() const { return _dpmacd; };
+	const XS_PRECISION* dpmaca() const { return _dpmaca; };
+	const XS_PRECISION* dpmacf() const { return _dpmacf; };
+	const XS_PRECISION* dpmack() const { return _dpmack; };
+	const XS_PRECISION* dpmacn() const { return _dpmacn; };
+	const XS_PRECISION* dpmacs() const { return _dpmacs; };
+	const XS_PRECISION* ddmacd() const { return _ddmacd; };
+	const XS_PRECISION* ddmaca() const { return _ddmaca; };
+	const XS_PRECISION* ddmacf() const { return _ddmacf; };
+	const XS_PRECISION* ddmack() const { return _ddmack; };
+	const XS_PRECISION* ddmacn() const { return _ddmacn; };
+	const XS_PRECISION* ddmacs() const { return _ddmacs; };
+	const XS_PRECISION* dmmacd() const { return _dmmacd; };
+	const XS_PRECISION* dmmaca() const { return _dmmaca; };
+	const XS_PRECISION* dmmacf() const { return _dmmacf; };
+	const XS_PRECISION* dmmack() const { return _dmmack; };
+	const XS_PRECISION* dmmacn() const { return _dmmacn; };
+	const XS_PRECISION* dmmacs() const { return _dmmacs; };
+	const XS_PRECISION* dfmacd() const { return _dfmacd; };
+	const XS_PRECISION* dfmaca() const { return _dfmaca; };
+	const XS_PRECISION* dfmacf() const { return _dfmacf; };
+	const XS_PRECISION* dfmack() const { return _dfmack; };
+	const XS_PRECISION* dfmacn() const { return _dfmacn; };
+	const XS_PRECISION* dfmacs() const { return _dfmacs; };
 
 
-	__host__ __device__ void dupdxs(const int& l, const float& ppm, const float& tf, const float& tm, const float& dm);
 };

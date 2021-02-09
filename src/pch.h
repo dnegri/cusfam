@@ -160,6 +160,27 @@ __constant__ static const float B11AW = 11.009305;
 
 __constant__ static const int TF_POINT = 20;
 
+enum SteamError {
+    NO_ERROR,
+    STEAM_TABLE_ERROR_MAXENTH
+};
+
+enum PROP_TYPE {
+    PROP_TEMP,
+    PROP_ENTH,
+    PROP_DENS,
+    PROP_VISC,
+    PROP_TCON,
+    PROP_SPCH
+};
+
+
+
+extern dim3 BLOCKS_NODE;
+extern dim3 THREADS_NODE;
+extern dim3 BLOCKS_SURFACE;
+extern dim3 THREADS_SURFACE;
+
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 
