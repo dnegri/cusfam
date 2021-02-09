@@ -75,7 +75,7 @@ void Simon::initialize(const char* dbfile) {
     _g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
     _g->setBoundaryCondition(&symopt, &symang, albedo);
 
-    _x = new CrossSection(ng, NISO, NFIS, NNIS, NPTM, nxyz);
+    _x = new CrossSection(ng, nxyz);
 
     _d = new DepletionChain(*_g);
 

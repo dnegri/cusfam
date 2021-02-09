@@ -88,11 +88,14 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
         //search critical
         f().updateTm(_power, nboiling);
         f().updateTf(_power, d().burn());
+        d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
     }
 }
 
 void SimonCPU::runDepletion(const float& dburn) {
 
+    d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
+    d().dep(15*24*3600);
 }
 
 void SimonCPU::runXenonTransient() {

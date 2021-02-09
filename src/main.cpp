@@ -12,10 +12,12 @@
 #include "omp.h"
 #include "SimonCPU.h"
 
+#ifndef CPU
 dim3 BLOCKS_NODE;
 dim3 THREADS_NODE;
 dim3 BLOCKS_SURFACE;
 dim3 THREADS_SURFACE;
+#endif
 
 
 __global__ void test(void* a)
@@ -26,10 +28,13 @@ __global__ void test(void* a)
 int main() {
     SimonCPU simon;
     simon.initialize("../run/simondb0");
+
+    #ifndef CPU
     BLOCKS_NODE = dim3(simon.g().nxyz() / NTHREADSPERBLOCK + 1, 1, 1);
     THREADS_NODE = dim3(NTHREADSPERBLOCK, 1, 1);
     BLOCKS_SURFACE = dim3(simon.g().nsurf() / NTHREADSPERBLOCK + 1, 1, 1);
     THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
+#endif
 
     simon.setBurnup(1000);
     //simon.runKeff(100);

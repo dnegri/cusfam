@@ -133,7 +133,7 @@ contains
       dmodn = anistf(2250.0, 1, 3, 68.0) ! dummy to initialize nist library.
 
       this%npnts = nSteamTablePoints
-      if(associated(this%hmod)) then
+      if(this%press .ne. 0.0) then
          call this%destroy();
       end if
 

@@ -38,9 +38,6 @@ class DepletionChain : public Managed {
 private:
     Geometry& _g;
 
-    int _mnucl;
-    int _nfcnt;
-
     int _nhvychn;
     int* _nheavy;                //(:)
     int* _ihvys;                //(:)
@@ -70,10 +67,6 @@ private:
     int* _xeids;          //(:)
 
     // 3. Decay Constant Define
-    int _dcyI135;
-    int _dcyXE45;
-    int _ndcy;
-    int* _dcyids;         //(:)
     float* _dcy;
 
 
@@ -88,6 +81,8 @@ private:
     int ism;
 
     float* _dnst;
+    float* _dnst_new;
+    float* _dnst_avg;
     float* _burn;
     float* _h2on;
 
@@ -105,11 +100,11 @@ public:
     __host__ __device__ float& h2on(const int& l) { return _h2on[l]; };
 
     __host__ __device__ float& burn(const int& l) { return _burn[l]; };
-    __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*_mnucl + iiso]; } ;
-    __host__ __device__ float& rem(const int& iiso, const int& l) { return _rem[l*_mnucl + iiso]; } ;
-    __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*_mnucl + iiso]; } ;
+    __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*NDEP + iiso]; } ;
+    __host__ __device__ float& rem(const int& iiso, const int& l) { return _rem[l*NDEP + iiso]; } ;
+    __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*NDEP + iiso]; } ;
 
-    __host__ __device__ float& dcy(const int& idcy) { return _dcy[idcy]; };
+    __host__ __device__ float& dcy(const int& iiso) { return _dcy[iiso]; };
 
 
     __host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
@@ -122,15 +117,18 @@ public:
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };
     __host__ __device__ float& fyld(const int& fpiso, const int& fiso) { return _fyld[fiso*_nfpiso + fpiso]; };
 
-    __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm);
-    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm);
+    __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm);
+    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm);
 
+    __host__ __device__ void dep(const float& tsec);
     __host__ __device__ void dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
-    __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* phi);
+
+    __host__ __device__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm);
+    __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm);
 
     __host__ __device__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);

@@ -27,6 +27,11 @@
             cudaFree(ptr);
         }
     };
+    extern dim3 BLOCKS_NODE;
+    extern dim3 THREADS_NODE;
+    extern dim3 BLOCKS_SURFACE;
+    extern dim3 THREADS_SURFACE;
+
 #else
     #define __global__
     #define __device__
@@ -105,11 +110,7 @@ using namespace std;
 __constant__  static const int    NTHREADSPERBLOCK = 64;
 
 __constant__ static const int NISO = 40;
-__constant__ static const int NUM_FISSION = 12;
-__constant__ static const int NUM_YIELD = 7;
-__constant__ static const int NUM_DECAY = 9;
-__constant__ static const int NUM_POISON = 1;
-__constant__ static const int LEN_ISONAME = 5;
+__constant__ static const int NDEP = 25;
 
 __constant__ static const char* ISOTOPE_NAME[NISO] = {
         "U234", "U235", "U236", "NP37", "U238",
@@ -148,6 +149,12 @@ __constant__ static const int NNIS = 9;
 __constant__ static const int ISONIS[]{ PM47, PS48, PM48, PM49, SM49, 
                                         I135, XE45, SB10, H2O};
 
+__constant__ static const int NDCY = 9;
+__constant__ static const int ISODCY[]{NP39, PU41, PU48, PM47, PS48,
+                                       PM48, PM49, I135, XE45};
+__constant__ static const float DCY[] {3.40515E-06, 1.53705E-09, 2.50451E-10, 8.37254E-09, 1.49451E-06,
+                                       1.94297E-07, 3.62737E-06, 2.93061E-05, 2.10657E-05};
+
 __constant__ static const int NPTM = 2;
 
 __constant__ static const float HAW = 1.0079;
@@ -173,13 +180,6 @@ enum PROP_TYPE {
     PROP_TCON,
     PROP_SPCH
 };
-
-
-
-extern dim3 BLOCKS_NODE;
-extern dim3 THREADS_NODE;
-extern dim3 BLOCKS_SURFACE;
-extern dim3 THREADS_SURFACE;
 
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]

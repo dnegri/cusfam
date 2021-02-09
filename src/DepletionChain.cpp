@@ -1,18 +1,16 @@
 #include "DepletionChain.h"
+#include "myblas.h"
 
-#define xsmica(ig, iiso, l) xsmica[(l) * _g.ng() * _mnucl + (iiso) * _g.ng() + (ig)]
-#define xsmicf(ig, iiso, l) xsmicf[(l) * _g.ng() * _mnucl + (iiso) * _g.ng() + (ig)]
+#define xsmica(ig, iiso, l) xsmica[(l) * _g.ng() * NISO + (iiso) * _g.ng() + (ig)]
+#define xsmicf(ig, iiso, l) xsmicf[(l) * _g.ng() * NISO + (iiso) * _g.ng() + (ig)]
 #define xsmic2n(ig, l) xsmic2n[(l) * _g.ng() + (ig)]
-#define phi(ig, l) phi[(l) * _g.ng() + (ig)]
-#define ati(iiso, l) ati[(l) * _mnucl + (iiso)]
-#define atd(iiso, l) atd[(l) * _mnucl + (iiso)]
-#define atavg(iiso, l) atavg[(l) * _mnucl + (iiso)]
+#define flux(ig, l) flux[(l) * _g.ng() + (ig)]
+#define ati(iiso, l) ati[(l) * NISO + (iiso)]
+#define atd(iiso, l) atd[(l) * NISO + (iiso)]
+#define atavg(iiso, l) atavg[(l) * NISO + (iiso)]
 
 
 DepletionChain::DepletionChain(Geometry& g) : _g(g) {
-
-	_mnucl = 25;
-	_nfcnt = 12;
 
 	_nhvychn = 4;
 	_nheavy = new int[4]{ 10, 7, 8, 2 };
@@ -38,31 +36,30 @@ DepletionChain::DepletionChain(Geometry& g) : _g(g) {
 			HOLD, LEAVE};
 
 	_nfiso = 12;
-	_nfpiso = 5;
 	_fiso = new int[_nfiso] {U234, U235, U236, U238, NP37,
 		NP39, PU48, PU49, PU40, PU41,
 		PU42, AM43};
 
+    _nfpiso = 4;
 	_fpPM147 = 0;
 	_fpPM149 = 1;
-	_fpSM149 = 2;
-	_fpI135 = 3;
-	_fpXE145 = 4;
+	_fpI135 = 2;
+	_fpXE145 = 3;
 
-	_fpiso = new int[_nfpiso] {PM47, PM49, SM49, I135, XE45};
+	_fpiso = new int[_nfpiso] {PM47, PM49, I135, XE45};
 	_fyld = new float[_nfiso * _nfpiso]{
-			2.017740E-02, 1.035690E-02, 0.0, 4.901130E-02, 6.763670E-03,
-			2.246730E-02, 1.081620E-02, 0.0, 6.281870E-02, 2.566345E-03,
-			2.295290E-02, 1.338370E-02, 0.0, 5.974780E-02, 1.049093E-03,
-			2.592740E-02, 1.625290E-02, 0.0, 6.940720E-02, 2.686420E-04,
-			2.500000E-02, 1.547160E-02, 0.0, 6.903040E-02, 7.720750E-03,
-			2.500000E-02, 1.547160E-02, 0.0, 6.903040E-02, 7.720750E-03,
-			2.236530E-02, 1.596690E-02, 0.0, 5.740170E-02, 9.935130E-03,
-			2.002960E-02, 1.216300E-02, 0.0, 6.541880E-02, 1.066411E-02,
-			2.123450E-02, 1.393890E-02, 0.0, 6.731600E-02, 5.001020E-03,
-			2.284950E-02, 1.474070E-02, 0.0, 6.943130E-02, 2.269029E-03,
-			2.387710E-02, 1.598400E-02, 0.0, 7.388510E-02, 1.057970E-03,
-			2.336130E-02, 1.555480E-02, 0.0, 6.034700E-02, 7.250690E-03
+			2.017740E-02, 1.035690E-02, 4.901130E-02, 6.763670E-03,
+			2.246730E-02, 1.081620E-02, 6.281870E-02, 2.566345E-03,
+			2.295290E-02, 1.338370E-02, 5.974780E-02, 1.049093E-03,
+			2.592740E-02, 1.625290E-02, 6.940720E-02, 2.686420E-04,
+			2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
+			2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
+			2.236530E-02, 1.596690E-02, 5.740170E-02, 9.935130E-03,
+			2.002960E-02, 1.216300E-02, 6.541880E-02, 1.066411E-02,
+			2.123450E-02, 1.393890E-02, 6.731600E-02, 5.001020E-03,
+			2.284950E-02, 1.474070E-02, 6.943130E-02, 2.269029E-03,
+			2.387710E-02, 1.598400E-02, 7.388510E-02, 1.057970E-03,
+			2.336130E-02, 1.555480E-02, 6.034700E-02, 7.250690E-03
 	};
 
 	_nsm = 5;
@@ -71,25 +68,25 @@ DepletionChain::DepletionChain(Geometry& g) : _g(g) {
 	_xeids = new int[_nxe] {I135, XE45};
 
 
-	_ndcy = 9;
-	_dcyI135 = 8;
-	_dcyXE45 = 9;
+    _dcy = new float[NDEP]{};
 
-	_dcyids = new int[_ndcy] {NP39, PU41, PU48, PM47, PS48, PM48, PM49, I135, XE45};
-	_dcy = new float[_ndcy] {3.40515E-06, 1.53705E-09, 2.50451E-10, 8.37254E-09, 1.49451E-06, 1.94297E-07, 3.62737E-06, 2.93061E-05, 2.10657E-05};
+    for (int idcy = 0; idcy < NDCY; ++idcy) {
+        _dcy[ISODCY[idcy]] = DCY[idcy];
+    }
 
+	_cap = new float[NDEP * g.nxyz()]{};
+	_rem = new float[NDEP * g.nxyz()]{};
+	_fis = new float[NDEP * g.nxyz()]{};
 
-	float* _cap = new float[_mnucl * g.nxyz()]{};
-	float* _rem = new float[_mnucl * g.nxyz()]{};
-	float* _fis = new float[_mnucl * g.nxyz()]{};
-	float* _dcy = new float[_mnucl * g.nxyz()]{};
-	float* _tn2n = new float[g.nxyz()];
+	_tn2n = new float[g.nxyz()];
 
 	ixe = XEType::XE_EQ;
 	ism = SMType::SM_TR;
 
 
 	_dnst = new float[NISO * g.nxyz()]{};
+    _dnst_new = new float[NISO * g.nxyz()]{};
+    _dnst_avg = new float[NISO * g.nxyz()]{};
 	_burn = new float[g.nxyz()]{};
 	_h2on = new float[g.nxyz()]{};
 	
@@ -109,103 +106,115 @@ DepletionChain::~DepletionChain() {
 	delete[] _fyld;
 	delete[] _smids;
 	delete[] _xeids;
-	delete[] _dcyids;
 	delete[] _dcy;
 }
 
-__host__ __device__ void DepletionChain::dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void DepletionChain::dep(const float& tsec)
 {
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        dep(l, tsec, _dnst, _dnst_new, _dnst_avg);
+    }
+    myblas::to(NISO * _g.nxyz(), _dnst_new, _dnst);
+}
 
+void DepletionChain::dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+{
+    if(ati(U235,l) == 0) return;
+
+    deph(l, tsec, ati, atd, atavg);
+    depp(l, tsec, ati, atd,  atavg);
+    depsm(l, tsec, ati, atd,  atavg);
+    depxe(l, tsec, ati, atd,  atavg);
 }
 
 void DepletionChain::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
-	//for (int ic = 0; ic < _nhvychn; ++ic) {
-	//	for (int i = 0; i < nheavy(ic); ++i) {
-	//		atd(ihchn(i, ic), l) = 0.0;
-	//		atavg(ihchn(i, ic), l) = 0.0;
-	//	}
-	//}
+	for (int ic = 0; ic < _nhvychn; ++ic) {
+		for (int i = 0; i < nheavy(ic); ++i) {
+			atd(ihchn(i, ic), l) = 0.0;
+			atavg(ihchn(i, ic), l) = 0.0;
+		}
+	}
 
-	//float r[10], exg[10], a[10][10];
+	float r[10], exg[10], a[10][10];
 
-	//for (int ic = 0; ic < _nhvychn; ++ic) {
+	for (int ic = 0; ic < _nhvychn; ++ic) {
 
-	//	for (int i = 0; i < nheavy(ic); ++i) {
-	//		r[i] = 0.0;
-	//		for (int j = 1; j < nheavy(ic); ++j) {
-	//			a[i][j] = 0.0;
-	//		}
-	//	}
+		for (int i = 0; i < nheavy(ic); ++i) {
+			r[i] = 0.0;
+			for (int j = 1; j < nheavy(ic); ++j) {
+				a[i][j] = 0.0;
+			}
+		}
 
-	//	for (int i = 0; i < nheavy(ic); ++i) {
-	//		r[i] = rem(ihchn(i, ic), l);
-	//		exg[i] = exp(-r[i] * tsec);
+		for (int i = 0; i < nheavy(ic); ++i) {
+			r[i] = rem(ihchn(i, ic), l);
+			exg[i] = exp(-r[i] * tsec);
 
-	//		if (i == 0) continue;
+			if (i == 0) continue;
 
-	//		int im1 = i - 1;
+			int im1 = i - 1;
 
-	//		for (int j = 0; j < im1; ++j) {
-	//			float gm1 = 0.0;
+			for (int j = 0; j < im1; ++j) {
+				float gm1 = 0.0;
 
-	//			switch (iptyp(i, ic)) {
-	//			case(R_CAP):
-	//				gm1 = cap(ihchn(im1, ic), l);
-	//				if (ihchn(im1, ic) == Isotope::AM41) {
-	//					if (ihchn(i, ic) == Isotope::CM42) {
-	//						gm1 = gm1 * 0.71;
-	//					}
-	//					else if (ihchn(i, ic) == Isotope::AM42) {
-	//						gm1 = gm1 * 0.14;
-	//					}
-	//					else if (ihchn(i, ic) == Isotope::PU42) {
-	//						gm1 = gm1 * 0.15;
-	//					}
-	//				}
-	//				break;
-	//			case(R_DEC):
-	//				gm1 = dcy(ihchn(im1, ic), l);
-	//				break;
-	//			case(R_N2N):
-	//				gm1 = _tn2n[l];
-	//				break;
-	//			default:
-	//				break;
-	//			}
+				switch (iptyp(i, ic)) {
+				case(R_CAP):
+					gm1 = cap(ihchn(im1, ic), l);
+					if (ihchn(im1, ic) == Isotope::AM41) {
+						if (ihchn(i, ic) == Isotope::CM42) {
+							gm1 = gm1 * 0.71;
+						}
+						else if (ihchn(i, ic) == Isotope::AM42) {
+							gm1 = gm1 * 0.14;
+						}
+						else if (ihchn(i, ic) == Isotope::PU42) {
+							gm1 = gm1 * 0.15;
+						}
+					}
+					break;
+				case(R_DEC):
+					gm1 = dcy(ihchn(im1, ic));
+					break;
+				case(R_N2N):
+					gm1 = _tn2n[l];
+					break;
+				default:
+					break;
+				}
 
-	//			a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
-	//		}
+				a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+			}
 
-	//		switch (idpct(i, ic)) {
-	//		case (ChainAction::LEAVE):
-	//			a[i][i] = 0.0;
-	//			break;
-	//		default:
-	//			a[i][i] = ati(ihchn(i, ic), l);
-	//		}
+			switch (idpct(i, ic)) {
+			case (ChainAction::LEAVE):
+				a[i][i] = 0.0;
+				break;
+			default:
+				a[i][i] = ati(ihchn(i, ic), l);
+			}
 
-	//		if (i == 0) {
-	//			for (int j = 0; j < im1 - 1; ++j) {
-	//				a[i][i] = a[i][i] - a[i][j];
-	//			}
-	//		}
+			if (i == 0) {
+				for (int j = 0; j < im1 - 1; ++j) {
+					a[i][i] = a[i][i] - a[i][j];
+				}
+			}
 
-	//		float dnew = 0.0;
-	//		float ditg = 0.0;
-	//		for (int j = 1; j < i; ++j) {
-	//			if (r[j] != 0.0) {
-	//				dnew = dnew + a[i][j] * exg[j];
-	//				ditg = ditg + a[i][j] * (1. - exg[j]) / r[j];
-	//			}
-	//		}
+			float dnew = 0.0;
+			float ditg = 0.0;
+			for (int j = 1; j < i; ++j) {
+				if (r[j] != 0.0) {
+					dnew = dnew + a[i][j] * exg[j];
+					ditg = ditg + a[i][j] * (1. - exg[j]) / r[j];
+				}
+			}
 
-	//		if (idpct(ic, i) != ChainAction::HOLD) {
-	//			atd(ihchn(i, ic), l) = atd(ihchn(i, ic), l) + dnew;
-	//			atavg(ihchn(i, ic), l) = atavg(ihchn(i, ic), l) + ditg / tsec;
-	//		}
-	//	}
-	//}
+			if (idpct(ic, i) != ChainAction::HOLD) {
+				atd(ihchn(i, ic), l) = atd(ihchn(i, ic), l) + dnew;
+				atavg(ihchn(i, ic), l) = atavg(ihchn(i, ic), l) + ditg / tsec;
+			}
+		}
+	}
 }
 void DepletionChain::depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
@@ -216,7 +225,7 @@ void DepletionChain::depxe(const int& l, const float& tsec, const float* ati, fl
 	int ipp = I135;
 	int idd = XE45;
 	float remd = rem(I135, l);
-	float dcp = dcy(_dcyXE45);
+	float dcp = dcy(XE45);
 
 	float fyp = 0., fyd = 0.;
 	for (int ih = 0; ih < _nfiso; ++ih) {
@@ -231,124 +240,127 @@ void DepletionChain::depxe(const int& l, const float& tsec, const float* ati, fl
 	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) + (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
 }
 
-void DepletionChain::eqxe(const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm)
+void DepletionChain::eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
 {
 
 	if (ixe != XEType::XE_EQ) return;
 
 	for (int l = 0; l < _g.nxyz(); l++)
 	{
-		eqxe(l, xsmica, xsmicf, phi, fnorm);
+	    if(xsmicf(1,U235,l) == 0) continue;
+
+		eqxe(l, xsmica, xsmicf, flux, fnorm);
 	}
 }
 
 
-void DepletionChain::eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* phi, const float& fnorm)
+void DepletionChain::eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
 {
 
 	float rem_i = 0.0;
 	float rem_xe = 0.0;
 
 	for (int ig = 1; ig < _g.ng(); ++ig) {
-		rem_i = rem_i + xsmica(ig, I135, l) * phi(ig, l);
-		rem_xe = rem_xe + xsmica(ig, XE45, l) * phi(ig, l);
+		rem_xe = rem_xe + xsmica(ig, XE45, l) * flux(ig, l);
 	}
+    rem_xe = rem_xe * fnorm * 1.E-24 + dcy(XE45);
 
-	float fyp = 0., fyd = 0.;
+	float fy_i135 = 0., fy_xe45 = 0.;
 	for (int i = 0; i < _nfiso; ++i) {
 		int iso = _fiso[i];
 
 		float fis = 0.0;
 		for (int ig = 1; ig < _g.ng(); ++ig) {
-			fis = fis + xsmicf(ig, iso, l) * phi(ig, l);
+			fis = fis + xsmicf(ig, iso, l) * flux(ig, l);
 		}
 
-		fyp = fyp + fis * fyld(_fpI135, i) * dnst(iso, l);
-		fyd = fyd + fis * fyld(_fpXE145, i) * dnst(iso, l);
+        fy_i135 = fy_i135 + fis * fyld(_fpI135, i) * dnst(iso, l);
+        fy_xe45 = fy_xe45 + fis * fyld(_fpXE145, i) * dnst(iso, l);
 	}
+    fy_i135 *= fnorm* 1.E-24;
+    fy_xe45 *= fnorm* 1.E-24;
 
-	rem_i = rem_i * fnorm * 1.E-24 + dcy(_dcyI135);
 
-	dnst(I135, l) = fyp * fnorm / rem_i;
-	dnst(XE45, l) = (fyp+fyd) / rem_xe;
+	dnst(I135, l) = fy_i135/ dcy(I135);
+	dnst(XE45, l) = (fy_i135 + fy_xe45) / rem_xe;
 }
 
 
 void DepletionChain::depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 
-	//if (ism != SMType::SM_TR) return;
+	if (ism != SMType::SM_TR) return;
 
-	//float exp47 = exp(-rem(PM47, l) * tsec);
-	//float exp48s = exp(-rem(PS48, l) * tsec);
-	//float exp48m = exp(-rem(PM48, l) * tsec);
-	//float exp49 = exp(-rem(PM49, l) * tsec);
-	//float expsm = exp(-rem(SM49, l) * tsec);
+	float exp47 = exp(-rem(PM47, l) * tsec);
+	float exp48s = exp(-rem(PS48, l) * tsec);
+	float exp48m = exp(-rem(PM48, l) * tsec);
+	float exp49 = exp(-rem(PM49, l) * tsec);
+	float expsm = exp(-rem(SM49, l) * tsec);
 
-	//float fr47 = 0., fr49 = 0.;
-	//for (int ih = 0; ih < _nfiso; ++ih) {
-	//	int ihf = _fiso[ih];
-	//	fr47 = fr47 + fis(ihf, l) * fyld(_fpI135, ih) * atavg(ihf, l);
-	//	fr49 = fr49 + fis(ihf, l) * fyld(_fpXE145, ih) * atavg(ihf, l);
-	//}
+	float fr47 = 0., fr49 = 0.;
+	for (int ifiso = 0; ifiso < _nfiso; ++ifiso) {
+		int ihf = _fiso[ifiso];
+		fr47 = fr47 + fis(ihf, l) * fyld(_fpPM147, ifiso) * atavg(ihf, l);
+		fr49 = fr49 + fis(ihf, l) * fyld(_fpPM149, ifiso) * atavg(ihf, l);
+	}
 
 
-	//// pm147      
-	//float abs47 = rem(PM47, l) - dcy(PM47, l);
-	//float a47 = fr47 / rem(PM47, l);
-	//atd(PM47, l) = a47 * (1.0 - exp47) + ati(PM47, l) * exp47;
+	// pm147
+	float abs47 = rem(PM47, l) - dcy(PM47);
+	float a47 = fr47 / rem(PM47, l);
+	atd(PM47, l) = a47 * (1.0 - exp47) + ati(PM47, l) * exp47;
 
-	//// pm148 and pm148m
-	//float abs48s = rem(PS48, l) - dcy(PS48, l);
-	//float abs48m = rem(PM48, l) - dcy(PM48, l);
+	// pm148 and pm148m
+	float abs48s = rem(PS48, l) - dcy(PS48);
+	float abs48m = rem(PM48, l) - dcy(PM48);
 
-	//float a48 = 0;
-	//float b48 = 0;
-	//float a4m = 0;
-	//float b4m = 0;
+	float a48 = 0;
+	float b48 = 0;
+	float a4m = 0;
+	float b4m = 0;
 
-	//if (abs47 != 0) {
-	//	a48 = FRAC48 * abs47 * a47 / rem(PS48, l);
-	//	b48 = FRAC48 * abs47 * (ati(PM47, l) - a47) / (rem(PS48, l) - rem(PM47, l));
-	//	a4m = (1.0 - FRAC48) * abs47 * a47 / rem(PM48, l);
-	//	b4m = (1.0 - FRAC48) * abs47 * (ati(PM47, l) - a47) / (rem(PM48, l) - rem(PM47, l));
-	//}
+	if (abs47 != 0) {
+		a48 = FRAC48 * abs47 * a47 / rem(PS48, l);
+		b48 = FRAC48 * abs47 * (ati(PM47, l) - a47) / (rem(PS48, l) - rem(PM47, l));
+		a4m = (1.0 - FRAC48) * abs47 * a47 / rem(PM48, l);
+		b4m = (1.0 - FRAC48) * abs47 * (ati(PM47, l) - a47) / (rem(PM48, l) - rem(PM47, l));
+	}
 
-	//atd(PS48, l) = a48 * (1.0 - exp48s) + b48 * (exp47 - exp48s) + ati(PS48, l) * exp48s;
-	//atd(PM48, l) = a4m * (1.0 - exp48m) + b4m * (exp47 - exp48m) + ati(PM48, l) * exp48m;
+	atd(PS48, l) = a48 * (1.0 - exp48s) + b48 * (exp47 - exp48s) + ati(PS48, l) * exp48s;
+	atd(PM48, l) = a4m * (1.0 - exp48m) + b4m * (exp47 - exp48m) + ati(PM48, l) * exp48m;
 
-	//// pm149
-	//float a49 = (fr49 + abs48s * a48 + abs48m * a4m) / rem(PM49, l);
-	//float b49 = 0;
-	//if (abs48s != 0) {
-	//	b49 = abs48s * (ati(PS48, l) - a48 - b48) / (rem(PM49, l) - rem(PS48, l));
-	//}
+	// pm149
+	float a49 = (fr49 + abs48s * a48 + abs48m * a4m) / rem(PM49, l);
+	float b49 = 0;
+	if (abs48s != 0) {
+		b49 = abs48s * (ati(PS48, l) - a48 - b48) / (rem(PM49, l) - rem(PS48, l));
+	}
 
-	//float c49 = 0;
-	//if (abs48m != 0) {
-	//	c49 = abs48m * (ati(PM48, l) - a4m - b4m) / (rem(PM49, l) - rem(PM48, l));
-	//}
+	float c49 = 0;
+	if (abs48m != 0) {
+		c49 = abs48m * (ati(PM48, l) - a4m - b4m) / (rem(PM49, l) - rem(PM48, l));
+	}
 
-	//float d49 = 0;
-	//if (abs47 != 0) {
-	//	d49 = (abs48s * b48 + abs48m * b4m) / (rem(PM49, l) - rem(PM47, l));
-	//}
+	float d49 = 0;
+	if (abs47 != 0) {
+		d49 = (abs48s * b48 + abs48m * b4m) / (rem(PM49, l) - rem(PM47, l));
+	}
 
-	//atd(PM49,l) = a49 * (1.0 - exp49) + b49 * (exp48s - exp49) + c49 * (exp48m - exp49) + d49 * (exp47 - exp49) + ati(PM49, l) * exp49;
+	atd(PM49,l) = a49 * (1.0 - exp49) + b49 * (exp48s - exp49) + c49 * (exp48m - exp49) + d49 * (exp47 - exp49) + ati(PM49, l) * exp49;
 
-	//// sm149
-	//float asm1 = dcy(PM49, l) * a49;
-	//float csm = dcy(PM49, l) * b49;
-	//float dsm = dcy(PM49, l) * c49;
-	//float esm = dcy(PM49, l) * d49;
-	//float bsm = dcy(PM49, l) * ati(PM49, l) - asm1 - csm - dsm - esm;
+	// sm149
+	float asm1 = dcy(PM49) * a49;
+	float csm = dcy(PM49) * b49;
+	float dsm = dcy(PM49) * c49;
+	float esm = dcy(PM49) * d49;
+	float bsm = dcy(PM49) * ati(PM49, l) - asm1 - csm - dsm - esm;
 
-	//atd(SM49, l) = asm1 / rem(SM49, l) * (1. - expsm)
-	//	+ bsm / (rem(SM49, l) - rem(PM49, l)) * (exp49 - expsm)
-	//	+ csm / (rem(SM49, l) - rem(PS48, l)) * (exp48s - expsm)
-	//	+ dsm / (rem(SM49, l) - rem(PM48, l)) * (exp48m - expsm)
-	//	+ esm / (rem(SM49, l) - rem(PM47, l)) * (exp47 - expsm)
-	//	+ ati(SM49, l) * expsm;
+	atd(SM49, l) = asm1 / rem(SM49, l) * (1. - expsm)
+		+ bsm / (rem(SM49, l) - rem(PM49, l)) * (exp49 - expsm)
+		+ csm / (rem(SM49, l) - rem(PS48, l)) * (exp48s - expsm)
+		+ dsm / (rem(SM49, l) - rem(PM48, l)) * (exp48m - expsm)
+		+ esm / (rem(SM49, l) - rem(PM47, l)) * (exp47 - expsm)
+		+ ati(SM49, l) * expsm;
 }
 
 void DepletionChain::depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
@@ -356,30 +368,41 @@ void DepletionChain::depp(const int& l, const float& tsec, const float* ati, flo
 	atd(POIS,l) = ati(POIS,l) * exp(-cap(POIS,l) * tsec);
 }
 
-void DepletionChain::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* phi)
-{
-	//for (int in = 1; in < _mnucl; ++in) {
-		//        ati(in, l) = atom0(m2d,k,in)
-		//        atd(in, l) = atom0(m2d,k,in)
-		//}
-		//   calculate capture, removal, decay and fission rate of nuclides
-	for (int in = 1; in < _mnucl; ++in) {
-		cap(in, l) = 0.0;
-		rem(in, l) = 0.0;
-		fis(in, l) = 0.0;
 
-		for (int ig = 1; ig < _g.ng(); ++ig) {
-			cap(in, l) = cap(in, l) + (xsmica(ig, in, l) - xsmicf(ig, in, l) + xsmic2n(ig, l)) * phi(ig, l);
-			rem(in, l) = rem(in, l) + (xsmica(ig, in, l) + 2 * xsmic2n(ig, l)) * phi(ig, l);
-			fis(in, l) = fis(in, l) + xsmicf(ig, in, l) * phi(ig, l);
+void DepletionChain::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
+
+    for (int l = 0; l < _g.nxyz(); ++l) {
+        pickData(l, xsmica, xsmicf, xsmic2n, flux, fnorm);
+    }
+}
+
+void DepletionChain::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm)
+{
+    //   calculate capture, removal, decay and fission rate of nuclides
+	for (int iiso = 0; iiso < NDEP; ++iiso) {
+		cap(iiso, l) = 0.0;
+		rem(iiso, l) = 0.0;
+		fis(iiso, l) = 0.0;
+
+		for (int ig = 0; ig < _g.ng(); ++ig) {
+            float xsa= xsmica(ig, iiso, l);
+            float xsc= xsmica(ig, iiso, l) - xsmicf(ig, iiso, l);
+            if (iiso == U238 && ig == 0) {
+                xsa +=  2 * xsmic2n(ig, l);
+                xsc +=  xsmic2n(ig, l);
+            }
+
+            cap(iiso, l) = cap(iiso, l) + xsc * flux(ig, l);
+			rem(iiso, l) = rem(iiso, l) + xsa * flux(ig, l);
+			fis(iiso, l) = fis(iiso, l) + xsmicf(ig, iiso, l) * flux(ig, l);
 		}
-		cap(in, l) = cap(in, l) * 1.0E-24;
-		rem(in, l) = rem(in, l) * 1.0E-24;
-		fis(in, l) = fis(in, l) * 1.0E-24;
+		cap(iiso, l) = cap(iiso, l) * 1.0E-24*fnorm;
+		rem(iiso, l) = rem(iiso, l) * 1.0E-24*fnorm + dcy(iiso);
+		fis(iiso, l) = fis(iiso, l) * 1.0E-24*fnorm;
 	}
 
 	//   (n,2n) reaction rate
-	_tn2n[l] = xsmic2n(0, l) * phi(0, l) * 1.0E-24;
+	_tn2n[l] = xsmic2n(0, l) * flux(0, l)* fnorm * 1.0E-24;
 }
 
 void DepletionChain::updateH2ODensity(const int& l, const float* dm, const float& ppm)

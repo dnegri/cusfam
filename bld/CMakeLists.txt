@@ -38,6 +38,7 @@ file(GLOB SOURCES
         ../src/SuperLUSolver.*
         ../src/GinkgoSolver.*
         ../src/JacobiBicgSolver.*
+        ../src/SimonCPU.*
         )
 
 file(GLOB FortranSources ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)

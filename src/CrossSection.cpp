@@ -2,7 +2,7 @@
 
 #define dnst(iso, l)    dnst[l*NISO + iso]
 
-__host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
+void CrossSection::updateMacroXS(const int& l, float* dnst)
 {
 
 	for (int ig = 0; ig < _ng; ig++)
@@ -37,7 +37,7 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 		}
 	}
 
-	for (int ip = 0; ip < _nptm; ip++)
+	for (int ip = 0; ip < NPTM; ip++)
 	{
 		for (int ig = 0; ig < _ng; ig++)
 		{
@@ -93,7 +93,7 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 			}
 		}
 
-		for (int ip = 0; ip < _nptm; ip++)
+		for (int ip = 0; ip < NPTM; ip++)
 		{
 			for (int ig = 0; ig < _ng; ig++)
 			{
@@ -114,7 +114,7 @@ __host__ __device__ void CrossSection::updateMacroXS(const int& l, float* dnst)
 	}
 }
 
-__host__ __device__ void CrossSection::updateMacroXS(float* dnst)
+void CrossSection::updateMacroXS(float* dnst)
 {
 #pragma omp parallel for
 	for (size_t l = 0; l < _nxyz; l++)
@@ -123,7 +123,7 @@ __host__ __device__ void CrossSection::updateMacroXS(float* dnst)
 	}
 }
 
-__host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm )
+void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm )
 {
 	float dtm2 = dtm * dtm;
 
@@ -177,6 +177,25 @@ __host__ __device__ void CrossSection::updateXS(const int& l, const float* dnst,
 		xsdf(ig, l) = 1. / (3 * xsdf(ig, l));
 	}
 
+	// Equilibrium Xenon and depletion
+    for (int i = 0; i < NFIS; i++)
+    {
+        int iso = ISOFIS[i];
+
+        for (int ig = 0; ig < _ng; ig++)
+        {
+            xsmicf(ig, iso, l) = xsmicf0(ig, iso, l) + xdpmicf(ig, iso, l) * dppm + xdfmicf(ig, iso, l) * dtf + xdmmicf(ig, 0, iso, l) * dtm + xdmmicf(ig, 1, iso, l) * dtm2;
+        }
+    }
+
+    // Equilibrium Xenon and depletion
+    for (int iso = 0; iso < NDEP; iso++)
+    {
+        for (int ig = 0; ig < _ng; ig++)
+        {
+            xsmica(ig, iso, l) = xsmica0(ig, iso, l) + xdpmica(ig, iso, l) * dppm + xdfmica(ig, iso, l) * dtf + xdmmica(ig, 0, iso, l) * dtm + xdmmica(ig, 1, iso, l) * dtm2;
+        }
+    }
 }
 
 void CrossSection::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
