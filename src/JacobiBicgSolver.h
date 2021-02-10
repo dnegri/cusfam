@@ -1,10 +1,10 @@
 #pragma once
-
+#include "pch.h"
 #include "Geometry.h"
 
-class JacobiBicgSolver {
-private:
-    Geometry &_g;
+class JacobiBicgSolver : public Managed {
+protected:
+    Geometry *_g;
 
     CMFD_VAR _calpha
     , _cbeta
@@ -21,48 +21,36 @@ private:
     , *_vv
     , *_vs
     , *_vt
-    , *_y1d
-    , *_b1i
-    , *_b01d
-    , *_s1dl
-    , *_b03d
-    , *_s3d
-    , *_s3dd
     ;
 
-    CMFD_VAR *_del
-    , *_ainvd
-    , *_ainvl
-    , *_ainvu
-    , *_au
-    , *_delinv
-    , *_al
-    , *_deliau
-    ;
+    CMFD_VAR *_delinv;
 public:
+    JacobiBicgSolver() {};
     JacobiBicgSolver(Geometry &g);
-
     virtual ~JacobiBicgSolver();
 
-    void reset(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src, double &r20);
-    double reset(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src);
+    void reset(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src, CMFD_VAR& r20);
+    void minv(CMFD_VAR* cc, CMFD_VAR* b, double* x);
+    void facilu(CMFD_VAR* diag, CMFD_VAR* cc);
+    void axb(CMFD_VAR* diag, CMFD_VAR* cc, double* phi, CMFD_VAR* aphi);
 
-    void sol1d(const int &j, const int &k, CMFD_VAR *b, CMFD_VAR *x);
+    __host__ __device__ float reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, double* phi, CMFD_VAR* src);
+    __host__ __device__ void minv(const int& l, CMFD_VAR* cc, CMFD_VAR* b, double* x);
+    __host__ __device__ void facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc);
+    __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD_VAR* cc, double* phi);
 
-    void sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x);
+    void solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR& r20, double *phi, double &r2);
 
-    void minv(CMFD_VAR *cc, CMFD_VAR *b, double *x);
+    
+    __host__ __device__ CMFD_VAR& alpha() { return _calpha; }
+    __host__ __device__ CMFD_VAR& beta() { return _cbeta; }
+    __host__ __device__ CMFD_VAR& rho() { return _crho; }
+    __host__ __device__ CMFD_VAR& omega() { return _comega; }
+    __host__ __device__ Geometry& g() { return *_g; }
 
-    void abi1d(const int &j, const int &k);
-
-    void facilu1d(const int &j, const int &k);
-
-    void facilu(CMFD_VAR *diag, CMFD_VAR *cc);
-
-    void solve(CMFD_VAR *diag, CMFD_VAR *cc, double &r20, double *phi, double &r2);
-
-    void axb(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *aphi);
-    double axb(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi);
+    __host__ __device__ CMFD_VAR& delinv(const int& igs, const int& ige, const int& l) {
+        return _delinv[(l * _g->ng2()) + (ige)*_g->ng() + (igs)];
+    };
 
 };
 

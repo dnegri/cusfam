@@ -11,7 +11,7 @@
 
 
 template <class T>
-void matxdiag2g(T* a, T* d, T* c) {
+__host__ __device__ void matxdiag2g(T* a, T* d, T* c) {
     c(0, 0) = a(0, 0) * d(0);
     c(1, 0) = a(1, 0) * d(1);
     c(0, 1) = a(0, 1) * d(0);
@@ -19,7 +19,7 @@ void matxdiag2g(T* a, T* d, T* c) {
 }
 
 template <class T>
-void diagxmat2g(T* d, T* b, T* c) {
+__host__ __device__ void diagxmat2g(T* d, T* b, T* c) {
     c(0, 0) = d(0) * b(0, 0);
     c(1, 0) = d(0) * b(1, 0);
     c(0, 1) = d(1) * b(0, 1);
@@ -27,7 +27,7 @@ void diagxmat2g(T* d, T* b, T* c) {
 }
 
 template <class T>
-void matxmat2g(T* a, T* b, T* c) {
+__host__ __device__ void matxmat2g(T* a, T* b, T* c) {
     c(0, 0) = a(0, 0) * b(0, 0) + a(1, 0) * b(0, 1);
     c(1, 0) = a(0, 0) * b(1, 0) + a(1, 0) * b(1, 1);
     c(0, 1) = a(0, 1) * b(0, 0) + a(1, 1) * b(0, 1);
@@ -35,14 +35,14 @@ void matxmat2g(T* a, T* b, T* c) {
 }
 
 template <class T>
-void matxvec2g(T* a, T* r, T* x) {
+__host__ __device__ void matxvec2g(T* a, T* r, T* x) {
 
     x(0) = a(0, 0) * r(0) + a(1, 0) * r(1);
     x(1) = a(0, 1) * r(0) + a(1, 1) * r(1);
 }
 
 template <class T>
-void addmat2g(T* a, T* b, T* c) {
+__host__ __device__ void addmat2g(T* a, T* b, T* c) {
 
     c(0, 0) = a(0, 0) + b(0, 0);
     c(1, 0) = a(1, 0) + b(1, 0);
@@ -52,7 +52,7 @@ void addmat2g(T* a, T* b, T* c) {
 }
 
 template <class T>
-void submat2g(T* a, T* b, T* c) {
+__host__ __device__ void submat2g(T* a, T* b, T* c) {
 
     c(0, 0) = a(0, 0) - b(0, 0);
     c(1, 0) = a(1, 0) - b(1, 0);
@@ -62,7 +62,7 @@ void submat2g(T* a, T* b, T* c) {
 }
 
 template <class T>
-void copyTomat2g(T* a, T* b) {
+__host__ __device__ void copyTomat2g(T* a, T* b) {
 
     b(0, 0) = a(0, 0);
     b(1, 0) = a(1, 0);
@@ -73,7 +73,7 @@ void copyTomat2g(T* a, T* b) {
 
 
 template <class T>
-void invmat2g(T* a, T* b) {
+__host__ __device__ void invmat2g(T* a, T* b) {
 
     T rdet = 1 / (a(0, 0) * a(1, 1) - a(1, 0) * a(0, 1));
     b(0, 0) = rdet * a(1, 1);
@@ -83,7 +83,7 @@ void invmat2g(T* a, T* b) {
 }
 
 template <class T>
-void solmat2g(T* a, T* b, T* x) {
+__host__ __device__ void solmat2g(T* a, T* b, T* x) {
     T c[4];
 
     invmat2g<T>(a, c);

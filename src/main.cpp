@@ -5,7 +5,7 @@
 #include "BICGCMFD.h"
 #include "Geometry.h"
 #include "GeometryCuda.h"
-#include "DepletionChain.h"
+#include "Depletion.h"
 #include "CrossSection.h"
 #include "CrossSectionCuda.h"
 #include "Feedback.h"

@@ -193,7 +193,7 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
             }
         }
 
-        double r20=0.0;
+        float r20=0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
         double r2 = 0.0;

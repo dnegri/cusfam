@@ -34,7 +34,7 @@ enum SMType {
 };
 
 
-class DepletionChain : public Managed {
+class Depletion : public Managed {
 private:
     Geometry& _g;
 
@@ -92,10 +92,10 @@ private:
     float _b10fac;
 
 public:
-    __host__  __device__ DepletionChain();
-    __host__  __device__ DepletionChain(Geometry& g);
+    __host__  __device__ Depletion();
+    __host__  __device__ Depletion(Geometry& g);
 
-    __host__ __device__ virtual ~DepletionChain();
+    __host__ __device__ virtual ~Depletion();
     
     __host__ __device__ float& h2on(const int& l) { return _h2on[l]; };
 

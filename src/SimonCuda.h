@@ -14,12 +14,12 @@
 #include "Simon.h"
 
 
-class SimonCPU : public Simon {
+class SimonCuda : public Simon {
 private:
     BICGCMFD* _cmfd;
 public:
-    SimonCPU();
-    virtual ~SimonCPU();
+    SimonCuda();
+    virtual ~SimonCuda();
 
     inline BICGCMFD& cmfd() { return *_cmfd; }
     

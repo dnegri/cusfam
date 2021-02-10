@@ -1,4 +1,4 @@
-#include "DepletionChain.h"
+#include "Depletion.h"
 #include "myblas.h"
 
 #define xsmica(ig, iiso, l) xsmica[(l) * _g.ng() * NISO + (iiso) * _g.ng() + (ig)]
@@ -10,7 +10,7 @@
 #define atavg(iiso, l) atavg[(l) * NISO + (iiso)]
 
 
-DepletionChain::DepletionChain(Geometry& g) : _g(g) {
+Depletion::Depletion(Geometry& g) : _g(g) {
 
 	_nhvychn = 4;
 	_nheavy = new int[4]{ 10, 7, 8, 2 };
@@ -96,7 +96,7 @@ DepletionChain::DepletionChain(Geometry& g) : _g(g) {
 	_b10wp = 100. * B10AW * _b10fac;
 }
 
-DepletionChain::~DepletionChain() {
+Depletion::~Depletion() {
 	delete[] _nheavy;
 	delete[] _hvyids;
 	delete[] _reactype;
@@ -109,14 +109,14 @@ DepletionChain::~DepletionChain() {
 	delete[] _dcy;
 }
 
-void DepletionChain::dep(const float& tsec)
+void Depletion::dep(const float& tsec)
 {
     for (int l = 0; l < _g.nxyz(); ++l) {
         dep(l, tsec, _dnst, _dnst_new, _dnst_avg);
     }
 }
 
-void DepletionChain::dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg)
+void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg)
 {
     if(ati(U235,l) == 0) return;
 
@@ -141,7 +141,7 @@ void DepletionChain::dep(const int& l, const float& tsec, float* ati, float* atd
 
 }
 
-void DepletionChain::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void Depletion::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 	for (int ic = 0; ic < _nhvychn; ++ic) {
 		for (int i = 0; i < nheavy(ic); ++i) {
@@ -231,7 +231,7 @@ void DepletionChain::deph(const int& l, const float& tsec, const float* ati, flo
 		}
 	}
 }
-void DepletionChain::depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 
 	if (ixe != XEType::XE_TR) return;
@@ -255,7 +255,7 @@ void DepletionChain::depxe(const int& l, const float& tsec, const float* ati, fl
 	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) + (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
 }
 
-void DepletionChain::eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
+void Depletion::eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
 {
 
 	if (ixe != XEType::XE_EQ) return;
@@ -269,7 +269,7 @@ void DepletionChain::eqxe(const float* xsmica, const float* xsmicf, const double
 }
 
 
-void DepletionChain::eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
+void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
 {
 
 	float rem_i = 0.0;
@@ -301,7 +301,7 @@ void DepletionChain::eqxe(const int& l, const float* xsmica, const float* xsmicf
 }
 
 
-void DepletionChain::depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 
 	if (ism != SMType::SM_TR) return;
@@ -378,13 +378,13 @@ void DepletionChain::depsm(const int& l, const float& tsec, const float* ati, fl
 		+ ati(SM49, l) * expsm;
 }
 
-void DepletionChain::depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void Depletion::depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 	atd(POIS,l) = ati(POIS,l) * exp(-cap(POIS,l) * tsec);
 }
 
 
-void DepletionChain::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
+void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
 
     for (int l = 0; l < _g.nxyz(); ++l) {
 		if (xsmica(1,U235, l) == 0) continue;
@@ -393,7 +393,7 @@ void DepletionChain::pickData(const float* xsmica, const float* xsmicf, const fl
     }
 }
 
-void DepletionChain::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm)
+void Depletion::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm)
 {
     //   calculate capture, removal, decay and fission rate of nuclides
 	for (int iiso = 0; iiso < NDEP; ++iiso) {
@@ -422,14 +422,14 @@ void DepletionChain::pickData(const int& l, const float* xsmica, const float* xs
 	_tn2n[l] = xsmic2n(0, l) * flux(0, l)* fnorm * 1.0E-24;
 }
 
-void DepletionChain::updateH2ODensity(const int& l, const float* dm, const float& ppm)
+void Depletion::updateH2ODensity(const int& l, const float* dm, const float& ppm)
 {
 	dnst(H2O, l) = h2on(l) * dm[l];
 	dnst(SB10, l) = 1.0E-06 * ppm * H2OAW * dnst(H2O, l) * _b10fac;
 
 }
 
-void DepletionChain::updateH2ODensity(const float* dm, const float& ppm) {
+void Depletion::updateH2ODensity(const float* dm, const float& ppm) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         updateH2ODensity(l, dm, ppm);
     }

@@ -9,7 +9,7 @@
 #include "CMFDCPU.h"
 #include "BICGCMFD.h"
 #include "Geometry.h"
-#include "DepletionChain.h"
+#include "Depletion.h"
 #include "CrossSection.h"
 #include "Feedback.h"
 
@@ -19,7 +19,7 @@ protected:
     Geometry* _g;
     SteamTable* _steam;
     CrossSection* _x;
-    DepletionChain* _d;
+    Depletion* _d;
     Feedback* _f;
 
     int _nstep;
@@ -49,7 +49,7 @@ public:
     __host__ __device__ Geometry& g() { return *_g; };
     __host__ __device__ CrossSection& x() { return *_x; };
     __host__ __device__ Feedback& f() { return *_f; };
-    __host__ __device__ DepletionChain& d() { return *_d; };
+    __host__ __device__ Depletion& d() { return *_d; };
     __host__ __device__ SteamTable& steam() { return *_steam; };
 
     __host__ void initialize(const char* dbfile);
