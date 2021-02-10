@@ -114,17 +114,31 @@ void DepletionChain::dep(const float& tsec)
     for (int l = 0; l < _g.nxyz(); ++l) {
         dep(l, tsec, _dnst, _dnst_new, _dnst_avg);
     }
-    myblas::to(NISO * _g.nxyz(), _dnst_new, _dnst);
 }
 
-void DepletionChain::dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
+void DepletionChain::dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg)
 {
     if(ati(U235,l) == 0) return;
 
     deph(l, tsec, ati, atd, atavg);
+	for (int ihvy = 0; ihvy < NHEAVY; ihvy++)
+	{
+		ati(ISOHVY[ihvy], l) = atd(ISOHVY[ihvy], l);
+	}
     depp(l, tsec, ati, atd,  atavg);
+	ati(POIS, l) = atd(POIS, l);
+
     depsm(l, tsec, ati, atd,  atavg);
+	ati(PM47, l) = atd(PM47, l);
+	ati(PS48, l) = atd(PS48, l);
+	ati(PM48, l) = atd(PM48, l);
+	ati(PM49, l) = atd(PM49, l);
+	ati(SM49, l) = atd(SM49, l);
+
     depxe(l, tsec, ati, atd,  atavg);
+	ati(I135, l) = atd(I135, l);
+	ati(XE45, l) = atd(XE45, l);
+
 }
 
 void DepletionChain::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
@@ -151,39 +165,39 @@ void DepletionChain::deph(const int& l, const float& tsec, const float* ati, flo
 			r[i] = rem(ihchn(i, ic), l);
 			exg[i] = exp(-r[i] * tsec);
 
-			if (i == 0) continue;
-
 			int im1 = i - 1;
 
-			for (int j = 0; j < im1; ++j) {
-				float gm1 = 0.0;
+			if (i != 0) {
+				for (int j = 0; j <= im1; ++j) {
+					float gm1 = 0.0;
 
-				switch (iptyp(i, ic)) {
-				case(R_CAP):
-					gm1 = cap(ihchn(im1, ic), l);
-					if (ihchn(im1, ic) == Isotope::AM41) {
-						if (ihchn(i, ic) == Isotope::CM42) {
-							gm1 = gm1 * 0.71;
+					switch (iptyp(i, ic)) {
+					case(R_CAP):
+						gm1 = cap(ihchn(im1, ic), l);
+						if (ihchn(im1, ic) == Isotope::AM41) {
+							if (ihchn(i, ic) == Isotope::CM42) {
+								gm1 = gm1 * 0.71;
+							}
+							else if (ihchn(i, ic) == Isotope::AM42) {
+								gm1 = gm1 * 0.14;
+							}
+							else if (ihchn(i, ic) == Isotope::PU42) {
+								gm1 = gm1 * 0.15;
+							}
 						}
-						else if (ihchn(i, ic) == Isotope::AM42) {
-							gm1 = gm1 * 0.14;
-						}
-						else if (ihchn(i, ic) == Isotope::PU42) {
-							gm1 = gm1 * 0.15;
-						}
+						break;
+					case(R_DEC):
+						gm1 = dcy(ihchn(im1, ic));
+						break;
+					case(R_N2N):
+						gm1 = _tn2n[l];
+						break;
+					default:
+						break;
 					}
-					break;
-				case(R_DEC):
-					gm1 = dcy(ihchn(im1, ic));
-					break;
-				case(R_N2N):
-					gm1 = _tn2n[l];
-					break;
-				default:
-					break;
-				}
 
-				a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+					a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+				}
 			}
 
 			switch (idpct(i, ic)) {
@@ -192,24 +206,25 @@ void DepletionChain::deph(const int& l, const float& tsec, const float* ati, flo
 				break;
 			default:
 				a[i][i] = ati(ihchn(i, ic), l);
+				break;
 			}
 
-			if (i == 0) {
-				for (int j = 0; j < im1 - 1; ++j) {
+			if (i != 0) {
+				for (int j = 0; j <= im1; ++j) {
 					a[i][i] = a[i][i] - a[i][j];
 				}
 			}
 
 			float dnew = 0.0;
 			float ditg = 0.0;
-			for (int j = 1; j < i; ++j) {
+			for (int j = 0; j <= i; ++j) {
 				if (r[j] != 0.0) {
 					dnew = dnew + a[i][j] * exg[j];
 					ditg = ditg + a[i][j] * (1. - exg[j]) / r[j];
 				}
 			}
 
-			if (idpct(ic, i) != ChainAction::HOLD) {
+			if (idpct(i,ic) != ChainAction::HOLD) {
 				atd(ihchn(i, ic), l) = atd(ihchn(i, ic), l) + dnew;
 				atavg(ihchn(i, ic), l) = atavg(ihchn(i, ic), l) + ditg / tsec;
 			}
@@ -372,6 +387,8 @@ void DepletionChain::depp(const int& l, const float& tsec, const float* ati, flo
 void DepletionChain::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
 
     for (int l = 0; l < _g.nxyz(); ++l) {
+		if (xsmica(1,U235, l) == 0) continue;
+
         pickData(l, xsmica, xsmicf, xsmic2n, flux, fnorm);
     }
 }

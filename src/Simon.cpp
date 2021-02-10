@@ -195,9 +195,6 @@ void Simon::setBurnup(const float& burnup) {
     readXSDTM(&NISO, &(_x->xdmmick(0, 0, 0, 0)));
     readXSSDTM(&NISO, &(_x->xdmmics(0, 0, 0, 0, 0)));
 
-
-    float dburn = burnup-bucyc;
-    if(dburn > _epsbu) runDepletion(dburn);
     _x->updateMacroXS(&(_d->dnst(0, 0)));
 
     _f->updatePressure(_press);

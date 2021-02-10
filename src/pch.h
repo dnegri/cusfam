@@ -134,6 +134,10 @@ __constant__ enum Isotope {
     DEL3, TMOD, DETE, V, XSE
 };
 
+__constant__ static const int NHEAVY = 12;
+__constant__ static const int ISOHVY[]{ U234, U235, U236, NP37, U238,
+                                        PU48, NP39, PU49, PU40, PU41,
+                                        PU42, AM43 };
 __constant__ static const int NMAC = 16;
 __constant__ static const int ISOMAC[]{ U234, U235, U236, NP37, U238, 
                                         PU48, NP39, PU49, PU40, PU41, 

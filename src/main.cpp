@@ -38,7 +38,11 @@ int main() {
 
     simon.setBurnup(1000);
     //simon.runKeff(100);
-    simon.runECP(100, 1.0);
+    for (int idep = 0; idep < 20; idep++)
+    {
+        simon.runECP(100, 1.0);
+        simon.runDepletion(100);
+    }
     //GeometryCuda* g_cuda = new GeometryCuda(simon.g());
     //CrossSectionCuda* x_cuda = new CrossSectionCuda(simon.x());
     //x_cuda->updateXS(x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca());

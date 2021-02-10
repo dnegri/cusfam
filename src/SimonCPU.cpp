@@ -47,7 +47,6 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
     float errl2 = 0.0;
     int nboiling = 0;
 
-    _ppm = 100.0;
     cmfd().setNcmfd(3);
     cmfd().updpsi(_flux);
 
@@ -74,11 +73,11 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
         else
             _ppm = (_ppm - ppmd) / (_eigv - eigvd) * (eigvt - _eigv) + _ppm;
 
-        //        if(_ppm > temp+300.0) {
-        //            _ppm = temp+300.0;
-        //        } else if(_ppm < temp-300.0) {
-        //            _ppm = temp-300.0;
-        //        }
+        if(_ppm > temp+300.0) {
+            _ppm = temp+300.0;
+        } else if(_ppm < temp-300.0) {
+            _ppm = temp-300.0;
+        }
 
         ppmd = temp;
         eigvd = _eigv;
@@ -95,7 +94,7 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
 void SimonCPU::runDepletion(const float& dburn) {
 
     d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
-    d().dep(15*24*3600);
+    d().dep(116748.0);
 }
 
 void SimonCPU::runXenonTransient() {

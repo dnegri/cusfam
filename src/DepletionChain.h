@@ -121,7 +121,7 @@ public:
     __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm);
 
     __host__ __device__ void dep(const float& tsec);
-    __host__ __device__ void dep(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
+    __host__ __device__ void dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);

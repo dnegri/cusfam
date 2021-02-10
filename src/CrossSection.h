@@ -178,7 +178,7 @@ public:
 		_xsmick = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
 		_xsmicn = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
 
-		_xsmic2n = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:)
+		_xsmic2n = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:)
 		_xsmicd0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
 		_xsmica0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
 		_xsmics0 = new XS_PRECISION[_ng * _ng * NISO * _nxyz]; // (:,:,:,:,:)
