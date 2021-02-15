@@ -108,6 +108,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <Runtime>MT</Runtime>
+      <CodeGeneration>compute_61,sm_61</CodeGeneration>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -119,7 +120,6 @@
     <CudaCompile Include="..\src\BICGCMFD.cpp" />
     <CudaCompile Include="..\src\BICGSolver.cpp" />
     <CudaCompile Include="..\src\CMFD.cpp" />
-    <CudaCompile Include="..\src\CMFDCPU.cpp" />
     <CudaCompile Include="..\src\CrossSection.cpp" />
     <CudaCompile Include="..\src\CSRSolver.cpp" />
     <CudaCompile Include="..\src\Depletion.cpp" />
@@ -139,14 +139,15 @@
     <CudaCompile Include="..\src\JacobiBicgSolver.cpp" />
     <CudaCompile Include="..\src\SimonCPU.cpp" />
     <CudaCompile Include="..\src\JacobiBicgSolverCuda.cpp" />
+    <CudaCompile Include="..\src\BICGCMFDCuda.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/pch.h" />
     <ClInclude Include="../src/Nodal.h" />
     <ClInclude Include="..\src\BICGCMFD.h" />
+    <ClInclude Include="..\src\BICGCMFDCuda.h" />
     <ClInclude Include="..\src\BICGSolver.h" />
     <ClInclude Include="..\src\CMFD.h" />
-    <ClInclude Include="..\src\CMFDCPU.h" />
     <ClInclude Include="..\src\CrossSection.h" />
     <ClInclude Include="..\src\CrossSectionCuda.h" />
     <ClInclude Include="..\src\CSRSolver.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\src\mat2g.h" />
     <ClInclude Include="..\src\MKLSolver.h" />
     <ClInclude Include="..\src\myblas.h" />
+    <ClInclude Include="..\src\myblascuda.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\NodalCuda.h" />
     <ClInclude Include="..\src\Simon.h" />

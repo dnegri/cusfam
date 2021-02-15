@@ -9,7 +9,7 @@
 #define x(i)  x[i]
 #define r(i)  r[i]
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void matxdiag2g(T* a, T* d, T* c) {
     c(0, 0) = a(0, 0) * d(0);
     c(1, 0) = a(1, 0) * d(1);
@@ -17,7 +17,7 @@ void matxdiag2g(T* a, T* d, T* c) {
     c(1, 1) = a(1, 1) * d(1);
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void diagxmat2g(T* d, T* b, T* c) {
     c(0, 0) = d(0) * b(0, 0);
     c(1, 0) = d(0) * b(1, 0);
@@ -25,7 +25,7 @@ void diagxmat2g(T* d, T* b, T* c) {
     c(1, 1) = d(1) * b(1, 1);
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void matxmat2g(T* a, T* b, T* c) {
     c(0, 0) = a(0, 0) * b(0, 0) + a(1, 0) * b(0, 1);
     c(1, 0) = a(0, 0) * b(1, 0) + a(1, 0) * b(1, 1);
@@ -33,14 +33,14 @@ void matxmat2g(T* a, T* b, T* c) {
     c(1, 1) = a(0, 1) * b(1, 0) + a(1, 1) * b(1, 1);
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void matxvec2g(T* a, T* r, T* x) {
 
     x(0) = a(0, 0) * r(0) + a(1, 0) * r(1);
     x(1) = a(0, 1) * r(0) + a(1, 1) * r(1);
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void addmat2g(T* a, T* b, T* c) {
 
     c(0, 0) = a(0, 0) + b(0, 0);
@@ -50,7 +50,7 @@ void addmat2g(T* a, T* b, T* c) {
 
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void submat2g(T* a, T* b, T* c) {
 
     c(0, 0) = a(0, 0) - b(0, 0);
@@ -60,7 +60,7 @@ void submat2g(T* a, T* b, T* c) {
 
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void copyTomat2g(T* a, T* b) {
 
     b(0, 0) = a(0, 0);
@@ -71,7 +71,7 @@ void copyTomat2g(T* a, T* b) {
 }
 
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void invmat2g(T* a, T* b) {
 
     T rdet = 1 / (a(0, 0) * a(1, 1) - a(1, 0) * a(0, 1));
@@ -81,7 +81,7 @@ void invmat2g(T* a, T* b) {
     b(1, 1) = rdet * a(0, 0);
 }
 
-__host__ __device__ template <class T>
+template <class T> __host__ __device__ 
 void solmat2g(T* a, T* b, T* x) {
     T c[4];
 

@@ -26,12 +26,17 @@ public:
     __host__ CMFD(Geometry& g, CrossSection& x);
     __host__ virtual ~CMFD();
 
-    __host__ __device__ virtual void upddtil()=0;
-    __host__ __device__ virtual void upddhat(SOL_VAR* flux, SOL_VAR* jnet)=0;
-    __host__ __device__ virtual void setls(const double& eigv)=0;
-    __host__ __device__ virtual void updjnet(SOL_VAR* flux, SOL_VAR* jnet)=0;
-    __host__ __device__ virtual void updpsi(const SOL_VAR* flux)=0;
-    __host__ __device__ virtual void drive(double& eigv, SOL_VAR* flux, float& errl2)=0;
+    __host__ __device__ Geometry& g() { return _g; };
+    __host__ __device__ CrossSection& x() { return _x; };
+
+    __host__ virtual void upddtil()=0;
+    __host__ virtual void upddhat(SOL_VAR* flux, SOL_VAR* jnet)=0;
+    __host__ virtual void setls(const double& eigv)=0;
+    __host__ virtual void updjnet(SOL_VAR* flux, SOL_VAR* jnet)=0;
+    __host__ virtual void updpsi(const SOL_VAR* flux)=0;
+    __host__ virtual void drive(double& eigv, SOL_VAR* flux, float& errl2)=0;
+
+    __host__ virtual void init();
 
     __host__ __device__ void updpsi(const int& l, const SOL_VAR* flux);
 	__host__ __device__ void upddtil(const int& ls);

@@ -5,13 +5,7 @@
 #define jnet(ig, ls)      (jnet[(ls)*_g.ng() + ig])
 
 CMFD::CMFD(Geometry &g, CrossSection& x) : _g(g), _x(x){
-    _dtil = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    _dhat = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    _diag = new CMFD_VAR[_g.nxyz() * _g.ng2()]{};
-    _cc = new CMFD_VAR[_g.nxyz() * _g.ng() * NEWSBT]{};
-    _src = new CMFD_VAR[_g.nxyz() * _g.ng()]{};
-    _psi = new CMFD_VAR[_g.nxyz()]{};
-    _epsl2 = 1.E-5;
+
 }
 
 CMFD::~CMFD() {
@@ -21,6 +15,17 @@ CMFD::~CMFD() {
     delete[] _cc;
     delete[] _src;
     delete[] _psi;
+}
+
+void CMFD::init()
+{
+    _epsl2 = 1.E-5;
+    _dtil = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
+    _dhat = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
+    _diag = new CMFD_VAR[_g.nxyz() * _g.ng2()]{};
+    _cc = new CMFD_VAR[_g.nxyz() * _g.ng() * NEWSBT]{};
+    _src = new CMFD_VAR[_g.nxyz() * _g.ng()]{};
+    _psi = new CMFD_VAR[_g.nxyz()]{};
 }
 
 void CMFD::upddtil(const int& ls)

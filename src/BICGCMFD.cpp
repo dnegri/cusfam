@@ -8,16 +8,21 @@
 #define aflux(ig, l)   (aflux[(l)*_g.ng()+ig])
 
 BICGCMFD::BICGCMFD(Geometry &g, CrossSection &x) : CMFD(g, x) {
-    _ls = new JacobiBicgSolver(g);
-//    _ls = new BICGSolver(g);
-    _nodal = new NodalCPU(g, x);
+}
+
+void BICGCMFD::init()
+{
+    CMFD::init();
+    _ls = new JacobiBicgSolver(_g);
+    _nodal = new NodalCPU(_g, _x);
     _nodal->init();
+
     _epsbicg = 1.E-4;
     _nmaxbicg = 5;
-
-    _unshifted_diag = new CMFD_VAR[g.ng2() * g.nxyz()];
-    _eshift = 0.0;
+    _eshift = 0.01;
     iter = 0;
+
+    _unshifted_diag = new CMFD_VAR[_g.ng2() * _g.nxyz()];
 }
 
 BICGCMFD::~BICGCMFD() {
@@ -105,7 +110,6 @@ double BICGCMFD::residual(const double& reigv, const double& reigvs, const SOL_V
 
     return sqrt(r / psi2);
 }
-
 
 void BICGCMFD::upddtil() {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {

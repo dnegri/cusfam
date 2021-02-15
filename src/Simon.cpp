@@ -148,9 +148,10 @@ void Simon::setBurnup(const float& burnup) {
     readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
     readNXYZ(&(_g->nxyz()), _power);
 
-    double temp[_g->ngxyz()];
+    double* temp = new double[_g->ngxyz()];
     readNXYZ8(&(_g->ngxyz()), temp);
     std::copy_n(temp, _g->ngxyz(), _flux);
+    delete[] temp;
 
     float data[100];
     readConstantF(3, data);
