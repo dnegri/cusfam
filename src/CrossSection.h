@@ -302,10 +302,10 @@ public:
 	__host__ __device__ void updateMacroXS(float* dnst);
 
 	__host__ __device__ void updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm);
-	void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
+    __host__ __device__ void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
+    __host__ __device__ void updateRodXS(const int& l, const int& iso_rod, const float& ratio, const float& dppm, const float& dtf, const float& dtm);
 
-
-	__host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };
+    __host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xsdf(const int& ig, const int& l) { return _xsdf[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xssf(const int& igs, const int& ige, const int& l) { return _xssf[l * _ng * _ng + ige * _ng + igs]; };
 	__host__ __device__ inline XS_PRECISION& xstf(const int& ig, const int& l) { return _xstf[l * _ng + ig]; };

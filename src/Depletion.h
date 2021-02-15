@@ -117,8 +117,8 @@ public:
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };
     __host__ __device__ float& fyld(const int& fpiso, const int& fiso) { return _fyld[fiso*_nfpiso + fpiso]; };
 
-    __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm);
-    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm);
+    __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
+    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
 
     __host__ __device__ void dep(const float& tsec);
     __host__ __device__ void dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg);
@@ -127,8 +127,8 @@ public:
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
 
-    __host__ __device__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm);
-    __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm);
+    __host__ __device__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
+    __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
 
     __host__ __device__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);

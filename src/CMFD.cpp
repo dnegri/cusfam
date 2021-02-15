@@ -48,7 +48,7 @@ void CMFD::upddtil(const int& ls)
 	}
 }
 
-void CMFD::upddhat(const int &ls, double* flux, double* jnet) {
+void CMFD::upddhat(const int &ls, SOL_VAR* flux, SOL_VAR* jnet) {
     int ll = _g.lklr(LEFT,ls);
     int lr = _g.lklr(RIGHT,ls);
     int idirl = _g.idirlr(LEFT,ls);
@@ -117,7 +117,7 @@ void CMFD::setEpsl2(float epsl2) {
     _epsl2 = epsl2;
 }
 
-void CMFD::updpsi(const int& l, const double* flux) {
+void CMFD::updpsi(const int& l, const SOL_VAR* flux) {
 
     _psi[l] = 0.0;
 

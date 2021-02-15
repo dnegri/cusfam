@@ -255,7 +255,7 @@ void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* 
 	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) + (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
 }
 
-void Depletion::eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
+void Depletion::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
 {
 
 	if (ixe != XEType::XE_EQ) return;
@@ -269,7 +269,7 @@ void Depletion::eqxe(const float* xsmica, const float* xsmicf, const double* flu
 }
 
 
-void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
+void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
 {
 
 	float rem_i = 0.0;
@@ -384,7 +384,7 @@ void Depletion::depp(const int& l, const float& tsec, const float* ati, float* a
 }
 
 
-void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
+void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm) {
 
     for (int l = 0; l < _g.nxyz(); ++l) {
 		if (xsmica(1,U235, l) == 0) continue;
@@ -393,7 +393,7 @@ void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* 
     }
 }
 
-void Depletion::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm)
+void Depletion::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm)
 {
     //   calculate capture, removal, decay and fission rate of nuclides
 	for (int iiso = 0; iiso < NDEP; ++iiso) {

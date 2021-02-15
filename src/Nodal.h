@@ -3,8 +3,6 @@
 #include "Geometry.h"
 #include "CrossSection.h"
 
-#define NODAL_PRECISION double
-
 #define m011   0.666666667
 #define m022   0.4
 #define m033   0.285714286
@@ -69,8 +67,8 @@ protected:
     NODAL_PRECISION* _dsncff4;
     NODAL_PRECISION* _dsncff6;
 
-    NODAL_PRECISION* _jnet;
-    double* _flux;
+    SOL_VAR* _jnet;
+    SOL_VAR* _flux;
     double _reigv;
 public:
 	int nmaxswp;
@@ -82,8 +80,8 @@ public:
     __host__  virtual ~Nodal();
 
     __host__ virtual void init() =0 ;
-    __host__ virtual void reset(CrossSection& xs, double& reigv, NODAL_PRECISION* jnet, double* phif) = 0;
-    __host__ virtual void drive(NODAL_PRECISION* jnet) = 0;
+    __host__ virtual void reset(CrossSection& xs, double& reigv, SOL_VAR* jnet, SOL_VAR* phif) = 0;
+    __host__ virtual void drive(SOL_VAR* jnet) = 0;
 
 
 	__host__ __device__ void updateConstant(const int& lk);

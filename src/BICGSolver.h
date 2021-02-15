@@ -11,7 +11,7 @@ private:
     , _crho
     , _comega;
 
-    double *_vy
+    SOL_VAR *_vy
     , *_vz;
 
 
@@ -44,14 +44,14 @@ public:
 
     virtual ~BICGSolver();
 
-    void reset(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src, double &r20);
-    double reset(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src);
+    void reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src, CMFD_VAR &r20);
+    double reset(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src);
 
     void sol1d(const int &j, const int &k, CMFD_VAR *b, CMFD_VAR *x);
 
     void sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x);
 
-    void minv(CMFD_VAR *cc, CMFD_VAR *b, double *x);
+    void minv(CMFD_VAR *cc, CMFD_VAR *b, SOL_VAR *x);
 
     void abi1d(const int &j, const int &k);
 
@@ -59,10 +59,10 @@ public:
 
     void facilu(CMFD_VAR *diag, CMFD_VAR *cc);
 
-    void solve(CMFD_VAR *diag, CMFD_VAR *cc, double &r20, double *phi, double &r2);
+    void solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, double &r2);
 
-    void axb(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *aphi);
-    double axb(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi);
+    void axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *aphi);
+    double axb(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi);
 
 };
 

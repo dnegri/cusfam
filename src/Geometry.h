@@ -52,15 +52,15 @@ protected :
 	int* _nxe;
 	int* _nys;
 	int* _nye;
-	int		_nsurf;
-	int*	_neibr;
-	int*	_ijtol;
-	int*	_neib;
+	int	 _nsurf;
+	int* _neibr;
+	int* _ijtol;
+	int* _neib;
 
-	int*	_lklr;
-	int*	_idirlr;
-	int*	_sgnlr;
-	int*	_lktosfc;
+	int* _lklr;
+	int* _idirlr;
+	int* _sgnlr;
+	int* _lktosfc;
 
 	int _symopt;
 	int _symang;

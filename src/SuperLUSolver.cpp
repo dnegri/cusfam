@@ -35,7 +35,7 @@ SuperLUSolver::~SuperLUSolver() {
 }
 
 
-void SuperLUSolver::solve(CMFD_VAR *b, double *x) {
+void SuperLUSolver::solve(CMFD_VAR *b, SOL_VAR *x) {
     int info;
 
 //    dCreate_CompRow_Matrix(&_slu_a, _n, _n, _nnz, _a, _idx_col, _rowptr, SLU_NR, SLU_D, SLU_GE);

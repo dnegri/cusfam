@@ -45,8 +45,8 @@
 
 BICGSolver::BICGSolver(Geometry &g) : _g(g) {
 
-    _vz = new double[_g.ng() * _g.nxyz()]{};
-    _vy = new double[_g.ng() * _g.nxyz()]{};
+    _vz = new SOL_VAR[_g.ng() * _g.nxyz()]{};
+    _vy = new SOL_VAR[_g.ng() * _g.nxyz()]{};
 
     _vr = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
     _vr0 = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
@@ -98,7 +98,7 @@ BICGSolver::~BICGSolver() {
     delete _deliau;
 }
 
-double BICGSolver::reset(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src) {
+double BICGSolver::reset(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src) {
     double aphi = axb(ig, l, diag, cc, phi);
     vr(ig, l) = src(ig, l) - aphi;
     vr0(ig, l) = vr(ig, l);
@@ -108,7 +108,7 @@ double BICGSolver::reset(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *
     return vr(ig, l) * vr(ig, l);
 }
 
-void BICGSolver::reset(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *src, double &r20) {
+void BICGSolver::reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src, CMFD_VAR &r20) {
 
     _calpha = 1;
     _crho = 1;
@@ -205,64 +205,10 @@ void BICGSolver::sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x) {
     }
 }
 
-//void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, double *x) {
-//
-//    // forward solve
-////    #pragma omp parallel for
-//    for (int k = 0; k < _g.nz(); ++k) {
-//        if (k == 0) {
-//            for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-//                for (int ig = 0; ig < _g.ng(); ++ig) {
-//                    b03d(ig, l) = b(ig, l);
-//                }
-//            }
-//        } else {
-//            for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-//                int lm = l - _g.nxy();
-//                for (int ig = 0; ig < _g.ng(); ++ig) {
-//                    b03d(ig, l) = b(ig, l) - cc(LEFT, ZDIR, ig, l) * s3d(ig, lm);
-//                }
-//            }
-//        }
-////    }
-////
-//////    #pragma omp parallel for
-////    for (int k = 0; k < _g.nz(); ++k) {
-//        sol2d(cc, k, _b03d, _s3d);
-//        for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-//            for (int ig = 0; ig < _g.ng(); ++ig) {
-//                x(ig, l) = s3d(ig, l);
-//            }
-//        }
-//    }
-//
-//
-//    // backward solve
-////    #pragma omp parallel for
-//    for (int k = _g.nz() - 2; k >= 0; --k) {
-//        for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-//            int ln = _g.neib(TOP, l);
-//            for (int ig = 0; ig < _g.ng(); ++ig) {
-//                b03d(ig, l) = x(ig, ln) * cc(RIGHT, ZDIR, ig, l);
-//            }
-//        }
-////    }
-//////#pragma omp parallel for
-////    for (int k = _g.nz() - 2; k >= 0; --k) {
-//        sol2d(cc, k, _b03d, _s3d);
-//        for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-//            for (int ig = 0; ig < _g.ng(); ++ig) {
-//                x(ig, l) -= s3d(ig, l);
-//            }
-//        }
-//    }
-//}
-
-void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, double *x) {
+void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, SOL_VAR *x) {
 
     // forward solve
-//    #pragma omp parallel for
-    for (int k = 0; k < _g.nz(); k=k+2) {
+    for (int k = 0; k < _g.nz(); k++) {
         if (k == 0) {
             for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
                 for (int ig = 0; ig < _g.ng(); ++ig) {
@@ -284,33 +230,8 @@ void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, double *x) {
             }
         }
     }
-
-    for (int k = 1; k < _g.nz(); k=k+2) {
-        if (k == 0) {
-            for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-                for (int ig = 0; ig < _g.ng(); ++ig) {
-                    b03d(ig, l) = b(ig, l);
-                }
-            }
-        } else {
-            for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-                int lm = l - _g.nxy();
-                for (int ig = 0; ig < _g.ng(); ++ig) {
-                    b03d(ig, l) = b(ig, l) - cc(LEFT, ZDIR, ig, l) * s3d(ig, lm);
-                }
-            }
-        }
-        sol2d(cc, k, _b03d, _s3d);
-        for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
-            for (int ig = 0; ig < _g.ng(); ++ig) {
-                x(ig, l) = s3d(ig, l);
-            }
-        }
-    }
-
 
     // backward solve
-//    #pragma omp parallel for
     for (int k = _g.nz() - 2; k >= 0; --k) {
         for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
             int ln = _g.neib(TOP, l);
@@ -318,9 +239,6 @@ void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, double *x) {
                 b03d(ig, l) = x(ig, ln) * cc(RIGHT, ZDIR, ig, l);
             }
         }
-//    }
-////#pragma omp parallel for
-//    for (int k = _g.nz() - 2; k >= 0; --k) {
         sol2d(cc, k, _b03d, _s3d);
         for (int l = k * _g.nxy(); l < (k + 1) * _g.nxy(); ++l) {
             for (int ig = 0; ig < _g.ng(); ++ig) {
@@ -496,7 +414,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
     }
 }
 
-void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, double &r20, double *phi, double &r2) {
+void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, double &r2) {
     int n = _g.nxyz() * _g.ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
@@ -552,7 +470,7 @@ void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, double &r20, double *phi, d
     }
 }
 
-void BICGSolver::axb(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *aphi) {
+void BICGSolver::axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *aphi) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aphi(ig,l) = axb(ig, l, diag, cc, phi);
@@ -560,7 +478,7 @@ void BICGSolver::axb(CMFD_VAR *diag, CMFD_VAR *cc, double *phi, CMFD_VAR *aphi) 
     }
 }
 
-double BICGSolver::axb(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, double *phi) {
+double BICGSolver::axb(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi) {
     double ab = 0.0;
     for (int igs = 0; igs < _g.ng(); ++igs) {
         ab += diag(igs, ig, l) * phi(igs, l);

@@ -18,7 +18,7 @@ public:
 	CSRSolver(Geometry& g);
 	virtual ~CSRSolver();
 
-	virtual void solve(CMFD_VAR* b, double* x) = 0;
+	virtual void solve(CMFD_VAR* b, SOL_VAR* x) = 0;
 	virtual void prepare() = 0;
 	const int* rowptr() { return _rowptr; };
 	const int& rowptr(const int& idx_row) { return _rowptr[idx_row]; };

@@ -9,24 +9,27 @@
 
 BICGCMFD::BICGCMFD(Geometry &g, CrossSection &x) : CMFD(g, x) {
     _ls = new JacobiBicgSolver(g);
+//    _ls = new BICGSolver(g);
+    _nodal = new NodalCPU(g, x);
+    _nodal->init();
     _epsbicg = 1.E-4;
-    _nmaxbicg = 10;
+    _nmaxbicg = 5;
 
-    _eshift_diag = new double[g.ng2() * g.nxyz()];
+    _unshifted_diag = new CMFD_VAR[g.ng2() * g.nxyz()];
     _eshift = 0.0;
     iter = 0;
 }
 
 BICGCMFD::~BICGCMFD() {
     delete _ls;
-    delete[] _eshift_diag;
+    delete[] _unshifted_diag;
 }
 
 void BICGCMFD::setEshift(float eshift) {
     _eshift = eshift;
 }
 
-void BICGCMFD::wiel(const int& icy, const double* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
+void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
 
     double gamman = 0;
     double gammad = 0;
@@ -78,7 +81,7 @@ void BICGCMFD::wiel(const int& icy, const double* flux, double& reigvs, double& 
 }
 
 
-double BICGCMFD::residual(const double& reigv, const double& reigvs, const double* flux) {
+double BICGCMFD::residual(const double& reigv, const double& reigvs, const SOL_VAR* flux) {
 
     double reigvdel = reigv - reigvs;
 
@@ -110,7 +113,7 @@ void BICGCMFD::upddtil() {
     }
 }
 
-void BICGCMFD::upddhat(double* flux, double* jnet) {
+void BICGCMFD::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
@@ -132,7 +135,7 @@ void BICGCMFD::setls(const int &l) {
     CMFD::setls(l);
     for (int ige = 0; ige < _g.ng(); ++ige) {
         for (int igs = 0; igs < _g.ng(); ++igs) {
-            eshift_diag(igs, ige, l) = diag(igs, ige, l);
+            unshifted_diag(igs, ige, l) = diag(igs, ige, l);
         }
     }
 }
@@ -145,19 +148,19 @@ void BICGCMFD::updls(const double& reigvs) {
 void BICGCMFD::updls(const int &l, const double& reigvs) {
     for (int ige = 0; ige < _g.ng(); ++ige) {
         for (int igs = 0; igs < _g.ng(); ++igs) {
-            diag(igs,ige,l) = eshift_diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
+            diag(igs,ige,l) = unshifted_diag(igs, ige, l) - (_x.chif(ige, l) * _x.xsnf(igs, l) * reigvs * _g.vol(l));
         }
     }
 }
 
-void BICGCMFD::updjnet(double* flux, double* jnet)
+void BICGCMFD::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::updjnet(ls, flux, jnet);
     }
 }
 
-void BICGCMFD::updpsi(const double* flux)
+void BICGCMFD::updpsi(const SOL_VAR* flux)
 {
     for (int l = 0; l < _g.nxyz(); ++l) {
         CMFD::updpsi(l, flux);
@@ -165,7 +168,7 @@ void BICGCMFD::updpsi(const double* flux)
 }
 
 
-void BICGCMFD::axb(double* flux, double* aflux) {
+void BICGCMFD::axb(SOL_VAR* flux, SOL_VAR* aflux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aflux(ig, l) = CMFD::axb(ig, l, flux);
@@ -174,7 +177,7 @@ void BICGCMFD::axb(double* flux, double* aflux) {
 }
 
 
-void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
+void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
     int icmfd = 0;
     double reigv = 1. / eigv;
@@ -200,6 +203,7 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);
+//            printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
             if(r2 < _epsbicg) break;
         }
 
@@ -231,6 +235,13 @@ void BICGCMFD::drive(double &eigv, double *flux, float &errl2) {
 
 void BICGCMFD::resetIteration() {
     iter = 0;
+}
+
+void BICGCMFD::updnodal(double& reigv, SOL_VAR* flux, SOL_VAR* jnet) {
+    updjnet(flux, jnet);
+    _nodal->reset(_x, reigv, jnet, flux);
+    _nodal->drive(jnet);
+    upddhat(flux, jnet);
 }
 
 

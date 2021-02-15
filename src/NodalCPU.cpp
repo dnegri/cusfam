@@ -59,13 +59,13 @@ void NodalCPU::init() {
 
 }
 
-void NodalCPU::reset(CrossSection& xs, double& reigv, NODAL_PRECISION* jnet, double* phif) {
+void NodalCPU::reset(CrossSection& xs, double& reigv, SOL_VAR* jnet, SOL_VAR* phif) {
 	_flux = phif;
 	_jnet = jnet;
 	_reigv = reigv;
 }
 
-void NodalCPU::drive(NODAL_PRECISION* jnet) {
+void NodalCPU::drive(SOL_VAR* jnet) {
 
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateConstant(lk);

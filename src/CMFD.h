@@ -27,15 +27,15 @@ public:
     __host__ virtual ~CMFD();
 
     __host__ __device__ virtual void upddtil()=0;
-    __host__ __device__ virtual void upddhat(double* flux, double* jnet)=0;
+    __host__ __device__ virtual void upddhat(SOL_VAR* flux, SOL_VAR* jnet)=0;
     __host__ __device__ virtual void setls(const double& eigv)=0;
-    __host__ __device__ virtual void updjnet(double* flux, double* jnet)=0;
-    __host__ __device__ virtual void updpsi(const double* flux)=0;
-    __host__ __device__ virtual void drive(double& eigv, double* flux, float& errl2)=0;
+    __host__ __device__ virtual void updjnet(SOL_VAR* flux, SOL_VAR* jnet)=0;
+    __host__ __device__ virtual void updpsi(const SOL_VAR* flux)=0;
+    __host__ __device__ virtual void drive(double& eigv, SOL_VAR* flux, float& errl2)=0;
 
-    __host__ __device__ void updpsi(const int& l, const double* flux);
+    __host__ __device__ void updpsi(const int& l, const SOL_VAR* flux);
 	__host__ __device__ void upddtil(const int& ls);
-    __host__ __device__ void upddhat(const int& ls, double* flux, double* jnet);
+    __host__ __device__ void upddhat(const int& ls, SOL_VAR* flux, SOL_VAR* jnet);
     __host__ __device__ void setls(const int& l);
 
     __host__ __device__ void setNcmfd(int ncmfd);
@@ -49,7 +49,7 @@ public:
     __host__ __device__ CMFD_VAR& src(const int& ig, const int& l) {return _src[l*_g.ng()+ig];};
     __host__ __device__ CMFD_VAR& psi(const int& l) {return _psi[l];};
 
-    __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, const double* flux) {
+    __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, const SOL_VAR* flux) {
 
         double ab = 0.0;
         for (int igs = 0; igs < _g.ng(); ++igs) {
@@ -67,7 +67,7 @@ public:
         return ab;
     };
 
-    __host__ __device__ void updjnet(const int& ls, const double* flux, double* jnet) {
+    __host__ __device__ void updjnet(const int& ls, const SOL_VAR* flux, SOL_VAR* jnet) {
         int ll = _g.lklr(LEFT, ls);
         int lr = _g.lklr(RIGHT, ls);
         int idirl = _g.idirlr(LEFT, ls);

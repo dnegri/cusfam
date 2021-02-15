@@ -200,11 +200,31 @@ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, 
 
 void CrossSection::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
 {
-    #pragma omp parallel for
+#pragma omp parallel for
 	for (size_t l = 0; l < _nxyz; l++)
 	{
 		updateXS(l, dnst, dppm[l], dtf[l], dtm[l]);
 	}
 
+}
+
+void
+CrossSection::updateRodXS(const int& l, const int& iso_rod, const float& ratio, const float& dppm, const float& dtf, const float& dtm) {
+
+	float dtm2 = dtm * dtm;
+
+    for (int ig = 0; ig < _ng; ig++)
+    {
+        xsdf(ig, l) = xsdf(ig, l) + (xsmicd0(ig, iso_rod, l) + xdpmicd(ig, iso_rod, l) * dppm + xdfmicd(ig, iso_rod, l) * dtf + xdmmicd(ig, 0, iso_rod, l) * dtm + xdmmicd(ig, 1, iso_rod, l) * dtm2)*ratio;
+        xskf(ig, l) = xskf(ig, l) + (xsmick0(ig, iso_rod, l) + xdpmick(ig, iso_rod, l) * dppm + xdfmick(ig, iso_rod, l) * dtf + xdmmick(ig, 0, iso_rod, l) * dtm + xdmmick(ig, 1, iso_rod, l) * dtm2)*ratio;
+        xsnf(ig, l) = xsnf(ig, l) + (xsmicn0(ig, iso_rod, l) + xdpmicn(ig, iso_rod, l) * dppm + xdfmicn(ig, iso_rod, l) * dtf + xdmmicn(ig, 0, iso_rod, l) * dtm + xdmmicn(ig, 1, iso_rod, l) * dtm2)*ratio;
+        xstf(ig, l) = xstf(ig, l) + (xsmica0(ig, iso_rod, l) + xdpmica(ig, iso_rod, l) * dppm + xdfmica(ig, iso_rod, l) * dtf + xdmmica(ig, 0, iso_rod, l) * dtm + xdmmica(ig, 1, iso_rod, l) * dtm2)*ratio;
+
+
+        for (int igs = 0; igs < _ng; igs++)
+        {
+            xssf(igs, ig, l) = xssf(igs, ig, l) + (xsmics0(igs, ig, iso_rod, l) + xdpmics(igs, ig, iso_rod, l) * dppm + xdfmics(igs, ig, iso_rod, l) * dtf + xdmmics(igs, ig, 0, iso_rod, l) * dtm + xdmmics(igs, ig, 1, iso_rod, l) * dtm2) * ratio;
+        }
+    }
 }
 

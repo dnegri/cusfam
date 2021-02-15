@@ -108,8 +108,8 @@ void Simon::initialize(const char* dbfile) {
 
 
     _power = new float[_g->nxyz()]{};
-    _flux = new double[_g->ngxyz()]{};
-    _jnet = new double[_g->nsurf() * _g->ng()]{};
+    _flux = new SOL_VAR[_g->ngxyz()]{};
+    _jnet = new SOL_VAR[_g->nsurf() * _g->ng()]{};
 
     //readBurnupList
     _nstep = 3;
@@ -147,7 +147,10 @@ void Simon::setBurnup(const float& burnup) {
     readDensity(&NISO, &(_d->dnst(0, 0)));
     readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
     readNXYZ(&(_g->nxyz()), _power);
-    readNXYZ8(&(_g->ngxyz()), _flux);
+
+    double temp[_g->ngxyz()];
+    readNXYZ8(&(_g->ngxyz()), temp);
+    std::copy_n(temp, _g->ngxyz(), _flux);
 
     float data[100];
     readConstantF(3, data);

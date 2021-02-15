@@ -36,7 +36,7 @@ void CMFDCPU::upddtil() {
     }
 }
 
-void CMFDCPU::upddhat(double* flux, double* jnet) {
+void CMFDCPU::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
@@ -95,7 +95,7 @@ void CMFDCPU::setEshift(float eshift) {
     _eshift = eshift;
 }
 
-void CMFDCPU::updjnet(double* flux, double* jnet)
+void CMFDCPU::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::updjnet(ls, flux, jnet);
@@ -127,7 +127,7 @@ void CMFDCPU::updls(const int &l, const double &reigvs) {
     }
 }
 
-void CMFDCPU::axb(double *flux, double *aflux) {
+void CMFDCPU::axb(SOL_VAR *flux, SOL_VAR *aflux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aflux(ig, l) = CMFD::axb(ig, l, flux);
@@ -135,7 +135,7 @@ void CMFDCPU::axb(double *flux, double *aflux) {
     }
 }
 
-double CMFDCPU::wiel(const int &icy, double *flux, double &eigv, double &reigv, double &reigvs) {
+double CMFDCPU::wiel(const int &icy, SOL_VAR *flux, double &eigv, double &reigv, double &reigvs) {
     double errl2 = 0;
 
     double gamman = 0;
@@ -187,7 +187,7 @@ double CMFDCPU::wiel(const int &icy, double *flux, double &eigv, double &reigv, 
 }
 
 
-double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux) {
+double CMFDCPU::residual(const double &reigv, const double &reigvs, SOL_VAR *flux) {
 
     double reigvdel = reigv - reigvs;
 
@@ -212,7 +212,7 @@ double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux
     return sqrt(r / psi2);
 }
 
-void CMFDCPU::drive(double &eigv, double *flux, float &errl2) {
+void CMFDCPU::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
     int icy = 0;
     int icmfd = 0;
@@ -261,7 +261,7 @@ void CMFDCPU::drive(double &eigv, double *flux, float &errl2) {
     }
 }
 
-void CMFDCPU::updpsi(const double* flux) {
+void CMFDCPU::updpsi(const SOL_VAR* flux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         CMFD::updpsi(l,flux);
     }

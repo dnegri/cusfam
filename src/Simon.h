@@ -27,8 +27,8 @@ protected:
 
     float* _bucyc;
     float* _power;
-    double* _flux;
-    double* _jnet;
+    SOL_VAR* _flux;
+    SOL_VAR* _jnet;
     double _reigv;
     double _eigv;
     double _pload;
@@ -64,7 +64,12 @@ public:
 
     __host__ inline float* power() {return _power;};
     __host__ inline float& power(const int& l) { return _power[l]; };
-    __host__ inline double& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
+    __host__ inline SOL_VAR& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
+    __host__ inline SOL_VAR& jnet(const int& ig, const int& ls) { return _jnet[ls*_g->ng()+ig]; };
+    __host__ inline SOL_VAR* flux() { return _flux; };
+    __host__ inline SOL_VAR* jnet() { return _jnet; };
+    __host__ inline float& ppm() { return _ppm; };
+    __host__ inline double& fnorm() { return _fnorm; };
 
 
 
