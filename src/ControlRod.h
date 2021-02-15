@@ -18,6 +18,7 @@ enum CEA {
 class ControlRod {
     Geometry* _g;
     float* _ratio;
+    CEA* _cea;
 
 public:
     ControlRod(Geometry& g);
@@ -28,7 +29,8 @@ public:
 
     void setPosition(const int& rodidx, const int& pos);
 
-    const float& getInsertionRatio(const int& l);
+    const float& ratio(const int& l) {return _ratio[l];};
+    const CEA& cea(const int& l) {return _cea[l];};
 
 };
 

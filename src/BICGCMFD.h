@@ -23,7 +23,7 @@ public:
     BICGCMFD(Geometry &g, CrossSection &x);
     virtual ~BICGCMFD();
 
-    __host__ void init();
+    __host__ void init() override;
     __host__ void upddtil() override;
     __host__ void upddhat(SOL_VAR* flux, SOL_VAR* jnet) override;
     __host__ void setls(const double& eigv) override;

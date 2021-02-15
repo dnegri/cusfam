@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "ControlRod.h"
 
 #ifndef XS_PRECISION
 #define XS_PRECISION float
@@ -9,6 +10,8 @@ class CrossSection : public Managed {
 protected:
 	int _ng;
 	int _nxyz;
+
+	float _eps_rod = 0.01;
 
 	XS_PRECISION* _xsnf;
 	XS_PRECISION* _xsdf;
@@ -304,6 +307,7 @@ public:
 	__host__ __device__ void updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm);
     __host__ __device__ void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
     __host__ __device__ void updateRodXS(const int& l, const int& iso_rod, const float& ratio, const float& dppm, const float& dtf, const float& dtm);
+    __host__ __device__ void updateRodXS(ControlRod& r, const float* dppm, const float* dtf, const float* dtm);
 
     __host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& xsdf(const int& ig, const int& l) { return _xsdf[l * _ng + ig]; };

@@ -25,14 +25,14 @@ file(GLOB SOURCES
         ../src/mat2g.h
         ../src/CMFD.*
         ../src/CSRSolver.*
-        ../src/SuperLUSolver.*
+#        ../src/SuperLUSolver.*
         ../src/Feedback.*
         ../src/Simon.*
         ../src/myblas.h
-        ../src/BICG*
+        ../src/BICGCMFD.*
+        ../src/BICGSolver.*
         ../src/SteamTable.*
         ../src/Depletion.*
-#        ../src/SuperLUSolver.*
         ../src/GinkgoSolver.*
         ../src/JacobiBicgSolver.*
         ../src/SimonCPU.*
@@ -41,8 +41,8 @@ file(GLOB SOURCES
 file(GLOB FortranSources ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)
 
 set(CMAKE_Fortran_FLAGS "-finit-local-zero -fno-automatic -fdefault-real-8")
-include_directories(/opt/homebrew/include)
-link_directories(/opt/homebrew/lib)
+include_directories(/usr/local/include /opt/homebrew/include)
+link_directories(/usr/local/lib /opt/homebrew/lib)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
 SET_SOURCE_FILES_PROPERTIES(${FortranSources} PROPERTIES LANGUAGE Fortran )
