@@ -14,7 +14,7 @@ find_package(OpenMP REQUIRED)
 
 file(GLOB SOURCES
         ../src/pch.h
-        ../src/CrossSection.*
+        ../src/CrossSection*.*
         ../src/Geometry.*
         ../src/ControlRod.*
         ../src/main.cpp
@@ -27,6 +27,7 @@ file(GLOB SOURCES
         ../src/CSRSolver.*
 #        ../src/SuperLUSolver.*
         ../src/Feedback.*
+        ../src/FeedbackCuda.*
         ../src/Simon.*
         ../src/myblas.h
         ../src/BICGCMFD.*

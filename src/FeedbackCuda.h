@@ -19,6 +19,11 @@ public:
     __host__ void setTm(const float* tm);
     __host__ void setDm(const float* dm);
 
+    __host__ void updateTf(const float* power, const float* burnup);
+    __host__ void updateTm(const float* power, int& nboiling);
+    __host__ void updatePPM(const float& ppm);
+    __host__  void initDelta(const float& ppm);
+
 
 };
 

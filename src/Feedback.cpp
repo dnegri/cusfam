@@ -56,7 +56,7 @@ void Feedback::initTFTable(const int& nft) {
     _tftable = new float[nft * TF_POINT * TF_POINT];
 }
 
-void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
+void Feedback::updateTf(const int& l, const float* pow, const float* bu, float heatfrac) {
 
     // powlin     : integrated nodal _power in w
     // qprime     : node average linear _power density in w/cm
@@ -64,7 +64,7 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     int ift = fueltype(l);
     if (ift < 0) return;
 
-    float qprime = pow3(l) / _g.hmesh(ZDIR, l) * _heatfrac;
+    float qprime = pow3(l) / _g.hmesh(ZDIR, l) * heatfrac;
     qprime = qprime / frodn(l % _g.nxy());
 
     int i = 1;
@@ -113,9 +113,9 @@ void Feedback::updateTf(const int& l, const float* pow, const float* bu) {
     dtf(l) = sqrt(tf(l)) - stf0(l);
 }
 
-void Feedback::updateTm(const int& l2d, const float* pow, int& nboiling) {
+void Feedback::updateTm(const int& l2d, const float* pow, float hin, float tin, float din, int& nboiling) {
 
-    float hlow = _hin;
+    float hlow = hin;
 
     if (chflow(l2d) != 0.0) {
         int l = l2d;
@@ -146,8 +146,8 @@ void Feedback::updateTm(const int& l2d, const float* pow, int& nboiling) {
     else {
         int l = l2d;
         for (int k = 0; k < _g.nz(); ++k) {
-            tm(l2d, k) = _tin;
-            dm(l2d, k) = _din;
+            tm(l2d, k) = tin;
+            dm(l2d, k) = din;
             dtm(l) = tm(l2d, k) - tm0(l);
             ddm(l) = dm(l2d, k) - dm0(l);
             l = l2d + _g.nxy();
@@ -171,7 +171,7 @@ __host__ __device__ void Feedback::updateTf(const float* power, const float* bur
 #pragma omp parallel for
     for (size_t l = 0; l < _g.nxyz(); l++)
     {
-        updateTf(l, power, burnup);
+        updateTf(l, power, burnup, heatfrac());
     }
 }
 
@@ -181,7 +181,7 @@ __host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
 #pragma omp parallel for
     for (size_t l2d = 0; l2d < _g.nxy(); l2d++)
     {
-        updateTm(l2d, power, nboiling);
+        updateTm(l2d, power, _hin, _tin, _din, nboiling);
     }
 }
 

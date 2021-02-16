@@ -49,6 +49,7 @@ public:
     __host__ __device__ Feedback(Geometry& g, SteamTable& steam);
     __host__ __device__ virtual ~Feedback();
 
+    __host__ __device__ Geometry& g() {return _g;};
     __host__ __device__ void allocate();
     __host__ __device__ void initTFTable(const int& nft);
 
@@ -84,16 +85,15 @@ public:
 
 
     __host__ __device__ float& chflow(const int& l2d) { return _chflow[l2d]; };
-    __host__ __device__ void updateTf(const int& l, const float* pow, const float* bu);
-    __host__ __device__ void updateTm(const int& l2d, const float* pow, int& nboiling);
+    __host__ __device__ void updateTf(const int& l, const float* pow, const float* bu, float heatfrac);
+    __host__ __device__ void updateTm(const int& l2d, const float* pow, float hin, float tin, float din, int& nboiling);
     __host__ __device__ void updateTin(const float& tin);
     __host__ __device__ void updatePressure(const float& press);
 
-    __host__ __device__ virtual void updateTf(const float* power, const float* burnup);
-    __host__ __device__ virtual void updateTm(const float* power, int& nboiling);
-    __host__ __device__ void updatePPM(const float& ppm);
-
-    __host__ __device__ void initDelta(const float& ppm);
+    __host__ void updateTf(const float* power, const float* burnup);
+    __host__ void updateTm(const float* power, int& nboiling);
+    __host__ void updatePPM(const float& ppm);
+    __host__  void initDelta(const float& ppm);
 
     __host__ __device__ int& nft() { return _nft; };
     __host__ __device__ int& fueltype(const int& l) { return _fueltype[l]; };
