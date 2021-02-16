@@ -4,7 +4,7 @@
 #include "Geometry.h"
 #include "SteamTable.h"
 
-class Feedback {
+class Feedback : public Managed{
 
 protected:
     Geometry& _g;

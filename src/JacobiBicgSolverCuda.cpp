@@ -91,6 +91,7 @@ __global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, 
 void JacobiBicgSolverCuda::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, float& r20) {
 
     ::reset<<<BLOCKS_NODE, THREADS_NODE>>>(*this, diag, cc, flux, src, r20);
+    cudaDeviceSynchronize();
 }
 
 __global__ void minv(JacobiBicgSolverCuda& self, CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
@@ -108,6 +109,7 @@ __global__ void minv(JacobiBicgSolverCuda& self, CMFD_VAR* cc, CMFD_VAR* b, SOL_
 void JacobiBicgSolverCuda::minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
 
     ::minv << <BLOCKS_NODE, THREADS_NODE >> > (*this, cc, b, x);
+    cudaDeviceSynchronize();
 }
 
 __global__ void facilu(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc) {
@@ -122,6 +124,7 @@ __global__ void facilu(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc)
 void JacobiBicgSolverCuda::facilu(CMFD_VAR* diag, CMFD_VAR* cc) {
 
     ::facilu << <BLOCKS_NODE, THREADS_NODE >> > (*this, diag, cc);
+    cudaDeviceSynchronize();
 }
 
 __global__ void axb(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aphi) {
@@ -138,6 +141,7 @@ __global__ void axb(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SO
 
 void JacobiBicgSolverCuda::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aphi) {
     ::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, diag, cc, flux, aphi);
+    cudaDeviceSynchronize();
 }
 
 
@@ -147,21 +151,35 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
     // solves the linear system by preconditioned BiCGSTAB Algorithm
     CMFD_VAR crhod = _crho;    
     myblascuda::dot << <BLOCKS_NODE, THREADS_NODE >> > (n, _vr0, _vr, _crho_dev);
+    cudaDeviceSynchronize();
+
     cudaMemcpy(&_crho, _crho_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+
     _cbeta = _crho * _calpha / (crhod * _comega);
 
     //    _vp(:,:,:)=_vr(:,:,:)+_cbeta*(_vp(:,:,:)-_comega*_vv(:,:,:))
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _comega, _vv, _vt);
+    cudaDeviceSynchronize();
+
     myblascuda::minus << <BLOCKS_NODE, THREADS_NODE >> > (n, _vp, _vt, _vt);
+    cudaDeviceSynchronize();
+
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _cbeta, _vt, _vt);
+    cudaDeviceSynchronize();
+
     myblascuda::plus << <BLOCKS_NODE, THREADS_NODE >> > (n, _vr, _vt, _vp);
+    cudaDeviceSynchronize();
 
     minv(cc, _vp, _vy);
     axb(diag, cc, _vy, _vv);
 
     CMFD_VAR r0v;
     myblascuda::dot << <BLOCKS_NODE, THREADS_NODE >> > (n, _vr0, _vv, _r0v_dev);
+    cudaDeviceSynchronize();
+
     cudaMemcpy(&r0v, _crho_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
     if (r0v == 0.0) {
         return;
@@ -171,16 +189,24 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
 
     //    _vs(:,:,:)=_vr(:,:,:)-_calpha*_vv(:,:,:)
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _calpha, _vv, _vt);
+    cudaDeviceSynchronize();
+
     myblascuda::minus << <BLOCKS_NODE, THREADS_NODE >> > (n, _vr, _vt, _vs);
+    cudaDeviceSynchronize();
 
     minv(cc, _vs, _vz);
     axb(diag, cc, _vz, _vt);
     
     CMFD_VAR pts, ptt;
     myblascuda::dot << <BLOCKS_NODE, THREADS_NODE >> > (n, _vs, _vt, _pts_dev);
+    cudaDeviceSynchronize();
+
     myblascuda::dot << <BLOCKS_NODE, THREADS_NODE >> > (n, _vt, _vt, _ptt_dev);
+    cudaDeviceSynchronize();
+
     cudaMemcpy(&pts, _pts_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
     cudaMemcpy(&ptt, _ptt_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
 
     _comega = 0.0;
@@ -190,18 +216,32 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
 
     //    flux(:, :, :) = flux(:, :, :) + _calpha * _vy(:,:,:)+_comega * _vz(:,:,:)
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _comega, _vz, _vz);
+    cudaDeviceSynchronize();
+
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _calpha, _vy, _vy);
+    cudaDeviceSynchronize();
+
     myblascuda::plus << <BLOCKS_NODE, THREADS_NODE >> > (n, _vz, _vy, _vy);
+    cudaDeviceSynchronize();
+
     myblascuda::plus << <BLOCKS_NODE, THREADS_NODE >> > (n, flux, _vy, flux);
+    cudaDeviceSynchronize();
 
 
     //    _vr(:,:,:)=_vs(:,:,:)-_comega * _vt(:,:,:)
     myblascuda::multi << <BLOCKS_NODE, THREADS_NODE >> > (n, _comega, _vt, _vr);
+    cudaDeviceSynchronize();
+
     myblascuda::minus << <BLOCKS_NODE, THREADS_NODE >> > (n, _vs, _vr, _vr);
+    cudaDeviceSynchronize();
 
     if (r20 != 0.0) {
         myblascuda::dot << <BLOCKS_NODE, THREADS_NODE >> > (n, _vt, _vt, _r2_dev);
+        cudaDeviceSynchronize();
+
         cudaMemcpy(&r2, _r2_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+        cudaDeviceSynchronize();
+
         r2 = sqrt(r2) / r20;
     }
 }

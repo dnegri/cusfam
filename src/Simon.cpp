@@ -78,6 +78,7 @@ void Simon::initialize(const char* dbfile) {
     _x = new CrossSection(ng, nxyz);
 
     _d = new Depletion(*_g);
+    _d->init();
 
     _steam = new SteamTable();
     _steam->setPressure(155.13);

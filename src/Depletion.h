@@ -35,7 +35,7 @@ enum SMType {
 
 
 class Depletion : public Managed {
-private:
+protected:
     Geometry& _g;
 
     int _nhvychn;
@@ -46,39 +46,19 @@ private:
     int* _reactype;              //(:,:)
     int* _hvyupd;                //(:,:)
 
-    // 2-1. Fission Product by Actinide Isotope
-    int _nfiso;
-    int _nfpiso;
-    int* _fiso;
-    int* _fpiso;           //(:)
-    float* _fyld;
-    int _fpPM147;
-    int _fpPM149;
-    int _fpSM149;
-    int _fpI135;
-    int _fpXE145;
     float FRAC48 = 0.5277;
 
 
-    // 2-2. Fission Product Chain Define
-    int _nsm;
-    int* _smids;         //(:)
-    int _nxe;
-    int* _xeids;          //(:)
-
     // 3. Decay Constant Define
     float* _dcy;
-
-
-
 
     float* _cap;
     float* _rem;
     float* _fis;
     float* _tn2n;
 
-    int ixe;
-    int ism;
+    XEType ixe = XEType::XE_EQ;
+    SMType ism = SMType::SM_TR;
 
     float* _dnst;
     float* _dnst_new;
@@ -86,17 +66,19 @@ private:
     float* _burn;
     float* _h2on;
 
-
     float _b10ap;
     float _b10wp;
     float _b10fac;
 
 public:
-    __host__  __device__ Depletion();
-    __host__  __device__ Depletion(Geometry& g);
+    __host__ Depletion(Geometry& g);
 
-    __host__ __device__ virtual ~Depletion();
+    __host__ virtual ~Depletion();
+
+    __host__  void init();
     
+    __host__  __device__ Geometry& g() { return _g; };
+
     __host__ __device__ float& h2on(const int& l) { return _h2on[l]; };
 
     __host__ __device__ float& burn(const int& l) { return _burn[l]; };
@@ -109,28 +91,34 @@ public:
 
     __host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
     __host__ __device__ float* dnst() { return _dnst; };
+    __host__ __device__ float* dnst_new() { return _dnst_new; };
+    __host__ __device__ float* dnst_avg() { return _dnst_avg; };
     __host__ __device__ float* burn() { return _burn; };
+    __host__ __device__ float* h2on() { return _h2on; };
 
     __host__ __device__ int& nheavy(const int& ichn) { return _nheavy[ichn]; };
     __host__ __device__ int& ihchn(const int& step, const int& ichn) { return _hvyids[_ihvys[ichn]+ step]; };
     __host__ __device__ int& idpct(const int& step, const int& ichn) { return _hvyupd[_ihvys[ichn] + step]; };
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };
-    __host__ __device__ float& fyld(const int& fpiso, const int& fiso) { return _fyld[fiso*_nfpiso + fpiso]; };
+    __host__ __device__ const float& fyld(const ISO_FP& fpiso, const int& fiso) { return FPYLD[fiso*NFP + fpiso]; };
 
+    __host__ void eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
-    __host__ __device__ void eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
 
-    __host__ __device__ void dep(const float& tsec);
+    __host__ __device__ const XEType& xeopt() { return ixe; };
+    __host__ __device__ const SMType& smopt() { return ism; };
+
+    __host__ void dep(const float& tsec);
     __host__ __device__ void dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
 
-    __host__ __device__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
+    __host__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
 
-    __host__ __device__ void updateH2ODensity(const float* dm, const float& ppm);
+    __host__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);
 
 

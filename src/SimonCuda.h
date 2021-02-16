@@ -1,29 +1,33 @@
 #pragma once
 
 #include "pch.h"
-#include "CrossSection.h"
 #include "Geometry.h"
-#include "SteamTable.h"
-#include "NodalCPU.h"
-#include "CMFDCPU.h"
-#include "BICGCMFD.h"
-#include "Geometry.h"
-#include "Depletion.h"
+#include "GeometryCuda.h"
 #include "CrossSection.h"
-#include "Feedback.h"
+#include "CrossSectionCuda.h"
+#include "SteamTableCuda.h"
+#include "BICGCMFDCuda.h"
+#include "DepletionCuda.h"
+#include "FeedbackCuda.h"
 #include "Simon.h"
 
 
 class SimonCuda : public Simon {
 private:
-    BICGCMFD* _cmfd;
+    GeometryCuda* _gcuda;
+    CrossSectionCuda* _xcuda;
+    FeedbackCuda* _fcuda;
+    SteamTableCuda* _steamcuda;
+    DepletionCuda* _dcuda;
+    BICGCMFDCuda* _cmfdcuda;
 public:
     SimonCuda();
     virtual ~SimonCuda();
 
-    inline BICGCMFD& cmfd() { return *_cmfd; }
+    inline BICGCMFD& cmfd() { return *_cmfdcuda; }
     
     void initialize(const char* dbfile);
+    void setBurnup(const float& burnup);
     void runKeff(const int& nmaxout);
     void runECP(const int& nmaxout, const double& eigvt);
     void runDepletion(const float& dburn);

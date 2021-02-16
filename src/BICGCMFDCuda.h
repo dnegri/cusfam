@@ -22,12 +22,9 @@ public:
     __host__ void updsrc(const double& reigvdel);
     __host__ void drive(double& eigv, SOL_VAR* flux, float& errl2) override;
 
-    __host__ void resetIteration();
-    __host__ void setEshift(float eshift0);
     __host__ void updls(const double& reigvs);
 
     __host__ void axb(SOL_VAR* flux, SOL_VAR* aflux);
-    __host__ double residual(const double& reigv, const double& reigvs, const SOL_VAR* flux);
     __host__ void wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, float& errl2);
 
     __host__ __device__ CMFD_VAR& psid(const int& l) { return _psid[l]; };

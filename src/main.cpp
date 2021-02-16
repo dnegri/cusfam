@@ -12,6 +12,7 @@
 #include "Feedback.h"
 #include "omp.h"
 #include "SimonCPU.h"
+#include "SimonCuda.h"
 
 #ifndef CPU
 dim3 BLOCKS_NODE;
@@ -19,7 +20,6 @@ dim3 THREADS_NODE;
 dim3 BLOCKS_SURFACE;
 dim3 THREADS_SURFACE;
 #endif
-
 
 __global__ void test(void* a)
 {
@@ -29,7 +29,7 @@ __global__ void test(void* a)
 int main() {
     omp_set_num_threads(1);
 
-    SimonCPU simon;
+    SimonCuda simon;
     simon.initialize("../run/simondb0");
 
 #ifndef CPU
@@ -38,6 +38,7 @@ int main() {
     BLOCKS_SURFACE = dim3(simon.g().nsurf() / NTHREADSPERBLOCK + 1, 1, 1);
     THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
 #endif
+
 
     simon.setBurnup(1000);
 

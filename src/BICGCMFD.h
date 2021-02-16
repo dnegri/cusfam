@@ -35,7 +35,7 @@ public:
 
 
     __host__ void resetIteration();
-    __host__ void setEshift(float eshift0);
+    __host__ __device__ void setEshift(float eshift0);
     __host__ void updls(const double& reigvs);
 
     __host__ __device__ void setls(const int& l);

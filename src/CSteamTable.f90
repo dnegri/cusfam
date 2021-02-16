@@ -194,7 +194,7 @@ contains
 
       tdel = (this%tmax - this%tmin) / this%npnts
       this%rtdel = 1./tdel
-      print *, this%tmax, this%tmin, this%npnts, tdel
+
       tm    = this%tmin
       hmodd = this%hmin
       dmodd = this%dmin
@@ -523,7 +523,7 @@ contains
       propr(:) = 0.0
       ierr = 0
       call tsat(press*bar2mpa, temp, rhof, rhog, iwork, propr, ierr)
-      print *, 'getSatProperty : ',press*bar2mpa, ierr
+
       temp = temp - KELVIN
       property(1:NPROP) = this%getProperty0(temp, rhof*RMILLI)
       property(NPROP+1:2*NPROP) = this%getProperty0(temp, rhog*RMILLI)

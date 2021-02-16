@@ -178,9 +178,9 @@ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, 
 	}
 
 	// Equilibrium Xenon and depletion
-    for (int i = 0; i < NFIS; i++)
+    for (int i = 0; i < NHEAVY; i++)
     {
-        int iso = ISOFIS[i];
+        int iso = ISOHVY[i];
 
         for (int ig = 0; ig < _ng; ig++)
         {

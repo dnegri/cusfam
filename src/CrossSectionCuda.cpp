@@ -81,19 +81,11 @@ CrossSectionCuda::CrossSectionCuda(const CrossSection& x)
 	checkCudaErrors(cudaMalloc((void**)&_dfmacn, sizeof(XS_PRECISION) * _nxyz * _ng));
 	checkCudaErrors(cudaMalloc((void**)&_dfmacs, sizeof(XS_PRECISION) * _nxyz * _ng * _ng));
 
-	checkCudaErrors(cudaMemcpy(_xsnf, x.xsnf(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsdf, x.xsdf(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xstf, x.xstf(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xskf, x.xskf(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_chif, x.chif(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xssf, x.xssf(), sizeof(XS_PRECISION) * _ng * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsadf, x.xsadf(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmacd0, x.xsmacd0(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmaca0, x.xsmaca0(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmacs0, x.xsmacs0(), sizeof(XS_PRECISION) * _ng * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmacf0, x.xsmacf0(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmack0, x.xsmack0(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_xsmacn0, x.xsmacn0(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
+	cudaDeviceSynchronize();
+}
+
+void CrossSectionCuda::copyXS(const CrossSection& x)
+{
 	checkCudaErrors(cudaMemcpy(_xsmicd, x.xsmicd(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xsmica, x.xsmica(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xsmics, x.xsmics(), sizeof(XS_PRECISION) * _ng * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
@@ -131,30 +123,9 @@ CrossSectionCuda::CrossSectionCuda(const CrossSection& x)
 	checkCudaErrors(cudaMemcpy(_xdfmick, x.xdfmick(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xddmick, x.xddmick(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xdmmick, x.xdmmick(), sizeof(XS_PRECISION) * _ng * NPTM * NISO * _nxyz, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmacd, x.dpmacd(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmaca, x.dpmaca(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmacf, x.dpmacf(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmack, x.dpmack(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmacn, x.dpmacn(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dpmacs, x.dpmacs(), sizeof(XS_PRECISION) * _nxyz * _ng * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmacd, x.ddmacd(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmaca, x.ddmaca(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmacf, x.ddmacf(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmack, x.ddmack(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmacn, x.ddmacn(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_ddmacs, x.ddmacs(), sizeof(XS_PRECISION) * _nxyz * _ng * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmacd, x.dmmacd(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmaca, x.dmmaca(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmacf, x.dmmacf(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmack, x.dmmack(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmacn, x.dmmacn(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dmmacs, x.dmmacs(), sizeof(XS_PRECISION) * _nxyz * NPTM * _ng * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmacd, x.dfmacd(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmaca, x.dfmaca(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmacf, x.dfmacf(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmack, x.dfmack(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmacn, x.dfmacn(), sizeof(XS_PRECISION) * _nxyz * _ng, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(_dfmacs, x.dfmacs(), sizeof(XS_PRECISION) * _nxyz * _ng * _ng, cudaMemcpyHostToDevice));
+
+
+	cudaDeviceSynchronize();
 }
 
 
@@ -170,6 +141,21 @@ __global__ void updateXS(CrossSectionCuda& x, const float* dnst, const float* dp
 void CrossSectionCuda::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
 {
 	::updateXS<<<BLOCKS_NODE, THREADS_NODE >>>(*this, dnst, dppm, dtf, dtm);
+	cudaDeviceSynchronize();
+}
+
+__global__ void updateMacroXS(CrossSectionCuda& x, float* dnst)
+{
+	int l = threadIdx.x + blockIdx.x * blockDim.x;
+	if (l >= x.nxyz()) return;
+
+	x.CrossSection::updateMacroXS(l, dnst);
+}
+
+
+void CrossSectionCuda::updateMacroXS(float* dnst)
+{
+	::updateMacroXS << <BLOCKS_NODE, THREADS_NODE >> > (*this, dnst);
 	cudaDeviceSynchronize();
 }
 

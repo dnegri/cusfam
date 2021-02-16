@@ -75,6 +75,7 @@
       <Runtime>MTd</Runtime>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <Defines>_DEBUG</Defines>
+      <CodeGeneration>compute_61,sm_61</CodeGeneration>
     </CudaCompile>
     <Lib>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -140,6 +141,7 @@
     <CudaCompile Include="..\src\SimonCPU.cpp" />
     <CudaCompile Include="..\src\JacobiBicgSolverCuda.cpp" />
     <CudaCompile Include="..\src\BICGCMFDCuda.cpp" />
+    <CudaCompile Include="..\src\DepletionCuda.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/pch.h" />
@@ -152,6 +154,7 @@
     <ClInclude Include="..\src\CrossSectionCuda.h" />
     <ClInclude Include="..\src\CSRSolver.h" />
     <ClInclude Include="..\src\Depletion.h" />
+    <ClInclude Include="..\src\DepletionCuda.h" />
     <ClInclude Include="..\src\FeedbackCuda.h" />
     <ClInclude Include="..\src\Feedback.h" />
     <ClInclude Include="..\src\Geometry.h" />

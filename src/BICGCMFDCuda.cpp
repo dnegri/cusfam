@@ -40,6 +40,7 @@ void BICGCMFDCuda::init()
     checkCudaErrors(cudaMalloc((void**)&_src, sizeof(CMFD_VAR) * _g.ngxyz()));
     checkCudaErrors(cudaMalloc((void**)&_psi, sizeof(CMFD_VAR) * _g.nxyz()));
     checkCudaErrors(cudaMalloc((void**)&_psid, sizeof(CMFD_VAR) * _g.nxyz()));
+    cudaDeviceSynchronize();
 }
 
 __global__ void upddtil(BICGCMFDCuda& self) {
@@ -51,6 +52,7 @@ __global__ void upddtil(BICGCMFDCuda& self) {
 
 void BICGCMFDCuda::upddtil() {
     ::upddtil << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this);
+    cudaDeviceSynchronize();
 }
 
 __global__ void upddhat(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
@@ -62,7 +64,7 @@ __global__ void upddhat(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
 
 void BICGCMFDCuda::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
     ::upddhat << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
-
+    cudaDeviceSynchronize();
 }
 
 __global__ void setls(BICGCMFDCuda& self, const double& eigv, const double& reigvs) {
@@ -78,6 +80,7 @@ void BICGCMFDCuda::setls(const double& eigv) {
     double reigvs = 0.0;
     if (eshift() != 0.0) reigvs = 1. / (eigv + eshift());
     ::setls<<<BLOCKS_NODE, THREADS_NODE>>>(*this, eigv, reigvs);
+    cudaDeviceSynchronize();
     
     _ls->facilu(_diag, _cc);
 }
@@ -93,6 +96,7 @@ __global__ void updls(BICGCMFDCuda& self, const double& reigvs) {
 
 void BICGCMFDCuda::updls(const double& reigvs) {
     ::updls << <BLOCKS_NODE, THREADS_NODE >> > (*this, reigvs);
+    cudaDeviceSynchronize();
 }
 
 
@@ -107,6 +111,7 @@ __global__ void updjnet(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
 void BICGCMFDCuda::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 {
     ::updjnet << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
+    cudaDeviceSynchronize();
 }
 
 __global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
@@ -121,6 +126,7 @@ __global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
 void BICGCMFDCuda::updpsi(const SOL_VAR* flux)
 {
     ::updpsi << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux);
+    cudaDeviceSynchronize();
 }
 
 
@@ -132,6 +138,12 @@ __global__ void axb(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
     for (int ig = 0; ig < self.g().ng(); ++ig) {
         aflux[l*self.g().ng() + ig] = self.CMFD::axb(ig, l, flux);
     }
+}
+
+void BICGCMFDCuda::axb(SOL_VAR* flux, SOL_VAR* aflux)
+{
+    ::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux, aflux);
+    cudaDeviceSynchronize();
 }
 
 
@@ -148,6 +160,7 @@ __global__ void updsrc(BICGCMFDCuda& self, const double& reigvdel) {
 
 void BICGCMFDCuda::updsrc(const double& reigvdel) {
     ::updsrc << <BLOCKS_NODE, THREADS_NODE >> > (*this, reigvdel);
+    cudaDeviceSynchronize();
 }
 
 __global__ void psierr(int nxyz, const CMFD_VAR* psid, const CMFD_VAR* psi, float* errl2, double* gammad, double* gamman) {
@@ -194,6 +207,7 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
     updpsi(flux);
 
     psierr << <BLOCKS_NODE, THREADS_NODE >> > (g().nxyz(), _psid, _psi, _errl2_dev, _gammad_dev, _gamman_dev);
+    cudaDeviceSynchronize();
 
     double gamman = 0;
     double gammad = 0;
@@ -201,6 +215,7 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
     cudaMemcpy(&gammad, _gammad_dev, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(&gamman, _gamman_dev, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(&errl2, _errl2_dev, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
 
     //compute new eigenvalue

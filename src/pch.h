@@ -9,6 +9,9 @@
 #include <iostream>
 #include <cstring>
 
+using namespace std;
+
+
 #ifndef CPU
     #include <cuda_runtime.h>
     #include "helper_string.h"
@@ -105,8 +108,6 @@ __constant__  static const float KELVIN = 273.15;
 
 __constant__  static const int    NG2 = 2;
 
-using namespace std;
-
 __constant__  static const int    NTHREADSPERBLOCK = 64;
 
 __constant__ static const int NISO = 40;
@@ -123,7 +124,7 @@ __constant__ static const char* ISOTOPE_NAME[NISO] = {
         "DEL3", "TMOD", "DETE", "   V", "XSE " };
 
 
-__constant__ enum Isotope {
+enum Isotope {
     U234, U235, U236, NP37, U238,
     PU48, NP39, PU49, PU40, PU41,
     PU42, AM43, RESI, POIS, PM47,
@@ -143,11 +144,6 @@ __constant__ static const int ISOMAC[]{ U234, U235, U236, NP37, U238,
                                         PU48, NP39, PU49, PU40, PU41, 
                                         PU42, AM43, RESI, POIS, FP1 , STRM};
 
-__constant__ static const int NFIS = 12;
-__constant__ static const int ISOFIS[]{ U235, U236, NP37, U238, PU48, 
-                                        PU49, PU40, PU41, PU42, AM43, 
-                                        U234, NP39};
-
 //  9 - the number of isotopes(pm47, ps48, pm48, pm49, sm, i135, xe, b10, h2o)
 __constant__ static const int NNIS = 9;
 __constant__ static const int ISONIS[]{ PM47, PS48, PM48, PM49, SM49, 
@@ -158,6 +154,24 @@ __constant__ static const int ISODCY[]{NP39, PU41, PU48, PM47, PS48,
                                        PM48, PM49, I135, XE45};
 __constant__ static const float DCY[] {3.40515E-06, 1.53705E-09, 2.50451E-10, 8.37254E-09, 1.49451E-06,
                                        1.94297E-07, 3.62737E-06, 2.93061E-05, 2.10657E-05};
+
+
+__constant__ static const int NFP = 4;
+enum ISO_FP {IFP_PM47, IFP_PM49, IFP_I135, IFP_XE45};
+__constant__ static const int ISOFP[]{ PM47, PM49, I135, XE45 };
+__constant__ static const float FPYLD[]{
+            2.017740E-02, 1.035690E-02, 4.901130E-02, 6.763670E-03,
+            2.246730E-02, 1.081620E-02, 6.281870E-02, 2.566345E-03,
+            2.295290E-02, 1.338370E-02, 5.974780E-02, 1.049093E-03,
+            2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
+            2.592740E-02, 1.625290E-02, 6.940720E-02, 2.686420E-04,
+            2.236530E-02, 1.596690E-02, 5.740170E-02, 9.935130E-03,
+            2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
+            2.002960E-02, 1.216300E-02, 6.541880E-02, 1.066411E-02,
+            2.123450E-02, 1.393890E-02, 6.731600E-02, 5.001020E-03,
+            2.284950E-02, 1.474070E-02, 6.943130E-02, 2.269029E-03,
+            2.387710E-02, 1.598400E-02, 7.388510E-02, 1.057970E-03,
+            2.336130E-02, 1.555480E-02, 6.034700E-02, 7.250690E-03};
 
 __constant__ static const int NPTM = 2;
 
@@ -192,4 +206,6 @@ enum PROP_TYPE {
 
 #define CMFD_VAR    float
 #define SOL_VAR    float
+
+
 #endif /* PCH_H_ */

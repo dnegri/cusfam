@@ -12,33 +12,58 @@ SimonCuda::~SimonCuda() {
 void SimonCuda::initialize(const char* dbfile)
 {
     Simon::initialize(dbfile);
-    _cmfd = new BICGCMFD(g(), x());
-    cmfd().setNcmfd(3);
-    cmfd().setEshift(0.04);
+    _gcuda = new GeometryCuda(*_g);
+    _xcuda = new CrossSectionCuda(*_x);
+    _steamcuda = new SteamTableCuda(*_steam);
+    _fcuda = new FeedbackCuda(*_gcuda, *_steamcuda, *_f);
+    _dcuda = new DepletionCuda(*_gcuda);
+    _dcuda->init();
+
+    _cmfdcuda = new BICGCMFDCuda(*_gcuda, *_xcuda);
+    _cmfdcuda->init();
+    _cmfdcuda->setNcmfd(3);
+    _cmfdcuda->setEshift(0.04f);
+}
+
+void SimonCuda::setBurnup(const float& burnup)
+{
+    Simon::setBurnup(burnup);
+    _dcuda->setDensity(_d->dnst());
+    _dcuda->setBurnup(_d->burn());
+    _dcuda->setH2ORatio(_d->h2on());
+
+    _fcuda->copyFeedback(*_f);
+    _fcuda->updatePressure(_press);
+    _fcuda->updateTin(_tin);
+    _fcuda->initDelta(_ppm);
+
+    _xcuda->copyXS(*_x);
+    _xcuda->updateMacroXS(_dcuda->dnst());
+    _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
 }
 
 void SimonCuda::runKeff(const int& nmaxout) {
     float errl2 = 0.0;
     int nboiling = 0;
-    cmfd().setNcmfd(nmaxout);
+    _cmfdcuda->setNcmfd(nmaxout);
 
-    cmfd().updpsi(_flux);
+    _cmfdcuda->updpsi(_flux);
 
     _ppm = 100.0;
-    f().updatePPM(_ppm);
-    d().updateH2ODensity(f().dm(), _ppm);
-    x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-    cmfd().upddtil();
-    cmfd().setls(_eigv);
-    cmfd().drive(_eigv, _flux, errl2);
+    _fcuda->updatePPM(_ppm);
+    _dcuda->updateH2ODensity(_fcuda->dm(), _ppm);
+    _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
+    _cmfdcuda->upddtil();
+    _cmfdcuda->setls(_eigv);
+    _cmfdcuda->drive(_eigv, _flux, errl2);
 
     _ppm = 1000.0;
-    f().updatePPM(_ppm);
-    d().updateH2ODensity(f().dm(), _ppm);
-    x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-    cmfd().upddtil();
-    cmfd().setls(_eigv);
-    cmfd().drive(_eigv, _flux, errl2);
+    _fcuda->updatePPM(_ppm);
+    _dcuda->updateH2ODensity(_fcuda->dm(), _ppm);
+    _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
+    _cmfdcuda->upddtil();
+    _cmfdcuda->setls(_eigv);
+    _cmfdcuda->drive(_eigv, _flux, errl2);
     exit(0);
     normalize();
 }
@@ -47,20 +72,20 @@ void SimonCuda::runECP(const int& nmaxout, const double& eigvt) {
     float errl2 = 0.0;
     int nboiling = 0;
 
-    cmfd().setNcmfd(3);
-    cmfd().updpsi(_flux);
+    _cmfdcuda->setNcmfd(3);
+    _cmfdcuda->updpsi(_flux);
 
     float ppmd = _ppm;
     double eigvd = _eigv;
 
     for (size_t iout = 0; iout < nmaxout; iout++)
     {
-        f().updatePPM(_ppm);
-        d().updateH2ODensity(f().dm(), _ppm);
-        x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-        cmfd().upddtil();
-        cmfd().setls(_eigv);
-        cmfd().drive(_eigv, _flux, errl2);
+        _fcuda->updatePPM(_ppm);
+        _dcuda->updateH2ODensity(_fcuda->dm(), _ppm);
+        _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
+        _cmfdcuda->upddtil();
+        _cmfdcuda->setls(_eigv);
+        _cmfdcuda->drive(_eigv, _flux, errl2);
         normalize();
 
         if (iout > 3 && errl2 < 1.E-5) break;
@@ -85,16 +110,16 @@ void SimonCuda::runECP(const int& nmaxout, const double& eigvt) {
         printf("CHANGE PPM : %.2f --> %.2f\n", ppmd, _ppm);
 
         //search critical
-        f().updateTm(_power, nboiling);
-        f().updateTf(_power, d().burn());
-        d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
+        _fcuda->updateTm(_power, nboiling);
+        _fcuda->updateTf(_power, _dcuda->burn());
+        _dcuda->eqxe(_xcuda->xsmica(), _xcuda->xsmicf(), _flux, _fnorm);
     }
 }
 
 void SimonCuda::runDepletion(const float& dburn) {
 
-    d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
-    d().dep(116748.0);
+    _dcuda->pickData(_xcuda->xsmica(), _xcuda->xsmicf(), _xcuda->xsmic2n(), _flux, _fnorm);
+    _dcuda->dep(116748.0);
 }
 
 void SimonCuda::runXenonTransient() {
@@ -109,7 +134,7 @@ void SimonCuda::normalize()
         power(l) = 0.0;
         for (size_t ig = 0; ig < _g->ng(); ig++)
         {
-            power(l) += flux(ig, l) * x().xskf(ig, l);
+            power(l) += flux(ig, l) * _xcuda->xskf(ig, l);
         }
         power(l) *= _g->vol(l);
         ptotal += power(l);

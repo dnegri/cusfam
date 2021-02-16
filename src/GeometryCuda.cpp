@@ -45,6 +45,7 @@ GeometryCuda::GeometryCuda(const Geometry& g)
 	checkCudaErrors(cudaMemcpy(_idirlr, g.idirlr(), sizeof(int) * _nsurf * LR, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_sgnlr, g.sgnlr(), sizeof(int) * _nsurf * LR, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_lklr, g.lklr(), sizeof(int) * _nsurf * LR, cudaMemcpyHostToDevice));
+	cudaDeviceSynchronize();
 }
 
 GeometryCuda::~GeometryCuda()

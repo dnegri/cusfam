@@ -12,6 +12,18 @@
 
 Depletion::Depletion(Geometry& g) : _g(g) {
 
+}
+
+Depletion::~Depletion() {
+	delete[] _nheavy;
+	delete[] _hvyids;
+	delete[] _reactype;
+	delete[] _hvyupd;
+	delete[] _dcy;
+}
+
+void Depletion::init()
+{
 	_nhvychn = 4;
 	_nheavy = new int[4]{ 10, 7, 8, 2 };
 	_ihvys = new int[4]{ 0, 10, 17, 25 };
@@ -35,79 +47,30 @@ Depletion::Depletion(Geometry& g) : _g(g) {
 			HOLD, LEAVE, LEAVE, LEAVE, LEAVE, LEAVE, LEAVE, LEAVE,
 			HOLD, LEAVE};
 
-	_nfiso = 12;
-	_fiso = new int[_nfiso] {U234, U235, U236, U238, NP37,
-		NP39, PU48, PU49, PU40, PU41,
-		PU42, AM43};
+	_dcy = new float[NDEP] {};
 
-    _nfpiso = 4;
-	_fpPM147 = 0;
-	_fpPM149 = 1;
-	_fpI135 = 2;
-	_fpXE145 = 3;
+	for (int idcy = 0; idcy < NDCY; ++idcy) {
+		_dcy[ISODCY[idcy]] = DCY[idcy];
+	}
 
-	_fpiso = new int[_nfpiso] {PM47, PM49, I135, XE45};
-	_fyld = new float[_nfiso * _nfpiso]{
-			2.017740E-02, 1.035690E-02, 4.901130E-02, 6.763670E-03,
-			2.246730E-02, 1.081620E-02, 6.281870E-02, 2.566345E-03,
-			2.295290E-02, 1.338370E-02, 5.974780E-02, 1.049093E-03,
-			2.592740E-02, 1.625290E-02, 6.940720E-02, 2.686420E-04,
-			2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
-			2.500000E-02, 1.547160E-02, 6.903040E-02, 7.720750E-03,
-			2.236530E-02, 1.596690E-02, 5.740170E-02, 9.935130E-03,
-			2.002960E-02, 1.216300E-02, 6.541880E-02, 1.066411E-02,
-			2.123450E-02, 1.393890E-02, 6.731600E-02, 5.001020E-03,
-			2.284950E-02, 1.474070E-02, 6.943130E-02, 2.269029E-03,
-			2.387710E-02, 1.598400E-02, 7.388510E-02, 1.057970E-03,
-			2.336130E-02, 1.555480E-02, 6.034700E-02, 7.250690E-03
-	};
+	_cap = new float[NDEP * _g.nxyz()]{};
+	_rem = new float[NDEP * _g.nxyz()]{};
+	_fis = new float[NDEP * _g.nxyz()]{};
 
-	_nsm = 5;
-	_smids = new int[_nsm] {PM47, PS48, PM48, PM49, SM49};
-	_nxe = 2;
-	_xeids = new int[_nxe] {I135, XE45};
+	_tn2n = new float[_g.nxyz()];
 
+	_dnst = new float[NISO * _g.nxyz()]{};
+	_dnst_new = new float[NISO * _g.nxyz()]{};
+	_dnst_avg = new float[NISO * _g.nxyz()]{};
+	_burn = new float[_g.nxyz()]{};
+	_h2on = new float[_g.nxyz()]{};
 
-    _dcy = new float[NDEP]{};
-
-    for (int idcy = 0; idcy < NDCY; ++idcy) {
-        _dcy[ISODCY[idcy]] = DCY[idcy];
-    }
-
-	_cap = new float[NDEP * g.nxyz()]{};
-	_rem = new float[NDEP * g.nxyz()]{};
-	_fis = new float[NDEP * g.nxyz()]{};
-
-	_tn2n = new float[g.nxyz()];
-
-	ixe = XEType::XE_EQ;
-	ism = SMType::SM_TR;
-
-
-	_dnst = new float[NISO * g.nxyz()]{};
-    _dnst_new = new float[NISO * g.nxyz()]{};
-    _dnst_avg = new float[NISO * g.nxyz()]{};
-	_burn = new float[g.nxyz()]{};
-	_h2on = new float[g.nxyz()]{};
-	
 
 	_b10ap = 19.8;
 	_b10fac = _b10ap / (_b10ap * B10AW + (100. - _b10ap) * B11AW);
 	_b10wp = 100. * B10AW * _b10fac;
 }
 
-Depletion::~Depletion() {
-	delete[] _nheavy;
-	delete[] _hvyids;
-	delete[] _reactype;
-	delete[] _hvyupd;
-	delete[] _fiso;
-	delete[] _fpiso;
-	delete[] _fyld;
-	delete[] _smids;
-	delete[] _xeids;
-	delete[] _dcy;
-}
 
 void Depletion::dep(const float& tsec)
 {
@@ -243,10 +206,10 @@ void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* 
 	float dcp = dcy(XE45);
 
 	float fyp = 0., fyd = 0.;
-	for (int ih = 0; ih < _nfiso; ++ih) {
-		int ihf = _fiso[ih];
-		fyp = fyp + fis(ihf, l) * fyld(_fpI135, ih) * atavg(ihf, l);
-		fyd = fyd + fis(ihf, l) * fyld(_fpXE145, ih) * atavg(ihf, l);
+	for (int ih = 0; ih < NHEAVY; ++ih) {
+		int ihf = ISOHVY[ih];
+		fyp = fyp + fis(ihf, l) * fyld(IFP_I135, ih) * atavg(ihf, l);
+		fyd = fyd + fis(ihf, l) * fyld(IFP_XE45, ih) * atavg(ihf, l);
 	}
 	float exgp = exp(-dcp * tsec);
 	float exgd = exp(-remd * tsec);
@@ -281,16 +244,16 @@ void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, con
     rem_xe = rem_xe * fnorm * 1.E-24 + dcy(XE45);
 
 	float fy_i135 = 0., fy_xe45 = 0.;
-	for (int i = 0; i < _nfiso; ++i) {
-		int iso = _fiso[i];
+	for (int i = 0; i < NHEAVY; ++i) {
+		int iso = ISOHVY[i];
 
 		float fis = 0.0;
 		for (int ig = 1; ig < _g.ng(); ++ig) {
 			fis = fis + xsmicf(ig, iso, l) * flux(ig, l);
 		}
 
-        fy_i135 = fy_i135 + fis * fyld(_fpI135, i) * dnst(iso, l);
-        fy_xe45 = fy_xe45 + fis * fyld(_fpXE145, i) * dnst(iso, l);
+        fy_i135 = fy_i135 + fis * fyld(IFP_I135, i) * dnst(iso, l);
+        fy_xe45 = fy_xe45 + fis * fyld(IFP_XE45, i) * dnst(iso, l);
 	}
     fy_i135 *= fnorm* 1.E-24;
     fy_xe45 *= fnorm* 1.E-24;
@@ -313,10 +276,10 @@ void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* 
 	float expsm = exp(-rem(SM49, l) * tsec);
 
 	float fr47 = 0., fr49 = 0.;
-	for (int ifiso = 0; ifiso < _nfiso; ++ifiso) {
-		int ihf = _fiso[ifiso];
-		fr47 = fr47 + fis(ihf, l) * fyld(_fpPM147, ifiso) * atavg(ihf, l);
-		fr49 = fr49 + fis(ihf, l) * fyld(_fpPM149, ifiso) * atavg(ihf, l);
+	for (int ifiso = 0; ifiso < NHEAVY; ++ifiso) {
+		int ihf = ISOHVY[ifiso];
+		fr47 = fr47 + fis(ihf, l) * fyld(IFP_PM47, ifiso) * atavg(ihf, l);
+		fr49 = fr49 + fis(ihf, l) * fyld(IFP_PM49, ifiso) * atavg(ihf, l);
 	}
 
 
