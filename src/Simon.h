@@ -71,6 +71,8 @@ public:
     __host__ inline float& ppm() { return _ppm; };
     __host__ inline double& fnorm() { return _fnorm; };
 
+    __host__ void print(Geometry& g, CrossSection& x, Feedback& f, Depletion& d);
+
 
 
 

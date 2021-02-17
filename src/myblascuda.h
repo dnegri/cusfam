@@ -43,12 +43,14 @@ namespace myblascuda {
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         if (i >= n) return;
         c[i] = a[i] + b[i];
+
     }
 
     template<class T>
     __global__ void minus(int n, const T* a, const T* b, T* c) {
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         if (i >= n) return;
+        c[i] = a[i] - b[i];
     }
 
     template<class T>

@@ -81,11 +81,12 @@ CrossSectionCuda::CrossSectionCuda(const CrossSection& x)
 	checkCudaErrors(cudaMalloc((void**)&_dfmacn, sizeof(XS_PRECISION) * _nxyz * _ng));
 	checkCudaErrors(cudaMalloc((void**)&_dfmacs, sizeof(XS_PRECISION) * _nxyz * _ng * _ng));
 
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void CrossSectionCuda::copyXS(const CrossSection& x)
 {
+	checkCudaErrors(cudaMemcpy(_chif, x.chif(), sizeof(XS_PRECISION) * _ng * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xsmicd, x.xsmicd(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xsmica, x.xsmica(), sizeof(XS_PRECISION) * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(_xsmics, x.xsmics(), sizeof(XS_PRECISION) * _ng * _ng * NISO * _nxyz, cudaMemcpyHostToDevice));
@@ -125,7 +126,7 @@ void CrossSectionCuda::copyXS(const CrossSection& x)
 	checkCudaErrors(cudaMemcpy(_xdmmick, x.xdmmick(), sizeof(XS_PRECISION) * _ng * NPTM * NISO * _nxyz, cudaMemcpyHostToDevice));
 
 
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 
@@ -135,13 +136,15 @@ __global__ void updateXS(CrossSectionCuda& x, const float* dnst, const float* dp
 	if (l >= x.nxyz()) return;
 
 	x.CrossSection::updateXS(l, dnst, dppm[l], dtf[l], dtm[l]);
+
+	//printf("%d %e %e %e %e %e\n", l, x.xsdf(0, l), x.xstf(0, l), x.chif(0, l), x.xsnf(0, l), x.xssf(0, 1, l));
 }
 
 
 void CrossSectionCuda::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
 {
 	::updateXS<<<BLOCKS_NODE, THREADS_NODE >>>(*this, dnst, dppm, dtf, dtm);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void updateMacroXS(CrossSectionCuda& x, float* dnst)
@@ -156,7 +159,7 @@ __global__ void updateMacroXS(CrossSectionCuda& x, float* dnst)
 void CrossSectionCuda::updateMacroXS(float* dnst)
 {
 	::updateMacroXS << <BLOCKS_NODE, THREADS_NODE >> > (*this, dnst);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 

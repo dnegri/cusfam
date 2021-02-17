@@ -20,6 +20,11 @@ private:
     SteamTableCuda* _steamcuda;
     DepletionCuda* _dcuda;
     BICGCMFDCuda* _cmfdcuda;
+    BICGCMFD* _cmfdcpu;
+
+    SOL_VAR* _flux_cuda;
+    SOL_VAR* _jnet_cuda;
+    float* _power_cuda;
 public:
     SimonCuda();
     virtual ~SimonCuda();

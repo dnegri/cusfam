@@ -203,11 +203,11 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
         float r20=0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
-        double r2 = 0.0;
+        float r2 = 0.0;
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);
-//            printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
+            printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
             if(r2 < _epsbicg) break;
         }
 

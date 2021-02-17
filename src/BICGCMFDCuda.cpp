@@ -40,7 +40,7 @@ void BICGCMFDCuda::init()
     checkCudaErrors(cudaMalloc((void**)&_src, sizeof(CMFD_VAR) * _g.ngxyz()));
     checkCudaErrors(cudaMalloc((void**)&_psi, sizeof(CMFD_VAR) * _g.nxyz()));
     checkCudaErrors(cudaMalloc((void**)&_psid, sizeof(CMFD_VAR) * _g.nxyz()));
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void upddtil(BICGCMFDCuda& self) {
@@ -52,7 +52,7 @@ __global__ void upddtil(BICGCMFDCuda& self) {
 
 void BICGCMFDCuda::upddtil() {
     ::upddtil << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void upddhat(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
@@ -64,10 +64,10 @@ __global__ void upddhat(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
 
 void BICGCMFDCuda::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
     ::upddhat << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void setls(BICGCMFDCuda& self, const double& eigv, const double& reigvs) {
+__global__ void setls(BICGCMFDCuda& self, double reigvs) {
 
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
@@ -79,13 +79,13 @@ __global__ void setls(BICGCMFDCuda& self, const double& eigv, const double& reig
 void BICGCMFDCuda::setls(const double& eigv) {
     double reigvs = 0.0;
     if (eshift() != 0.0) reigvs = 1. / (eigv + eshift());
-    ::setls<<<BLOCKS_NODE, THREADS_NODE>>>(*this, eigv, reigvs);
-    cudaDeviceSynchronize();
+    ::setls<<<BLOCKS_NODE, THREADS_NODE>>>(*this, reigvs);
+    checkCudaErrors(cudaDeviceSynchronize());
     
     _ls->facilu(_diag, _cc);
 }
 
-__global__ void updls(BICGCMFDCuda& self, const double& reigvs) {
+__global__ void updls(BICGCMFDCuda& self, double reigvs) {
 
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
@@ -96,7 +96,7 @@ __global__ void updls(BICGCMFDCuda& self, const double& reigvs) {
 
 void BICGCMFDCuda::updls(const double& reigvs) {
     ::updls << <BLOCKS_NODE, THREADS_NODE >> > (*this, reigvs);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 
@@ -111,7 +111,7 @@ __global__ void updjnet(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
 void BICGCMFDCuda::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 {
     ::updjnet << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
@@ -126,7 +126,7 @@ __global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
 void BICGCMFDCuda::updpsi(const SOL_VAR* flux)
 {
     ::updpsi << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 
@@ -143,11 +143,11 @@ __global__ void axb(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
 void BICGCMFDCuda::axb(SOL_VAR* flux, SOL_VAR* aflux)
 {
     ::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux, aflux);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 
-__global__ void updsrc(BICGCMFDCuda& self, const double& reigvdel) {
+__global__ void updsrc(BICGCMFDCuda& self, double reigvdel) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -160,7 +160,7 @@ __global__ void updsrc(BICGCMFDCuda& self, const double& reigvdel) {
 
 void BICGCMFDCuda::updsrc(const double& reigvdel) {
     ::updsrc << <BLOCKS_NODE, THREADS_NODE >> > (*this, reigvdel);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void psierr(int nxyz, const CMFD_VAR* psid, const CMFD_VAR* psi, float* errl2, double* gammad, double* gamman) {
@@ -207,7 +207,7 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
     updpsi(flux);
 
     psierr << <BLOCKS_NODE, THREADS_NODE >> > (g().nxyz(), _psid, _psi, _errl2_dev, _gammad_dev, _gamman_dev);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 
     double gamman = 0;
     double gammad = 0;
@@ -215,7 +215,7 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
     cudaMemcpy(&gammad, _gammad_dev, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(&gamman, _gamman_dev, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(&errl2, _errl2_dev, sizeof(float), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 
 
     //compute new eigenvalue
@@ -237,7 +237,7 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
 
 }
 
-
+CMFD_VAR temp[12532];
 
 void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
 
@@ -252,13 +252,16 @@ void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
         double reigvdel = reigv - reigvs;
         updsrc(reigvdel);
 
+        //checkCudaErrors(cudaMemcpy(temp, _src, sizeof(CMFD_VAR) * _g.ngxyz(), cudaMemcpyDeviceToHost));
+
         float r20 = 0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
-        double r2 = 0.0;
+        float r2 = 0.0;
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);
+            printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
             if (r2 < _epsbicg) break;
         }
 
@@ -268,16 +271,16 @@ void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
         if (reigvs != 0.0) updls(reigvs);
 
         int negative = 0;
-        for (int l = 0; l < _g.nxyz(); ++l) {
-            for (int ig = 0; ig < _g.ng(); ++ig) {
-                if (flux(ig, l) < 0) {
-                    ++negative;
-                }
-            }
-        }
-        if (negative == _g.ngxyz()) {
-            negative = 0;
-        }
+        //for (int l = 0; l < _g.nxyz(); ++l) {
+        //    for (int ig = 0; ig < _g.ng(); ++ig) {
+        //        if (flux(ig, l) < 0) {
+        //            ++negative;
+        //        }
+        //    }
+        //}
+        //if (negative == _g.ngxyz()) {
+        //    negative = 0;
+        //}
 
         if (negative != 0 && icmfd < 5 * _ncmfd) iout--;
 

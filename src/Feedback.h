@@ -47,6 +47,7 @@ protected:
 
 public:
     __host__ __device__ Feedback(Geometry& g, SteamTable& steam);
+    __host__ __device__ Feedback(const Feedback& f);
     __host__ __device__ virtual ~Feedback();
 
     __host__ __device__ Geometry& g() {return _g;};

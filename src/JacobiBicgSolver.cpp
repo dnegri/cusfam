@@ -47,6 +47,12 @@ JacobiBicgSolver::JacobiBicgSolver(Geometry& g) {
 
     _g = &g;
 
+    _calpha = 0.0;
+    _cbeta = 0.0;
+    _crho = 0.0;
+    _comega = 0.0;
+
+
     _vz = new SOL_VAR[_g->ng() * _g->nxyz()]{};
     _vy = new SOL_VAR[_g->ng() * _g->nxyz()]{};
 
@@ -72,10 +78,10 @@ JacobiBicgSolver::~JacobiBicgSolver() {
 
 float JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src) {
 
-    double r = 0.0;
+    float r = 0.0;
     for (int ig = 0; ig < _g->ng(); ig++)
     {
-        double aflux = axb(ig, l, diag, cc, flux);
+        float aflux = axb(ig, l, diag, cc, flux);
         vr(ig, l) = src(ig, l) - aflux;
         vr0(ig, l) = vr(ig, l);
         vp(ig, l) = 0.0;
@@ -132,7 +138,7 @@ void JacobiBicgSolver::facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc) {
     invmat2g(&diag(0, 0, l), &delinv(0, 0, l));
 }
 
-void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* flux, double& r2) {
+void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* flux, float& r2) {
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
@@ -142,6 +148,7 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* 
 
 //    _vp(:,:,:)=_vr(:,:,:)+_cbeta*(_vp(:,:,:)-_comega*_vv(:,:,:))
     myblas::multi(n, _comega, _vv, _vt);
+
     myblas::minus(n, _vp, _vt, _vt);
     myblas::multi(n, _cbeta, _vt, _vt);
     myblas::plus(n, _vr, _vt, _vp);
@@ -198,7 +205,7 @@ void JacobiBicgSolver::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR
 
 CMFD_VAR JacobiBicgSolver::axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux) {
 
-    double ab = 0.0;
+    CMFD_VAR ab = 0.0;
 
     for (int igs = 0; igs < _g->ng(); ++igs) {
         ab += diag(igs, ig, l) * flux(igs, l);

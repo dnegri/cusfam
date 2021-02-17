@@ -3,6 +3,7 @@
 
 
 SimonCuda::SimonCuda() {
+
 }
 
 SimonCuda::~SimonCuda() {
@@ -15,19 +16,35 @@ void SimonCuda::initialize(const char* dbfile)
     _gcuda = new GeometryCuda(*_g);
     _xcuda = new CrossSectionCuda(*_x);
     _steamcuda = new SteamTableCuda(*_steam);
-    _fcuda = new FeedbackCuda(*_gcuda, *_steamcuda, *_f);
+    _fcuda = new FeedbackCuda(*_gcuda, *_steamcuda);
     _dcuda = new DepletionCuda(*_gcuda);
-    _dcuda->init();
-
+    _cmfdcpu = new BICGCMFD(*_g, *_x);
     _cmfdcuda = new BICGCMFDCuda(*_gcuda, *_xcuda);
+
     _cmfdcuda->init();
+    _cmfdcpu->init();
+
+    _dcuda->init();
+    _fcuda->allocate();
+
     _cmfdcuda->setNcmfd(3);
     _cmfdcuda->setEshift(0.04f);
+    _cmfdcpu->setNcmfd(3);
+    _cmfdcpu->setEshift(0.04f);
+
+    checkCudaErrors(cudaMalloc((void**)&_flux_cuda, sizeof(SOL_VAR) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_power_cuda, sizeof(SOL_VAR) * _g->nxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_jnet_cuda, sizeof(float) * _g->nsurf() * _g->ng()));
+
+
 }
 
 void SimonCuda::setBurnup(const float& burnup)
 {
     Simon::setBurnup(burnup);
+
+    _xcuda->copyXS(*_x);
+
     _dcuda->setDensity(_d->dnst());
     _dcuda->setBurnup(_d->burn());
     _dcuda->setH2ORatio(_d->h2on());
@@ -37,33 +54,49 @@ void SimonCuda::setBurnup(const float& burnup)
     _fcuda->updateTin(_tin);
     _fcuda->initDelta(_ppm);
 
-    _xcuda->copyXS(*_x);
     _xcuda->updateMacroXS(_dcuda->dnst());
     _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
+
+    checkCudaErrors(cudaMemcpy(_flux_cuda, _flux, sizeof(SOL_VAR) * _g->ngxyz(), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(_power_cuda, _power, sizeof(SOL_VAR) * _g->nxyz(), cudaMemcpyHostToDevice));
+
+
+    //memset(&_x->xsdf(0, 0), 0, sizeof(XS_PRECISION) * _g->ngxyz());
+    //checkCudaErrors(cudaMemcpy(&_x->xsdf(0,0), _xcuda->xsdf(), sizeof(XS_PRECISION) * _g->ngxyz(), cudaMemcpyDeviceToHost));
+
 }
 
 void SimonCuda::runKeff(const int& nmaxout) {
     float errl2 = 0.0;
     int nboiling = 0;
     _cmfdcuda->setNcmfd(nmaxout);
+    _cmfdcpu->setNcmfd(nmaxout);
 
-    _cmfdcuda->updpsi(_flux);
-
-    _ppm = 100.0;
-    _fcuda->updatePPM(_ppm);
-    _dcuda->updateH2ODensity(_fcuda->dm(), _ppm);
-    _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
-    _cmfdcuda->upddtil();
-    _cmfdcuda->setls(_eigv);
-    _cmfdcuda->drive(_eigv, _flux, errl2);
+    _cmfdcpu->updpsi(_flux);
+    _cmfdcuda->updpsi(_flux_cuda);
+    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->psi(0), &_cmfdcuda->psi(0), sizeof(CMFD_VAR) * _g->nxyz(), cudaMemcpyDeviceToHost));
 
     _ppm = 1000.0;
     _fcuda->updatePPM(_ppm);
     _dcuda->updateH2ODensity(_fcuda->dm(), _ppm);
     _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
     _cmfdcuda->upddtil();
+
+    f().updatePPM(_ppm);
+    d().updateH2ODensity(f().dm(), _ppm);
+    x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
+    _cmfdcpu->upddtil();
+
+    _eigv = 1.0;
     _cmfdcuda->setls(_eigv);
-    _cmfdcuda->drive(_eigv, _flux, errl2);
+    _cmfdcpu->setls(_eigv);
+    //memset(&_cmfdcpu->diag(0, 0, 0), 0, sizeof(CMFD_VAR) * _g->ng2() * _g->nxyz());
+    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->diag(0, 0, 0), &_cmfdcuda->diag(0, 0, 0), sizeof(CMFD_VAR) * _g->ng2() * _g->nxyz(), cudaMemcpyDeviceToHost));
+
+    _eigv = 1.0;
+    _cmfdcpu->drive(_eigv, _flux, errl2);
+    _eigv = 1.0;
+    _cmfdcuda->drive(_eigv, _flux_cuda, errl2);
     exit(0);
     normalize();
 }

@@ -192,9 +192,9 @@ void NodalCuda::drive(NODAL_PRECISION* jnet)
 #endif
 
 	::caltrlcff0 << <_blocks, _threads>> > (*this);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 	::caltrlcff12 << <_blocks, _threads >> > (*this);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 #ifdef _DEBUG
 	checkCudaErrors(cudaMemcpy(temp, _trlcff0, sizeof(NODAL_PRECISION) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(temp, _trlcff1, sizeof(NODAL_PRECISION) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
@@ -202,7 +202,7 @@ void NodalCuda::drive(NODAL_PRECISION* jnet)
 #endif
 
 	::updateMatrix << <_blocks, _threads >> > (*this);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 
 #ifdef _DEBUG
 	checkCudaErrors(cudaMemcpy(temp, _mu, sizeof(NODAL_PRECISION) * _g.nxyz() * NDIRMAX * _g.ng2(), cudaMemcpyDeviceToHost));
@@ -210,7 +210,7 @@ void NodalCuda::drive(NODAL_PRECISION* jnet)
 
 
 	::calculateEven << <_blocks, _threads >> > (*this);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 
 #ifdef _DEBUG
 	checkCudaErrors(cudaMemcpy(temp, _dsncff4, sizeof(NODAL_PRECISION) * _g.nxyz() * NDIRMAX * _g.ng(), cudaMemcpyDeviceToHost));
@@ -220,7 +220,7 @@ void NodalCuda::drive(NODAL_PRECISION* jnet)
 
 
 	::calculateJnet << <_blocks_sfc, _threads_sfc >> > (*this);
-	cudaDeviceSynchronize();
+	checkCudaErrors(cudaDeviceSynchronize());
 
 	checkCudaErrors(cudaMemcpy(jnet, _jnet, sizeof(NODAL_PRECISION) * _g.nsurf() * _g.ng(), cudaMemcpyDeviceToHost));
 

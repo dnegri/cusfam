@@ -29,19 +29,17 @@ public:
     JacobiBicgSolver(Geometry &g);
     virtual ~JacobiBicgSolver();
 
-    void reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR* flux, CMFD_VAR *src, CMFD_VAR& r20);
-    void minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x);
-    void facilu(CMFD_VAR* diag, CMFD_VAR* cc);
-    void axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux);
+    virtual void reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR* flux, CMFD_VAR *src, float& r20);
+    virtual void minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x);
+    virtual void facilu(CMFD_VAR* diag, CMFD_VAR* cc);
+    virtual void axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux);
+    virtual void solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* flux, float& r2);
 
     __host__ __device__ float reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src);
     __host__ __device__ void minv(const int& l, CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x);
     __host__ __device__ void facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc);
     __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux);
 
-    void solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR& r20, SOL_VAR* flux, double &r2);
-
-    
     __host__ __device__ CMFD_VAR& alpha() { return _calpha; }
     __host__ __device__ CMFD_VAR& beta() { return _cbeta; }
     __host__ __device__ CMFD_VAR& rho() { return _crho; }

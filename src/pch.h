@@ -21,17 +21,24 @@ using namespace std;
         void* operator new(size_t len) {
             void* ptr;
             cudaMallocManaged(&ptr, len);
-            cudaDeviceSynchronize();
+            checkCudaErrors(cudaDeviceSynchronize());
             return ptr;
         }
 
         void operator delete(void* ptr) {
-            cudaDeviceSynchronize();
+            checkCudaErrors(cudaDeviceSynchronize());
             cudaFree(ptr);
         }
     };
+    
+    __constant__ const int  NTHREADSPERBLOCK=256;
+
+    extern dim3 BLOCKS_NGXYZ;
+    extern dim3 THREADS_NGXYZ;
     extern dim3 BLOCKS_NODE;
     extern dim3 THREADS_NODE;
+    extern dim3 BLOCKS_2D;
+    extern dim3 THREADS_2D;
     extern dim3 BLOCKS_SURFACE;
     extern dim3 THREADS_SURFACE;
 
@@ -107,8 +114,6 @@ __constant__  static const float MILLI = 1.E-3;
 __constant__  static const float KELVIN = 273.15;
 
 __constant__  static const int    NG2 = 2;
-
-__constant__  static const int    NTHREADSPERBLOCK = 64;
 
 __constant__ static const int NISO = 40;
 __constant__ static const int NDEP = 25;

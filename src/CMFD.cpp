@@ -132,4 +132,6 @@ void CMFD::updpsi(const int& l, const SOL_VAR* flux) {
     }
     _psi[l] = _psi[l] * _g.vol(l);
 
+    //printf("%d %e %e %e %e %e %e \n", l, _x.xsnf(0, l), _x.xsnf(1, l), flux(0, l), flux(1, l), _g.vol(l), _psi[l]);
+
 }

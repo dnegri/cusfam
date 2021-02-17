@@ -13,6 +13,11 @@ Feedback::Feedback(Geometry& g, SteamTable& steam) : _g(g), _steam(steam) {
 
 }
 
+Feedback::Feedback(const Feedback& f) : _g(f._g), _steam(f._steam)
+{
+    printf("copy contructor of Feedback is called.");
+}
+
 Feedback::~Feedback()
 {
 }
@@ -159,14 +164,14 @@ void Feedback::updatePressure(const float& press) {
     _steam.setPressure(press);
 }
 
-__host__ __device__ void Feedback::updateTin(const float& tin)
+void Feedback::updateTin(const float& tin)
 {
     _tin = tin;
     _steam.getEnthalpy(tin, _hin);
     _steam.getDensity(tin, _din);
 }
 
-__host__ __device__ void Feedback::updateTf(const float* power, const float* burnup)
+void Feedback::updateTf(const float* power, const float* burnup)
 {
 #pragma omp parallel for
     for (size_t l = 0; l < _g.nxyz(); l++)
@@ -175,7 +180,7 @@ __host__ __device__ void Feedback::updateTf(const float* power, const float* bur
     }
 }
 
-__host__ __device__ void Feedback::updateTm(const float* power, int& nboiling)
+void Feedback::updateTm(const float* power, int& nboiling)
 {
     nboiling = 0;
 #pragma omp parallel for

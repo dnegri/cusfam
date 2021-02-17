@@ -13,6 +13,11 @@ FeedbackCuda::FeedbackCuda(GeometryCuda& g, SteamTableCuda& steam) : Feedback(g,
     _steam_cpu = &steam.getSteamTableCPU();
 }
 
+FeedbackCuda::FeedbackCuda(const FeedbackCuda& f) : Feedback(f)
+{
+    printf("copy contructor of FeedbackCuda is called.");
+}
+
 void FeedbackCuda::allocate() {
 
     checkCudaErrors(cudaMalloc((void**)&_tf, sizeof(float) * _g.nxyz()));
@@ -30,7 +35,7 @@ void FeedbackCuda::allocate() {
     checkCudaErrors(cudaMalloc((void**)&_fueltype, sizeof(int) * _g.nxyz()));
     checkCudaErrors(cudaMalloc((void**)&_frodn, sizeof(float) * _g.nxy()));
 
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 FeedbackCuda::~FeedbackCuda()
@@ -62,25 +67,32 @@ void FeedbackCuda::copyFeedback(Feedback& f)
     checkCudaErrors(cudaMemcpy(_dtf, f.dtf(), sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(_dtm, f.dtm(), sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(_ddm, f.ddm(), sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void FeedbackCuda::updateTin(const float& tin)
+{
+    _tin = tin;
+    _steam_cpu->getEnthalpy(tin, _hin);
+    _steam_cpu->getDensity(tin, _din);
 }
 
 void FeedbackCuda::setTf(const float* tf)
 {
     checkCudaErrors(cudaMemcpy(_tf, tf, sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void FeedbackCuda::setTm(const float* tm)
 {
     checkCudaErrors(cudaMemcpy(_tm, tm, sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void FeedbackCuda::setDm(const float* dm)
 {
     checkCudaErrors(cudaMemcpy(_dm, dm, sizeof(float) * _g.nxyz(), cudaMemcpyHostToDevice));
-    cudaDeviceSynchronize();
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void updateTf(FeedbackCuda& self, const float* power, const float* burnup, float heatfrac)
@@ -91,9 +103,10 @@ __global__ void updateTf(FeedbackCuda& self, const float* power, const float* bu
     self.Feedback::updateTf(l, power, burnup, heatfrac);
 }
 
-void Feedback::updateTf(const float* power, const float* burnup)
+void FeedbackCuda::updateTf(const float* power, const float* burnup)
 {
-    ::updateTf<<<BLOCKS_NODE, THREADS_NODE>>>(power, burnup, _heatfrac);
+    ::updateTf<<<BLOCKS_NODE, THREADS_NODE>>>(*this, power, burnup, _heatfrac);
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 __global__ void updateTm(FeedbackCuda& self, const float* power, float hin, float tin, float din)
@@ -109,9 +122,10 @@ __global__ void updateTm(FeedbackCuda& self, const float* power, float hin, floa
 void FeedbackCuda::updateTm(const float* power, int& nboiling)
 {
     ::updateTm<<<BLOCKS_2D, THREADS_2D>>>(*this, power, _hin, _tin, _din);
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void updatePPM(FeedbackCuda& self, const float& ppm) {
+__global__ void updatePPM(FeedbackCuda& self, float ppm) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -121,9 +135,11 @@ __global__ void updatePPM(FeedbackCuda& self, const float& ppm) {
 
 void FeedbackCuda::updatePPM(const float& ppm) {
     ::updatePPM<<<BLOCKS_NODE, THREADS_NODE>>>(*this, ppm);
+    checkCudaErrors(cudaDeviceSynchronize());
+
 }
 
-__global__ void initDelta(FeedbackCuda& self, const float& ppm) {
+__global__ void initDelta(FeedbackCuda& self, float ppm) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -131,10 +147,13 @@ __global__ void initDelta(FeedbackCuda& self, const float& ppm) {
     self.dtf(l) = sqrt(self.tf(l)) - self.stf0(l);
     self.dtm(l) = self.tm(l) - self.tm0(l);
     self.ddm(l) = self.dm(l) - self.dm0(l);
+
 }
 
 
 void FeedbackCuda::initDelta(const float& ppm) {
     ::initDelta<<<BLOCKS_NODE, THREADS_NODE>>>(*this, ppm);
+    checkCudaErrors(cudaDeviceSynchronize());
+
 }
 
