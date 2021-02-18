@@ -5,14 +5,17 @@
 #include "CMFDCPU.h"
 #include "BICGCMFD.h"
 #include "Geometry.h"
-#include "GeometryCuda.h"
 #include "Depletion.h"
 #include "CrossSection.h"
-#include "CrossSectionCuda.h"
 #include "Feedback.h"
 #include "omp.h"
 #include "SimonCPU.h"
-#include "SimonCuda.h"
+
+#ifndef CPU
+    #include "SimonCuda.h"
+    #include "GeometryCuda.h"
+    #include "CrossSectionCuda.h"
+#endif
 
 #ifndef CPU
 dim3 BLOCKS_NGXYZ;
