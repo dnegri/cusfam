@@ -56,7 +56,7 @@ public:
 
     __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, const SOL_VAR* flux) {
 
-        double ab = 0.0;
+        CMFD_VAR ab = 0.0;
         for (int igs = 0; igs < _g.ng(); ++igs) {
             ab += diag(igs, ig, l)*flux[l*_g.ng()+igs];
         }

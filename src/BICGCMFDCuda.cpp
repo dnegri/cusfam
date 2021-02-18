@@ -21,7 +21,7 @@ BICGCMFDCuda::~BICGCMFDCuda()
 void BICGCMFDCuda::init()
 {
     _epsbicg = 1.E-4;
-    _nmaxbicg = 10;
+    _nmaxbicg = 100;
 
     _eshift = 0.0;
     iter = 0;
@@ -140,9 +140,52 @@ __global__ void axb(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
     }
 }
 
+__global__ void axb2(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
+
+    int lg = threadIdx.x + blockIdx.x * blockDim.x;
+    if (lg >= self.g().ngxyz()) return;
+    int l = lg / 2;
+    int ig = lg % 2;
+
+    aflux[l * self.g().ng() + ig] = self.CMFD::axb(ig, l, flux);
+}
+
+
+__global__ void axb1(const int& nxyz, const int* neib, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, SOL_VAR* aflux) {
+
+    int l = threadIdx.x + blockIdx.x * blockDim.x;
+    if (l >= nxyz) return;
+
+    for (int ig = 0; ig < 2; ++ig) {
+        int idx = l * 2 + ig;
+        //aflux[idx] = self.CMFD::axb(ig, l, flux);
+
+        aflux[idx] = 0.0;
+        for (int igs = 0; igs < 2; ++igs) {
+            aflux[idx] += diag[igs+ig*2+l*4] * flux[l * 2 + igs];
+        }
+
+        for (int idir = 0; idir < NDIRMAX; ++idir) {
+            for (int lr = 0; lr < LR; ++lr) {
+                int ln = neib[lr+idir*LR+l*LR*NDIRMAX];
+                if (ln != -1)
+                    aflux[idx] += cc[lr+idir*2+ig*6+l*2*6] * flux[ln * 2 + ig];
+            }
+        }
+    }
+}
+
+
 void BICGCMFDCuda::axb(SOL_VAR* flux, SOL_VAR* aflux)
 {
-    ::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux, aflux);
+    //::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux, aflux);
+    ::axb2 << <BLOCKS_NGXYZ, BLOCKS_NGXYZ >> > (*this, flux, aflux);
+    checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void BICGCMFDCuda::axb1(SOL_VAR* flux, SOL_VAR* aflux)
+{
+    ::axb1 << <BLOCKS_NODE, THREADS_NODE >> > (_g.nxyz(), _g.neib(), _diag, _cc, flux, aflux);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
@@ -254,10 +297,10 @@ void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
 
         //checkCudaErrors(cudaMemcpy(temp, _src, sizeof(CMFD_VAR) * _g.ngxyz(), cudaMemcpyDeviceToHost));
 
-        float r20 = 0.0;
+        CMFD_VAR r20 = 0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
-        float r2 = 0.0;
+        CMFD_VAR r2 = 0.0;
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);

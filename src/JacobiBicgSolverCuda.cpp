@@ -44,8 +44,8 @@ JacobiBicgSolverCuda::JacobiBicgSolverCuda(Geometry& g) {
 
     _g = &g;
 
-    checkCudaErrors(cudaMalloc((void**)&_r20_dev, sizeof(float)));
-    checkCudaErrors(cudaMalloc((void**)&_r2_dev, sizeof(float)));
+    checkCudaErrors(cudaMalloc((void**)&_r20_dev, sizeof(CMFD_VAR)));
+    checkCudaErrors(cudaMalloc((void**)&_r2_dev, sizeof(CMFD_VAR)));
 
     checkCudaErrors(cudaMalloc((void**)& _crho_dev, sizeof(CMFD_VAR)));
     checkCudaErrors(cudaMalloc((void**)&_r0v_dev, sizeof(CMFD_VAR)));
@@ -68,7 +68,7 @@ JacobiBicgSolverCuda::~JacobiBicgSolverCuda() {
 
 }
 
-__global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, float& r20) {
+__global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
 
     __shared__ float r2[NTHREADSPERBLOCK];
 
@@ -95,17 +95,17 @@ __global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, 
     }
 }
 
-void JacobiBicgSolverCuda::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, float& r20) {
+void JacobiBicgSolverCuda::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
 
     _calpha = 1;
     _crho   = 1;
     _comega = 1;
 
     r20 = 0.0;
-    checkCudaErrors(cudaMemcpy(_r20_dev, &r20, sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(_r20_dev, &r20, sizeof(CMFD_VAR), cudaMemcpyHostToDevice));
     ::reset<<<BLOCKS_NODE, THREADS_NODE>>>(*this, diag, cc, flux, src, *_r20_dev);
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaMemcpy(&r20, _r20_dev, sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(&r20, _r20_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost));
     r20 = sqrt(r20);
 }
 
@@ -161,7 +161,7 @@ void JacobiBicgSolverCuda::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD
 
 CMFD_VAR temp1[12532];
 
-void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* flux, float& r2) {
+void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* flux, CMFD_VAR& r2) {
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
@@ -264,7 +264,7 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_V
 
     if (r20 != 0.0) {
         r2 = 0.0;
-        checkCudaErrors(cudaMemcpy(_r2_dev, &r2, sizeof(float), cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(_r2_dev, &r2, sizeof(CMFD_VAR), cudaMemcpyHostToDevice));
         myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vt, _vt, _r2_dev);
         checkCudaErrors(cudaDeviceSynchronize());
 

@@ -29,7 +29,8 @@ public:
     SimonCuda();
     virtual ~SimonCuda();
 
-    inline BICGCMFD& cmfd() { return *_cmfdcuda; }
+    inline BICGCMFDCuda& cmfdcuda() { return *_cmfdcuda; }
+    inline BICGCMFD& cmfdcpu() { return *_cmfdcpu; }
     
     void initialize(const char* dbfile);
     void setBurnup(const float& burnup);
@@ -38,6 +39,8 @@ public:
     void runDepletion(const float& dburn);
     void runXenonTransient();
     void normalize();
+
+    SOL_VAR* flux_cuda() { return _flux_cuda; };
 
 };
 

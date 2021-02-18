@@ -78,7 +78,7 @@ JacobiBicgSolver::~JacobiBicgSolver() {
 
 float JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src) {
 
-    float r = 0.0;
+    CMFD_VAR r = 0.0;
     for (int ig = 0; ig < _g->ng(); ig++)
     {
         float aflux = axb(ig, l, diag, cc, flux);
@@ -92,7 +92,7 @@ float JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VA
     return r;
 }
 
-void JacobiBicgSolver::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, float& r20) {
+void JacobiBicgSolver::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
 
     _calpha = 1;
     _crho = 1;
@@ -138,7 +138,7 @@ void JacobiBicgSolver::facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc) {
     invmat2g(&diag(0, 0, l), &delinv(0, 0, l));
 }
 
-void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, float& r20, SOL_VAR* flux, float& r2) {
+void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* flux, CMFD_VAR& r2) {
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm

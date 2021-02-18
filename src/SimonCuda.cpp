@@ -69,8 +69,8 @@ void SimonCuda::setBurnup(const float& burnup)
 void SimonCuda::runKeff(const int& nmaxout) {
     float errl2 = 0.0;
     int nboiling = 0;
-    _cmfdcuda->setNcmfd(nmaxout);
-    _cmfdcpu->setNcmfd(nmaxout);
+    _cmfdcuda->setNcmfd(1);
+    _cmfdcpu->setNcmfd(1);
 
     _cmfdcpu->updpsi(_flux);
     _cmfdcuda->updpsi(_flux_cuda);

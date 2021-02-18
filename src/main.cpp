@@ -15,78 +15,79 @@
 #include "SimonCuda.h"
 
 #ifndef CPU
-    dim3 BLOCKS_NGXYZ;
-    dim3 THREADS_NGXYZ;
-    dim3 BLOCKS_NODE;
-    dim3 THREADS_NODE;
-    dim3 BLOCKS_2D;
-    dim3 THREADS_2D;
-    dim3 BLOCKS_SURFACE;
-    dim3 THREADS_SURFACE;
+dim3 BLOCKS_NGXYZ;
+dim3 THREADS_NGXYZ;
+dim3 BLOCKS_NODE;
+dim3 THREADS_NODE;
+dim3 BLOCKS_2D;
+dim3 THREADS_2D;
+dim3 BLOCKS_SURFACE;
+dim3 THREADS_SURFACE;
 #endif
 
-__global__ void test(void* a)
-{
-    printf("CUDA : %f\n", ((Geometry*)a)->albedo(1, 1));
-}
 
 int main() {
-    omp_set_num_threads(1);
+	omp_set_num_threads(16);
 
-    SimonCuda simon;
-    simon.initialize("../run/simondb0");
+	SimonCPU simon;
+	simon.initialize("../run/simondb0");
 
 #ifndef CPU
-    BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
-    THREADS_NGXYZ = dim3(NTHREADSPERBLOCK, 1, 1);
-    BLOCKS_2D = dim3(simon.g().nxy() / NTHREADSPERBLOCK + 1, 1, 1);
-    THREADS_2D = dim3(NTHREADSPERBLOCK, 1, 1);
-    BLOCKS_NODE = dim3(simon.g().nxyz() / NTHREADSPERBLOCK + 1, 1, 1);
-    THREADS_NODE = dim3(NTHREADSPERBLOCK, 1, 1);
-    BLOCKS_SURFACE = dim3(simon.g().nsurf() / NTHREADSPERBLOCK + 1, 1, 1);
-    THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
+	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
+	THREADS_NGXYZ = dim3(NTHREADSPERBLOCK, 1, 1);
+	BLOCKS_2D = dim3(simon.g().nxy() / NTHREADSPERBLOCK + 1, 1, 1);
+	THREADS_2D = dim3(NTHREADSPERBLOCK, 1, 1);
+	BLOCKS_NODE = dim3(simon.g().nxyz() / NTHREADSPERBLOCK + 1, 1, 1);
+	THREADS_NODE = dim3(NTHREADSPERBLOCK, 1, 1);
+	BLOCKS_SURFACE = dim3(simon.g().nsurf() / NTHREADSPERBLOCK + 1, 1, 1);
+	THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
 #endif
 
+	simon.setBurnup(1000);
 
-    simon.setBurnup(1000);
+	auto start = chrono::steady_clock::now();
+	for (int idep = 0; idep < 1; idep++)
+	{
+	    simon.runECP(100, 1.0);
+	    simon.runDepletion(100);
+	    printf("DEPLETION : %d,  CBC : %.2f\n", idep, simon.ppm());
+	}
 
-    auto start = chrono::steady_clock::now();
-    simon.runKeff(100);
-    auto end = chrono::steady_clock::now();
-    cout << "Elapsed time in milliseconds : "
-         << chrono::duration_cast<chrono::milliseconds>(end - start).count()
-         << " ms" << endl;
+	auto end = chrono::steady_clock::now();
+	std::cout << "Elapsed time in milliseconds : "
+		<< chrono::duration_cast<chrono::milliseconds>(end - start).count()
+		<< " ms" << endl;
 
-//    for (int l = 0; l < simon.g().nxyz(); ++l) {
-//            printf("POWER : %e\n", simon.power(l));
-//    }
+	//    for (int l = 0; l < simon.g().nxyz(); ++l) {
+	//            printf("POWER : %e\n", simon.power(l));
+	//    }
 
-//    for (int idep = 0; idep < 20; idep++)
-//    {
-//        simon.runKeff(100);
-//        simon.runECP(100, 1.0);
-//        simon.runDepletion(100);
-//        printf("DEPLETION : %d,  CBC : %.2f\n", idep, simon.ppm());
-//    }
+	//    for (int idep = 0; idep < 20; idep++)
+	//    {
+	//        simon.runKeff(100);
+	//        simon.runECP(100, 1.0);
+	//        simon.runDepletion(100);
+	//        printf("DEPLETION : %d,  CBC : %.2f\n", idep, simon.ppm());
+	//    }
 
-//    for (int l = 0; l < simon.g().nxyz(); ++l) {
-//        for (int ig = 0; ig < simon.g().ng(); ++ig) {
-//            printf("FLUX : %e\n", simon.flux(ig,l)*simon.fnorm());
-//        }
-//    }
+	//    for (int l = 0; l < simon.g().nxyz(); ++l) {
+	//        for (int ig = 0; ig < simon.g().ng(); ++ig) {
+	//            printf("FLUX : %e\n", simon.flux(ig,l)*simon.fnorm());
+	//        }
+	//    }
 
-    //GeometryCuda* g_cuda = new GeometryCuda(simon.g());
-    //CrossSectionCuda* x_cuda = new CrossSectionCuda(simon.x());
-    //x_cuda->updateXS(x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca());
-    //test<<<1,1>>>(g_cuda);
-    //checkCudaErrors(cudaDeviceSynchronize());
+		//GeometryCuda* g_cuda = new GeometryCuda(simon.g());
+		//CrossSectionCuda* x_cuda = new CrossSectionCuda(simon.x());
+		//x_cuda->updateXS(x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca(), x_cuda->ddmaca());
+		//test<<<1,1>>>(g_cuda);
+		//checkCudaErrors(cudaDeviceSynchronize());
 }
 
 // function to call if operator new can't allocate enough memory or error arises
 void outOfMemHandler() {
-    std::cerr << "Unable to satisfy request for memory\n";
+	std::cerr << "Unable to satisfy request for memory\n";
 
-    std::exit(-1);
+	std::exit(-1);
 }
 
 

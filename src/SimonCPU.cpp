@@ -13,6 +13,7 @@ void SimonCPU::initialize(const char* dbfile)
 {
     Simon::initialize(dbfile);
     _cmfd = new BICGCMFD(g(), x());
+    _cmfd->init();
     cmfd().setNcmfd(4);
     cmfd().setEshift(0.01);
 }
@@ -55,7 +56,7 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
     float errl2 = 0.0;
     int nboiling = 0;
 
-    cmfd().setNcmfd(3);
+    cmfd().setNcmfd(5);
     cmfd().updpsi(_flux);
 
     float ppmd = _ppm;

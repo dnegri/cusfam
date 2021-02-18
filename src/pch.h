@@ -31,7 +31,7 @@ using namespace std;
         }
     };
     
-    __constant__ const int  NTHREADSPERBLOCK=256;
+    __constant__ const int  NTHREADSPERBLOCK=1024;
 
     extern dim3 BLOCKS_NGXYZ;
     extern dim3 THREADS_NGXYZ;
@@ -209,8 +209,8 @@ enum PROP_TYPE {
 
 #define NODAL_PRECISION double
 
-#define CMFD_VAR    float
-#define SOL_VAR    float
+#define CMFD_VAR    double
+#define SOL_VAR    double
 
 
 #endif /* PCH_H_ */

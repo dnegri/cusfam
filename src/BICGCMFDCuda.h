@@ -25,6 +25,7 @@ public:
     __host__ void updls(const double& reigvs);
 
     __host__ void axb(SOL_VAR* flux, SOL_VAR* aflux);
+    __host__ void axb1(SOL_VAR* flux, SOL_VAR* aflux);
     __host__ void wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, float& errl2);
 
     __host__ __device__ CMFD_VAR& psid(const int& l) { return _psid[l]; };

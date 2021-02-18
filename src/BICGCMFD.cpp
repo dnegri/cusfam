@@ -38,27 +38,31 @@ void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double&
 
     double gamman = 0;
     double gammad = 0;
-    errl2 = 0;
+    float  err = 0;
 
-    for (size_t l = 0; l < _g.nxyz(); l++) {
-        double psid = psi(l);
+#pragma omp parallel for reduction(+ : gammad, gamman, err)
+    for (int l = 0; l < _g.nxyz(); l++) {
+        CMFD_VAR psid = psi(l);
         psi(l) = _x.xsnf(0, l) * flux(0, l) + _x.xsnf(1, l) * flux(1, l);
         psi(l) = psi(l) * _g.vol(l);
 
-        double err = psi(l) - psid;
-        errl2 = errl2 + err * err;
+        float err1 = psi(l) - psid;
+        err = err + err1 * err1;
         gammad += psid * psi(l);
         gamman += psi(l) * psi(l);
     }
+
+    errl2 = err;
 
     //compute new eigenvalue
     double eigvd = eigv;
     if (icy < 0) {
         double sumf = 0;
         double summ = 0;
-        for (size_t l = 0; l < _g.nxyz(); l++) {
-            for (size_t ig = 0; ig < _g.ng(); ig++) {
-                double ab = CMFD::axb(ig, l, flux);
+        #pragma omp parallel for reduction(+ : summ, sumf)
+        for (int l = 0; l < _g.nxyz(); l++) {
+            for (int ig = 0; ig < _g.ng(); ig++) {
+                CMFD_VAR ab = CMFD::axb(ig, l, flux);
                 summ = summ + ab;
             }
             sumf += psi(l);
@@ -94,6 +98,7 @@ double BICGCMFD::residual(const double& reigv, const double& reigvs, const SOL_V
     double r = 0.0;
     double psi2 = 0.0;
 
+#pragma omp parallel for reduction(+ : r, psi2)
     for (int l = 0; l < _g.nxyz(); ++l) {
         double fs = psi(l) * reigvdel;
 
@@ -112,12 +117,14 @@ double BICGCMFD::residual(const double& reigv, const double& reigvs, const SOL_V
 }
 
 void BICGCMFD::upddtil() {
+    #pragma omp parallel for 
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddtil(ls);
     }
 }
 
 void BICGCMFD::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
+#pragma omp parallel for 
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
@@ -159,6 +166,7 @@ void BICGCMFD::updls(const int &l, const double& reigvs) {
 
 void BICGCMFD::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 {
+#pragma omp parallel for 
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::updjnet(ls, flux, jnet);
     }
@@ -166,6 +174,7 @@ void BICGCMFD::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
 
 void BICGCMFD::updpsi(const SOL_VAR* flux)
 {
+#pragma omp parallel for 
     for (int l = 0; l < _g.nxyz(); ++l) {
         CMFD::updpsi(l, flux);
     }
@@ -173,6 +182,7 @@ void BICGCMFD::updpsi(const SOL_VAR* flux)
 
 
 void BICGCMFD::axb(SOL_VAR* flux, SOL_VAR* aflux) {
+    #pragma omp parallel for 
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aflux(ig, l) = CMFD::axb(ig, l, flux);
@@ -188,11 +198,12 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
     double reigvs = 0.0;
 
     if(_eshift != 0.0) reigvs = 1. / (eigv + _eshift);
-    double resid0;
 
     for (int iout = 0; iout < _ncmfd; ++iout) {
         ++iter; ++icmfd;
         double reigvdel = reigv - reigvs;
+
+        #pragma omp parallel for 
         for (int l = 0; l < _g.nxyz(); ++l) {
             double fs = psi(l) * reigvdel;
             for (int ig = 0; ig < _g.ng(); ++ig) {
@@ -200,14 +211,14 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
             }
         }
 
-        float r20=0.0;
+        CMFD_VAR r20=0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
-        float r2 = 0.0;
+        CMFD_VAR r2 = 0.0;
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);
-            printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
+            //printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
             if(r2 < _epsbicg) break;
         }
 
@@ -217,6 +228,7 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
         if(reigvs != 0.0) updls(reigvs);
 
         int negative = 0;
+#pragma omp parallel for reduction(+ : negative)
         for (int l = 0; l < _g.nxyz(); ++l) {
             for (int ig = 0; ig < _g.ng(); ++ig) {
                 if (flux(ig, l) < 0) {
