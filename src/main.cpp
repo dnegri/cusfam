@@ -33,7 +33,7 @@ int main() {
 	omp_set_num_threads(16);
 
 	SimonCPU simon;
-	simon.initialize("../run/simondb0");
+	simon.initialize("../run/simondb");
 
 #ifndef CPU
 	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
@@ -47,6 +47,8 @@ int main() {
 #endif
 
 	simon.setBurnup(1000);
+	simon.runKeff(100);
+
 
 	auto start = chrono::steady_clock::now();
 	for (int idep = 0; idep < 1; idep++)

@@ -93,7 +93,7 @@ void CMFD::setls(const int &l) {
         {
             int ln = _g.neib(LEFT, idir, l);
 
-            if (ln >= 0 && ln != l) {
+            if (ln >= 0) {
                 int ls = _g.lktosfc(LEFT, idir, l);
 
                 cc(LEFT,idir,ige,l) =(-dtil(ige, ls) + dhat(ige, ls))* area[idir];
@@ -105,7 +105,7 @@ void CMFD::setls(const int &l) {
         {
             int ln = _g.neib(RIGHT, idir, l);
 
-            if (ln >= 0 && ln != l) {
+            if (ln >= 0) {
                 int ls = _g.lktosfc(RIGHT, idir, l);
                 cc(RIGHT,idir,ige,l) =(-dtil(ige, ls) - dhat(ige, ls))* area[idir];
                 diag(ige,ige,l) += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];

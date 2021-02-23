@@ -25,30 +25,32 @@ void SimonCPU::runKeff(const int& nmaxout) {
     cmfd().updpsi(_flux);
 
     f().updatePPM(_ppm);
-    d().updateH2ODensity(f().dm(), _ppm);
-    x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-
-
-//    for (int k = 0; k < g().nz(); ++k) {
-//        for (int l2d = 0; l2d < g().nxy(); ++l2d) {
-//            int l = k * g().nxy() + l2d;
-//            for (int ig = 0; ig < g().ng(); ++ig) {
-//                if (l2d != 0) x().xstf(ig, l) = x().xstf(ig, l) * 1.3;
-//            }
-//        }
-//    }
-
-    cmfd().upddtil();
 
     for (int i = 0; i < nmaxout; ++i) {
-        cmfd().setls(_eigv);
+		d().updateH2ODensity(f().dm(), _ppm);
+		x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
+		cmfd().upddtil();
+		cmfd().setls(_eigv);
         cmfd().drive(_eigv, _flux, errl2);
-        double reigv = 1. / _eigv;
+		normalize();
+
         if (i > 3 && errl2 < 1.E-5) break;
+
+		//f().updateTm(_power, nboiling);
+		//f().updateTf(_power, d().burn());
+
+		double reigv = 1. / _eigv;
         cmfd().updnodal(reigv, _flux, _jnet);
 
     }
-//    exit(0);
+	f().updateTm(_power, nboiling);
+	f().updatePPM(_ppm);
+	d().updateH2ODensity(f().dm(), _ppm);
+	x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
+	cmfd().upddtil();
+	cmfd().setls(_eigv);
+	cmfd().drive(_eigv, _flux, errl2);
+	//    exit(0);
     normalize();
 }
 

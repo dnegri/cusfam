@@ -11,6 +11,7 @@
 
 using namespace std;
 
+#define CPU
 
 #ifndef CPU
     #include <cuda_runtime.h>

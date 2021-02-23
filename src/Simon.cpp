@@ -219,7 +219,7 @@ __host__ void Simon::print(Geometry& g, CrossSection& x, Feedback& f, Depletion&
 {
     for (int l = 0; l < g.nxyz(); l++)
     {
-        printf("%e %e %e %e %e %e %e %e \m", x.xsdf(0,l), x.xstf(0, l), x.chif(0, l), x.xsnf(0, l), x.xssf(0, 1, l), f.tf(l), f.tm(l), d.dnst(2,l));
+        printf("%e %e %e %e %e %e %e %e \n", x.xsdf(0,l), x.xstf(0, l), x.chif(0, l), x.xsnf(0, l), x.xssf(0, 1, l), f.tf(l), f.tm(l), d.dnst(2,l));
     }
     
 }
