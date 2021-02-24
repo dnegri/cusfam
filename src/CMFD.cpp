@@ -92,24 +92,18 @@ void CMFD::setls(const int &l) {
         for (int idir = NDIRMAX - 1; idir >= 0; --idir)
         {
             int ln = _g.neib(LEFT, idir, l);
+            int ls = _g.lktosfc(LEFT, idir, l);
 
-            if (ln >= 0) {
-                int ls = _g.lktosfc(LEFT, idir, l);
-
-                cc(LEFT,idir,ige,l) =(-dtil(ige, ls) + dhat(ige, ls))* area[idir];
-                diag(ige,ige,l) += (dtil(ige, ls) + dhat(ige, ls)) * area[idir];
-            }
+            cc(LEFT,idir,ige,l) =(-dtil(ige, ls) + dhat(ige, ls))* area[idir];
+            diag(ige,ige,l) += (dtil(ige, ls) + dhat(ige, ls)) * area[idir];
         }
 
         for (int idir = 0; idir < NDIRMAX; idir++)
         {
             int ln = _g.neib(RIGHT, idir, l);
-
-            if (ln >= 0) {
-                int ls = _g.lktosfc(RIGHT, idir, l);
-                cc(RIGHT,idir,ige,l) =(-dtil(ige, ls) - dhat(ige, ls))* area[idir];
-                diag(ige,ige,l) += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
-            }
+            int ls = _g.lktosfc(RIGHT, idir, l);
+            cc(RIGHT,idir,ige,l) =(-dtil(ige, ls) - dhat(ige, ls))* area[idir];
+            diag(ige,ige,l) += (dtil(ige, ls) - dhat(ige, ls)) * area[idir];
         }
     }
 }

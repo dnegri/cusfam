@@ -26,7 +26,7 @@ public:
     void initialize(const char* dbfile);
     void runKeff(const int& nmaxout);
     void runECP(const int& nmaxout, const double& eigvt);
-    void runDepletion(const float& dburn);
+    void runDepletion(const float& tsec);
     void runXenonTransient();
     void normalize();
 

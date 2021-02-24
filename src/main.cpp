@@ -33,7 +33,7 @@ int main() {
 	omp_set_num_threads(16);
 
 	SimonCPU simon;
-	simon.initialize("../run/simondb");
+	simon.initialize("../run/simondb0");
 
 #ifndef CPU
 	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
@@ -47,14 +47,16 @@ int main() {
 #endif
 
 	simon.setBurnup(1000);
-	simon.runKeff(100);
-
+	//simon.runKeff(1000);
+	float dburn = 1000; // MWD/MTU
+	float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0 ;
 
 	auto start = chrono::steady_clock::now();
-	for (int idep = 0; idep < 1; idep++)
+
+	for (int idep = 0; idep < 20; idep++)
 	{
 	    simon.runECP(100, 1.0);
-	    simon.runDepletion(100);
+	    simon.runDepletion(tsec);
 	    printf("DEPLETION : %d,  CBC : %.2f\n", idep, simon.ppm());
 	}
 

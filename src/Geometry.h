@@ -68,6 +68,8 @@ protected :
 
 	float* _hmesh;
 	float* _vol;
+	
+	float _part;
 
 public:
 	__host__ Geometry();
@@ -89,6 +91,7 @@ public:
 	__host__ __device__ inline int& ny() { return _ny; };
 	__host__ __device__ inline int& symopt() { return _symopt; };
 	__host__ __device__ inline int& symang() { return _symang; };
+	__host__ __device__ inline float& part() { return _part; };
 
 	__host__ __device__ inline const int& ng() const { return _ng; };
 	__host__ __device__ inline const int& ng2() const { return _ng2; };

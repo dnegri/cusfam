@@ -15,7 +15,8 @@ void SimonCPU::initialize(const char* dbfile)
     _cmfd = new BICGCMFD(g(), x());
     _cmfd->init();
     cmfd().setNcmfd(4);
-    cmfd().setEshift(0.01);
+    cmfd().setEshift(0.1);
+
 }
 
 void SimonCPU::runKeff(const int& nmaxout) {
@@ -24,34 +25,29 @@ void SimonCPU::runKeff(const int& nmaxout) {
 
     cmfd().updpsi(_flux);
 
-    f().updatePPM(_ppm);
-
     for (int i = 0; i < nmaxout; ++i) {
+		f().updatePPM(_ppm);
 		d().updateH2ODensity(f().dm(), _ppm);
 		x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
+
 		cmfd().upddtil();
 		cmfd().setls(_eigv);
         cmfd().drive(_eigv, _flux, errl2);
 		normalize();
 
-        if (i > 3 && errl2 < 1.E-5) break;
+		f().updateTm(_power, nboiling);
+		f().updateTf(_power, d().burn());
 
-		//f().updateTm(_power, nboiling);
-		//f().updateTf(_power, d().burn());
+		if (errl2 < 1.E-4) {
+			printf("XENON UPDATE\n");
+			d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
+		}
+
+		if (i > 3 && errl2 < 1.E-5) break;
 
 		double reigv = 1. / _eigv;
-        cmfd().updnodal(reigv, _flux, _jnet);
-
-    }
-	f().updateTm(_power, nboiling);
-	f().updatePPM(_ppm);
-	d().updateH2ODensity(f().dm(), _ppm);
-	x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-	cmfd().upddtil();
-	cmfd().setls(_eigv);
-	cmfd().drive(_eigv, _flux, errl2);
-	//    exit(0);
-    normalize();
+		cmfd().updnodal(reigv, _flux, _jnet);
+	}
 }
 
 void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
@@ -72,12 +68,22 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
         cmfd().upddtil();
         cmfd().setls(_eigv);
         cmfd().drive(_eigv, _flux, errl2);
-        normalize();
+		normalize();
 
         if (iout > 3 && errl2 < 1.E-5) break;
 
+		if (errl2 < 1.E-4) {
+			printf("XENON UPDATE\n");
+			d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
+			reigv = 1./_eigv;
+			cmfd().updnodal(reigv, _flux, _jnet);
+		}
 
-        double temp = _ppm;
+		//search critical
+		f().updateTm(_power, nboiling);
+		f().updateTf(_power, d().burn());
+		
+		double temp = _ppm;
 
         if (iout == 0)
             _ppm = _ppm + (_eigv - eigvt) * 1E5 / 10.0;
@@ -95,14 +101,7 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
 
         printf("CHANGE PPM : %.2f --> %.2f\n", ppmd, _ppm);
 
-        //search critical
-        f().updateTm(_power, nboiling);
-        f().updateTf(_power, d().burn());
-        d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
-
         //nodal
-        reigv = 1./_eigv;
-        cmfd().updnodal(reigv, _flux, _jnet);
     }
 
 //    for (int l = 0; l < _g->nxy(); ++l) {
@@ -112,10 +111,10 @@ void SimonCPU::runECP(const int& nmaxout, const double& eigvt) {
 //    }
 }
 
-void SimonCPU::runDepletion(const float& dburn) {
+void SimonCPU::runDepletion(const float& tsec) {
 
     d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
-    d().dep(1167480.0);
+    d().dep(tsec);
 }
 
 void SimonCPU::runXenonTransient() {
@@ -136,7 +135,7 @@ void SimonCPU::normalize()
         ptotal += power(l);
     }
 
-    _fnorm = _pload * 0.25 / ptotal;
+    _fnorm = _pload * _g->part() / ptotal;
 
     for (size_t l = 0; l < _g->nxyz(); l++)
     {

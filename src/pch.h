@@ -210,8 +210,7 @@ enum PROP_TYPE {
 
 #define NODAL_PRECISION double
 
-#define CMFD_VAR    double
-#define SOL_VAR    double
-
+#define CMFD_VAR    float
+#define SOL_VAR    float
 
 #endif /* PCH_H_ */

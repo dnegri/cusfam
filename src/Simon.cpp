@@ -71,6 +71,7 @@ void Simon::initialize(const char* dbfile) {
     readIndex(&nx, &ny, &nxy, &nz, nxs, nxe, nys, nye, ijtol, neibr, hmesh);
     readBoundary(&symopt, &symang, albedo);
 
+
     _g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
     _g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
     _g->setBoundaryCondition(&symopt, &symang, albedo);
@@ -79,6 +80,13 @@ void Simon::initialize(const char* dbfile) {
 
     _d = new Depletion(*_g);
     _d->init();
+
+	float b10ap;
+	readConstantF(1, &b10ap);
+	_d->updateB10Abundance(b10ap);
+	
+	readConstantF(1, &_d->totmass());
+	readNXYZ(&nxyz, _d->buconf());
 
     _steam = new SteamTable();
     _steam->setPressure(155.13);

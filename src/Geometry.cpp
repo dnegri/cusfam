@@ -20,6 +20,8 @@ void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
 			_albedo[idir * LR + l] = albedo[idir * LR + l];
 		}
 	}
+
+	_part = _symang / 360.0;
 }
 
 void Geometry::initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_) {

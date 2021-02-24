@@ -145,7 +145,7 @@ void Feedback::updateTm(const int& l2d, const float* pow, float hin, float tin, 
 
             hlow = hup;
 
-            l = l2d + _g.nxy();
+            l = l + _g.nxy();
         }
     }
     else {
@@ -155,7 +155,7 @@ void Feedback::updateTm(const int& l2d, const float* pow, float hin, float tin, 
             dm(l2d, k) = din;
             dtm(l) = tm(l2d, k) - tm0(l);
             ddm(l) = dm(l2d, k) - dm0(l);
-            l = l2d + _g.nxy();
+            l = l + _g.nxy();
         }
     }
 }

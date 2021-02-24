@@ -64,9 +64,12 @@ void Depletion::init()
 	_dnst_avg = new float[NISO * _g.nxyz()]{};
 	_burn = new float[_g.nxyz()]{};
 	_h2on = new float[_g.nxyz()]{};
+	_buconf = new float[_g.nxyz()]{};
+}
 
-
-	_b10ap = 19.8;
+void Depletion::updateB10Abundance(const float& b10ap)
+{
+	_b10ap = b10ap;
 	_b10fac = _b10ap / (_b10ap * B10AW + (100. - _b10ap) * B11AW);
 	_b10wp = 100. * B10AW * _b10fac;
 }
@@ -91,16 +94,22 @@ void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, flo
     depp(l, tsec, ati, atd,  atavg);
 	ati(POIS, l) = atd(POIS, l);
 
-    depsm(l, tsec, ati, atd,  atavg);
-	ati(PM47, l) = atd(PM47, l);
-	ati(PS48, l) = atd(PS48, l);
-	ati(PM48, l) = atd(PM48, l);
-	ati(PM49, l) = atd(PM49, l);
-	ati(SM49, l) = atd(SM49, l);
+	if (ism == SMType::SM_TR) {
+		depsm(l, tsec, ati, atd, atavg);
 
-    depxe(l, tsec, ati, atd,  atavg);
-	ati(I135, l) = atd(I135, l);
-	ati(XE45, l) = atd(XE45, l);
+		ati(PM47, l) = atd(PM47, l);
+		ati(PS48, l) = atd(PS48, l);
+		ati(PM48, l) = atd(PM48, l);
+		ati(PM49, l) = atd(PM49, l);
+		ati(SM49, l) = atd(SM49, l);
+	}
+
+	if (ixe == XEType::XE_TR) {
+		depxe(l, tsec, ati, atd, atavg);
+		ati(I135, l) = atd(I135, l);
+		ati(XE45, l) = atd(XE45, l);
+	}
+
 
 }
 
@@ -196,10 +205,6 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 }
 void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
-
-	if (ixe != XEType::XE_TR) return;
-
-
 	int ipp = I135;
 	int idd = XE45;
 	float remd = rem(I135, l);
@@ -238,7 +243,7 @@ void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, con
 	float rem_i = 0.0;
 	float rem_xe = 0.0;
 
-	for (int ig = 1; ig < _g.ng(); ++ig) {
+	for (int ig = 0; ig < _g.ng(); ++ig) {
 		rem_xe = rem_xe + xsmica(ig, XE45, l) * flux(ig, l);
 	}
     rem_xe = rem_xe * fnorm * 1.E-24 + dcy(XE45);
@@ -247,8 +252,10 @@ void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, con
 	for (int i = 0; i < NHEAVY; ++i) {
 		int iso = ISOHVY[i];
 
+		if (dnst(iso, l) == 0.0) continue;
+
 		float fis = 0.0;
-		for (int ig = 1; ig < _g.ng(); ++ig) {
+		for (int ig = 0; ig < _g.ng(); ++ig) {
 			fis = fis + xsmicf(ig, iso, l) * flux(ig, l);
 		}
 

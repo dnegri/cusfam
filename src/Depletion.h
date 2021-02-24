@@ -65,10 +65,12 @@ protected:
     float* _dnst_avg;
     float* _burn;
     float* _h2on;
+	float* _buconf;
 
     float _b10ap;
     float _b10wp;
     float _b10fac;
+	float _totmass;
 
 public:
     __host__ Depletion(Geometry& g);
@@ -76,6 +78,7 @@ public:
     __host__ virtual ~Depletion();
 
     __host__  void init();
+
     
     __host__  __device__ Geometry& g() { return _g; };
 
@@ -95,6 +98,8 @@ public:
     __host__ __device__ float* dnst_avg() { return _dnst_avg; };
     __host__ __device__ float* burn() { return _burn; };
     __host__ __device__ float* h2on() { return _h2on; };
+	__host__ __device__ float* buconf() { return _buconf; };
+	__host__ __device__ float& totmass() { return _totmass; };
 
     __host__ __device__ int& nheavy(const int& ichn) { return _nheavy[ichn]; };
     __host__ __device__ int& ihchn(const int& step, const int& ichn) { return _hvyids[_ihvys[ichn]+ step]; };
@@ -118,7 +123,8 @@ public:
     __host__ void pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm);
 
-    __host__ void updateH2ODensity(const float* dm, const float& ppm);
+	void updateB10Abundance(const float& b10ap);
+	__host__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);
 
 
