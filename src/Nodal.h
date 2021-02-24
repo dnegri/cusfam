@@ -41,31 +41,31 @@ protected:
     XS_PRECISION* _xssf;
     XS_PRECISION* _xsadf;
 
-    NODAL_PRECISION* _trlcff0;
-    NODAL_PRECISION* _trlcff1;
-    NODAL_PRECISION* _trlcff2;
-    NODAL_PRECISION* _eta1;
-    NODAL_PRECISION* _eta2;
-    NODAL_PRECISION* _mu;
-    NODAL_PRECISION* _tau;
+    NODAL_VAR* _trlcff0;
+    NODAL_VAR* _trlcff1;
+    NODAL_VAR* _trlcff2;
+    NODAL_VAR* _eta1;
+    NODAL_VAR* _eta2;
+    NODAL_VAR* _mu;
+    NODAL_VAR* _tau;
 
 
-    NODAL_PRECISION* _m260;
-    NODAL_PRECISION* _m251;
-    NODAL_PRECISION* _m253;
-    NODAL_PRECISION* _m262;
-    NODAL_PRECISION* _m264;
+    NODAL_VAR* _m260;
+    NODAL_VAR* _m251;
+    NODAL_VAR* _m253;
+    NODAL_VAR* _m262;
+    NODAL_VAR* _m264;
 
-    NODAL_PRECISION* _diagDI;
-    NODAL_PRECISION* _diagD;
-    NODAL_PRECISION* _matM;
-    NODAL_PRECISION* _matMI;
-    NODAL_PRECISION* _matMs;
-    NODAL_PRECISION* _matMf;
+    NODAL_VAR* _diagDI;
+    NODAL_VAR* _diagD;
+    NODAL_VAR* _matM;
+    NODAL_VAR* _matMI;
+    NODAL_VAR* _matMs;
+    NODAL_VAR* _matMf;
 
-    NODAL_PRECISION* _dsncff2;
-    NODAL_PRECISION* _dsncff4;
-    NODAL_PRECISION* _dsncff6;
+    NODAL_VAR* _dsncff2;
+    NODAL_VAR* _dsncff4;
+    NODAL_VAR* _dsncff6;
 
     SOL_VAR* _jnet;
     SOL_VAR* _flux;
@@ -80,13 +80,13 @@ public:
     __host__  virtual ~Nodal();
 
     __host__ virtual void init() =0 ;
-    __host__ virtual void reset(CrossSection& xs, double& reigv, SOL_VAR* jnet, SOL_VAR* phif) = 0;
+    __host__ virtual void reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif) = 0;
     __host__ virtual void drive(SOL_VAR* jnet) = 0;
 
 
 	__host__ __device__ void updateConstant(const int& lk);
     __host__ __device__ void updateMatrix(const int& lk);
-    __host__ __device__ void trlcffbyintg(NODAL_PRECISION* avgtrl3, NODAL_PRECISION* hmesh3, NODAL_PRECISION& trlcff1, NODAL_PRECISION& trlcff2);
+    __host__ __device__ void trlcffbyintg(NODAL_VAR* avgtrl3, NODAL_VAR* hmesh3, NODAL_VAR& trlcff1, NODAL_VAR& trlcff2);
     __host__ __device__ void caltrlcff0(const int& lk);
     __host__ __device__ void caltrlcff12(const int& lk);
     __host__ __device__ void calculateEven(const int& lk);

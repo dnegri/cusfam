@@ -43,10 +43,10 @@ sanm2n_reset(const int &lk, const int &ng, const int &ng2, int &nxyz, float *hme
     int lkd0 = lk * NDIRMAX;
     int lkg0 = lk * ng;
 
-    for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
 
-        for (size_t ig = 0; ig < ng; ig++) {
+        for (int ig = 0; ig < ng; ig++) {
             int lkg = lkg0 + ig;
             auto kp2 = xstf[lkg] * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf[lkg]);
             auto kp = sqrt(kp2);
@@ -97,14 +97,14 @@ sanm2n_resetMatrix(const int &lk, const int &ng, const int &ng2, int &nxyz, doub
                    float *matM) {
     int lkg0 = lk * ng;
 
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             matMs(igs, ige, lk) = -xssf(igs, ige, lk);
             matMf(igs, ige, lk) = xschif[lkg0 + ige] * xsnff[lkg0 + igs];
         }
         matMs(ige, ige, lk) += xstf[lkg0 + ige];
 
-        for (size_t igs = 0; igs < ng; igs++) {
+        for (int igs = 0; igs < ng; igs++) {
             matM(igs, ige, lk) = matMs(igs, ige, lk) - reigv * matMf(igs, ige, lk);
         }
     }
@@ -133,17 +133,17 @@ sanm2n_prepareMatrix(const int &lk, const int &ng, const int &ng2, int &nxyz, fl
 
     auto rm011 = 1. / m011;
 
-    for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int idir = 0; idir < NDIRMAX; idir++) {
         auto lkd = lkd0 + idir;
 
         float tempz[2][2] = {};
 
-        for (size_t igd = 0; igd < ng; igd++) {
+        for (int igd = 0; igd < ng; igd++) {
             auto tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
 
             tempz[igd][igd] = tempz[igd][igd] + m231;
 
-            for (size_t igs = 0; igs < ng; igs++) {
+            for (int igs = 0; igs < ng; igs++) {
                 tau(igs, igd, lkd) = tau1 * matM(igs, igd, lk);
 
                 // mu=m011_inv*M_inv*D*(m231*I+m251*tau)
@@ -196,8 +196,8 @@ sanm2n_calculateTransverseLeakage(const int &lk, const int &ng, const int &ng2, 
 
     float avgjnet[NDIRMAX];
 
-    for (size_t ig = 0; ig < ng; ig++) {
-        for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int ig = 0; ig < ng; ig++) {
+        for (int idir = 0; idir < NDIRMAX; idir++) {
             auto lsl = lktosfc(LEFT, idir, lk);
             auto lsr = lktosfc(RIGHT, idir, lk);
 
@@ -210,10 +210,10 @@ sanm2n_calculateTransverseLeakage(const int &lk, const int &ng, const int &ng2, 
 
     }
 
-    for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
 
-        for (size_t ig = 0; ig < ng; ig++) {
+        for (int ig = 0; ig < ng; ig++) {
             float avgtrl3[LRC]{};
             float hmesh3[LRC]{};
             hmesh3[CENTER] = hmesh(idir, lk);
@@ -257,23 +257,23 @@ sanm2n_calculateEven(const int &lk, const int &ng, const int &ng2, int &nxyz, fl
                      float *dsncff2, float *dsncff4, float *dsncff6) {
     int lkd0 = lk * NDIRMAX;
 
-    for (size_t idir = 0; idir < NDIRMAX; idir++) {
+    for (int idir = 0; idir < NDIRMAX; idir++) {
         auto lkd = lkd0 + idir;
         float at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
-        for (size_t igd = 0; igd < ng; igd++) {
+        for (int igd = 0; igd < ng; igd++) {
             rm4464[igd] = m044 / m264(igd, lkd);
             auto mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
 
-            for (size_t igs = 0; igs < ng; igs++) {
+            for (int igs = 0; igs < ng; igs++) {
                 at2[igs][igd] = m022 * rm220 * mu2 * matM(igs, igd, lk);
             }
             at2[igd][igd] += m022 * rm220 * m240;
         }
 
-        for (size_t igd = 0; igd < ng; igd++) {
+        for (int igd = 0; igd < ng; igd++) {
             auto mu1 = rm4464[igd] * m262(igd, lkd);
-            for (size_t igs = 0; igs < ng; igs++) {
+            for (int igs = 0; igs < ng; igs++) {
                 a[igs][igd] =
                         mu1 * matM(igs, igd, lk) + matM(0, igd, lk) * at2[igs][0] + matM(1, igd, lk) * at2[igs][1];
             }
@@ -282,7 +282,7 @@ sanm2n_calculateEven(const int &lk, const int &ng, const int &ng2, int &nxyz, fl
             bt1[igd] = m022 * rm220 * diagDI(igd, lkd) * bt2[igd];
         }
 
-        for (size_t ig = 0; ig < ng; ig++) {
+        for (int ig = 0; ig < ng; ig++) {
             b[ig] = m220 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
         }
 
@@ -290,7 +290,7 @@ sanm2n_calculateEven(const int &lk, const int &ng, const int &ng2, int &nxyz, fl
         dsncff4(0, lkd) = rdet * (a[1][1] * b[0] - a[1][0] * b[1]);
         dsncff4(1, lkd) = rdet * (a[0][0] * b[1] - a[0][1] * b[0]);
 
-        for (size_t ig = 0; ig < ng; ig++) {
+        for (int ig = 0; ig < ng; ig++) {
             dsncff6(ig, lkd) = diagDI(ig, lkd) * rm4464[ig] *
                                (matM(0, ig, lk) * dsncff4(0, lkd) + matM(1, ig, lk) * dsncff4(1, lkd));
             dsncff2(ig, lkd) =
@@ -347,7 +347,7 @@ sanm2n_calculateJnet2n(const int &ls, const int &ng, const int &ng2, int &nsurf,
 
     float adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         adf[ig][LEFT] = xsadf(ig, lkl);
         adf[ig][RIGHT] = xsadf(ig, lkr);
         diagDj[ig][LEFT] = 0.5 * hmesh(idirl, lkl) * diagD(ig, lkdl);
@@ -376,7 +376,7 @@ sanm2n_calculateJnet2n(const int &ls, const int &ng, const int &ng2, int &nsurf,
     zeta1[0][1] = tempzI[0][1] * tempz[0][0] + tempzI[1][1] * tempz[0][1];
     zeta1[1][1] = tempzI[0][1] * tempz[1][0] + tempzI[1][1] * tempz[1][1];
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         bfc[ig] = adf[ig][RIGHT] * (dsncff2(ig, lkdr) + dsncff4(ig, lkdr) + dsncff6(ig, lkdr)
                                     + flux(ig, lkr) + matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr)
                                     + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
@@ -385,7 +385,7 @@ sanm2n_calculateJnet2n(const int &ls, const int &ng, const int &ng2, int &nsurf,
                                      + matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl));
     }
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         zeta2[ig] = tempzI[0][ig] * bfc[0] + tempzI[1][ig] * bfc[1];
     }
 
@@ -411,7 +411,7 @@ sanm2n_calculateJnet2n(const int &ls, const int &ng, const int &ng2, int &nsurf,
 
     float bcc[2], vec1g[2];
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         bcc[ig] =
                 diagDj[ig][LEFT] * (3 * dsncff2(ig, lkdl) + 10 * dsncff4(ig, lkdl) + eta2(ig, lkdl) * dsncff6(ig, lkdl))
                 + diagDj[ig][RIGHT] *
@@ -447,7 +447,7 @@ sanm2n_calculateJnet2n(const int &ls, const int &ng, const int &ng2, int &nsurf,
     oddcff[0][1] = mu(0, 1, lkdr) * oddcff[1][0] - matMI(0, 1, lkr) * sgnr * trlcff1(0, lkdr)
                    + mu(1, 1, lkdr) * oddcff[1][1] - matMI(1, 1, lkr) * sgnr * trlcff1(1, lkdr);
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         jnet(ig, ls) = sgnr * hmesh(idirr, lkr) * 0.5 * diagD(ig, lkdr) * (
                 -1.0 * oddcff[0][ig] + 3 * dsncff2(ig, lkdr) - 6 * oddcff[1][ig] + 10 * dsncff4(ig, lkdr)
                 - eta1(ig, lkdr) * oddcff[2][ig] + eta2(ig, lkdr) * dsncff6(ig, lkdr));
@@ -477,54 +477,54 @@ sanm2n_calculateJnet1n(const int &ls, const int &lr, const int &ng, const int &n
     //1, 1
     int irow = 0;
     int icol = 0;
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             a11[igs][ige] = matM(igs, ige, lk) * m011;
         }
     }
 
     //1, 2
     icol = 1;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a12[ig] = -diagD(ig, lkd) * m231;
     }
 
     //1, 3
     icol = 2;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a13[ig] = -diagD(ig, lkd) * m251(ig, lkd);
     }
 
     //2,2
     irow = 1;
     icol = 1;
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             a22[igs][ige] = matM(igs, ige, lk) * m033;
         }
     }
 
     //2, 3
     icol = 2;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a23[ig] = -diagD(ig, lkd) * m253(ig, lkd);
     }
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         diagDj[ig] = 0.5 * hmesh(idir, lk) * diagD(ig, lkd);
     }
 
     //3,1
     irow = 2;
     icol = 0;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a31[ig] = diagDj[ig] + alb;
     }
 
     //3,2
     irow = 2;
     icol = 1;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a32[ig] = 6 * diagDj[ig] + alb;
     }
 
@@ -532,45 +532,45 @@ sanm2n_calculateJnet1n(const int &ls, const int &lr, const int &ng, const int &n
     //3,3
     irow = 2;
     icol = 2;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         a33[ig] = diagDj[ig] * eta1(ig, lkd) + alb;
     }
 
 
     //make right vector
     irow = 0;
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         b1[ig] = -m011 * trlcff1(ig, lkd);
     }
     irow = 2;
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         b2[ig] = -sgn *
                  (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) +
                   alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
     }
 
 
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             a22[igs][ige] = -a22[igs][ige] / a23[ige];
             a11[igs][ige] = a11[igs][ige] / a31[igs];
         }
     }
 
     float a[2][2] = {0.0};
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             a[igs][ige] = a13[ige] * a22[igs][ige] - a11[igs][ige] * a32[igs];
         }
     }
 
-    for (size_t ige = 0; ige < ng; ige++) {
+    for (int ige = 0; ige < ng; ige++) {
         a[ige][ige] = a[ige][ige] + a12[ige];
     }
 
-    for (size_t ige = 0; ige < ng; ige++) {
-        for (size_t igs = 0; igs < ng; igs++) {
+    for (int ige = 0; ige < ng; ige++) {
+        for (int igs = 0; igs < ng; igs++) {
             a[igs][ige] = a[igs][ige] - (a11[0][ige] * a33[0] * a22[igs][0] + a11[1][ige] * a33[1] * a22[igs][1]);
         }
 
@@ -586,19 +586,19 @@ sanm2n_calculateJnet1n(const int &ls, const int &lr, const int &ng, const int &n
     a11[1][1] = rdet * a[0][0];
 
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         oddcff[1][ig] = a11[0][ig] * b1[0] + a11[1][ig] * b1[1];
     }
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         oddcff[2][ig] = a22[0][ig] * oddcff[1][0] + a22[1][ig] * oddcff[1][1];
     }
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         oddcff[0][ig] = (b2[ig] - a32[ig] * oddcff[1][ig] - a33[ig] * oddcff[2][ig]) / a31[ig];
     }
 
-    for (size_t ig = 0; ig < ng; ig++) {
+    for (int ig = 0; ig < ng; ig++) {
         jnet(ig, ls) = -hmesh(idir, lk) * 0.5 * diagD(ig, lkd) * (
                 oddcff[0][ig] + 6 * oddcff[1][ig] + eta1(ig, lkd) * oddcff[2][ig]
                 + sgn * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)));

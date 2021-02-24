@@ -217,12 +217,6 @@ void Simon::setBurnup(const float& burnup) {
 
 }
 
-void Simon::setFeedbackOption(bool feed_tf, bool feed_tm)
-{
-    _feed_tf = feed_tf;
-    _feed_tm = feed_tm;
-}
-
 __host__ void Simon::print(Geometry& g, CrossSection& x, Feedback& f, Depletion& d)
 {
     for (int l = 0; l < g.nxyz(); l++)

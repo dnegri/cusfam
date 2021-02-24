@@ -13,6 +13,26 @@
 #include "CrossSection.h"
 #include "Feedback.h"
 
+enum SearchOption {
+    KEFF,
+    CBC
+};
+enum DepletionOption {
+    DEP_ALL,
+    DEP_FP,
+    DEP_XE
+};
+
+typedef struct _SteadyOption {
+    SearchOption   searchOption;
+    bool feedtf;
+    bool feedtm;
+    XEType xenon;
+    SMType sm;
+    float tin;
+    double eigvt;
+    int maxiter;
+} SteadyOption ;
 
 class Simon : public Managed {
 protected:
@@ -52,10 +72,10 @@ public:
     __host__ __device__ Depletion& d() { return *_d; };
     __host__ __device__ SteamTable& steam() { return *_steam; };
 
-    __host__ void initialize(const char* dbfile);
     __host__ void setBurnup(const float& burnup);
-    __host__ void setFeedbackOption(bool feed_tf, bool feed_tm);
 
+    __host__ virtual void initialize(const char* dbfile);
+    __host__ virtual void runSteady(const SteadyOption& condition) = 0;
     __host__ virtual void runKeff(const int& nmaxout)=0;
     __host__ virtual void runECP(const int& nmaxout, const double& eigvt) =0;
     __host__ virtual void runDepletion(const float& dburn) = 0;

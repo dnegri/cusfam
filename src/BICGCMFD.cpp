@@ -253,9 +253,9 @@ void BICGCMFD::resetIteration() {
     iter = 0;
 }
 
-void BICGCMFD::updnodal(double& reigv, SOL_VAR* flux, SOL_VAR* jnet) {
+void BICGCMFD::updnodal(double& eigv, SOL_VAR* flux, SOL_VAR* jnet) {
     updjnet(flux, jnet);
-    _nodal->reset(_x, reigv, jnet, flux);
+    _nodal->reset(_x, 1./eigv, jnet, flux);
     _nodal->drive(jnet);
     upddhat(flux, jnet);
 }

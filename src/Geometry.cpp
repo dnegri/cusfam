@@ -13,9 +13,9 @@ void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
 	_symopt = *symopt;
 	_symang = *symang;
 	_albedo = new float[LR*NDIRMAX];
-	for (size_t idir = 0; idir < NDIRMAX; idir++)
+	for (int idir = 0; idir < NDIRMAX; idir++)
 	{
-		for (size_t l = 0; l < LR; l++)
+		for (int l = 0; l < LR; l++)
 		{
 			_albedo[idir * LR + l] = albedo[idir * LR + l];
 		}
@@ -46,30 +46,30 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	_nys = new int[_nx];
 	_nye = new int[_nx];
 
-	for (size_t j = 0; j < _ny; j++)
+	for (int j = 0; j < _ny; j++)
 	{
 		nxs(j) = nxs_[j]-1;
 		nxe(j) = nxe_[j];
 	}
-	for (size_t i = 0; i < _nx; i++)
+	for (int i = 0; i < _nx; i++)
 	{
 		nys(i) = nys_[i] - 1;
 		nye(i) = nye_[i];
 	}
 
-	for (size_t l = 0; l < _nxy; l++)
+	for (int l = 0; l < _nxy; l++)
 	{
 		auto lnews0 = l * NEWS;
-		for (size_t i4 = 0; i4 < NEWS; i4++)
+		for (int i4 = 0; i4 < NEWS; i4++)
 		{
 			neibr(i4,l) = neibr_[lnews0 + i4] - 1;
 		}
 	}
 
-	for (size_t j = 0; j < _ny; j++)
+	for (int j = 0; j < _ny; j++)
 	{
 		auto ij0 = j * _nx;
-		for (size_t i = 0; i < _nx; i++)
+		for (int i = 0; i < _nx; i++)
 		{
 			ijtol(i,j) = ijtol_[ij0 + i] - 1;
 		}
@@ -80,15 +80,15 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	_lktosfc = new int[nxyz6];
 	_vol = new float[_nxyz];
 
-	for (size_t k = 0; k < _nz; k++)
+	for (int k = 0; k < _nz; k++)
 	{
 		int lk0 = k * _nxy;
-		for (size_t l = 0; l < _nxy; l++)
+		for (int l = 0; l < _nxy; l++)
 		{
 			int lk = lk0 + l;
 			int lkd4 = lk * NEWS;
 			int lkd6 = lk * NEWSBT;
-			for (size_t inews = 0; inews < NEWS; inews++)
+			for (int inews = 0; inews < NEWS; inews++)
 			{
 				if (neibr(inews, l) <= -1) {
 					neib(inews, lk) = -1;
@@ -105,7 +105,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 			if (lkb > -1) neib(BOT,lk) = lkb;
 			if (lkt < _nxyz) neib(TOP,lk) = lkt;
 
-			for (size_t idir = 0; idir < NDIRMAX; idir++)
+			for (int idir = 0; idir < NDIRMAX; idir++)
 			{
 				// in hemsh_, the zero value in 0th index.
 				hmesh(idir, lk) = hmesh_[lk*NDIRMAX + idir];
@@ -126,11 +126,11 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 
 	int ls = -1;
 
-	for (size_t k = 0; k < _nz; k++)
+	for (int k = 0; k < _nz; k++)
 	{
 		int lk0 = k * _nxy;
 
-		for (size_t j = 0; j < _ny; j++)
+		for (int j = 0; j < _ny; j++)
 		{
 			int ij0 =  j * _nx;
 			++ls;
@@ -143,7 +143,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 			lklr(LEFT, ls) = neib(WEST, lk);
 			lklr(RIGHT, ls) = lk;
 
-			for (size_t i = nxs(j); i < nye(j); i++)
+			for (int i = nxs(j); i < nye(j); i++)
 			{
 				int l = ijtol(i,j);
 
@@ -159,7 +159,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 			}
 		}
 
-		for (size_t i = 0; i < _nx; i++)
+		for (int i = 0; i < _nx; i++)
 		{
 			int ij0 = i * _ny;
 			++ls;
@@ -173,7 +173,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 			lklr(LEFT, ls) = neib(NORTH, lk);
 			lklr(RIGHT, ls) = lk;
 
-			for (size_t j = nys(i); j < nye(i); j++)
+			for (int j = nys(i); j < nye(i); j++)
 			{
 				int l = ijtol(i,j);
 
@@ -190,7 +190,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 		}
 	}
 
-	for (size_t l = 0; l < _nxy; l++)
+	for (int l = 0; l < _nxy; l++)
 	{
 		++ls;
 		idirlr(LEFT,ls) = ZDIR;
@@ -200,7 +200,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 
 		int lk0 = l;
 		lklr(LEFT, ls) = -1;
-		for (size_t k = 0; k < _nz; k++)
+		for (int k = 0; k < _nz; k++)
 		{
 			int lk = k*_nxy+l;
 			lktosfc(LEFT, ZDIR, lk) = ls;

@@ -174,7 +174,7 @@ void Feedback::updateTin(const float& tin)
 void Feedback::updateTf(const float* power, const float* burnup)
 {
 #pragma omp parallel for
-    for (size_t l = 0; l < _g.nxyz(); l++)
+    for (int l = 0; l < _g.nxyz(); l++)
     {
         updateTf(l, power, burnup, heatfrac());
     }
@@ -184,7 +184,7 @@ void Feedback::updateTm(const float* power, int& nboiling)
 {
     nboiling = 0;
 #pragma omp parallel for
-    for (size_t l2d = 0; l2d < _g.nxy(); l2d++)
+    for (int l2d = 0; l2d < _g.nxy(); l2d++)
     {
         updateTm(l2d, power, _hin, _tin, _din, nboiling);
     }

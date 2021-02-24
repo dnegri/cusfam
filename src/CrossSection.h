@@ -242,7 +242,7 @@ public:
 		_dfmacs = new XS_PRECISION[_nxyz * _ng * _ng];
 
 
-		for (size_t l = 0; l < _nxyz; l++)
+		for (int l = 0; l < _nxyz; l++)
 		{
 			chif(0, l) = 1.0;
 			xsadf(0, l) = 1.0;

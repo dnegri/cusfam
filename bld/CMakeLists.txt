@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(cusfam CXX Fortran)
 set(CMAKE_CXX_STANDARD 14)
-add_compile_definitions(CPU)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")

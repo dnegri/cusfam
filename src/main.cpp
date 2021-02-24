@@ -34,7 +34,7 @@ dim3 THREADS_SURFACE;
 int main() {
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
-	omp_set_num_threads(16);
+//	omp_set_num_threads(16);
 
 	SimonCPU simon;
 	simon.initialize("../run/simondb0");
@@ -51,7 +51,22 @@ int main() {
 #endif
 
 	simon.setBurnup(1000);
-	//simon.runKeff(1000);
+
+	SteadyOption s;
+	s.searchOption = SearchOption::CBC;
+	s.feedtm = true;
+	s.feedtf = true;
+	s.eigvt = 1.0;
+	s.maxiter = 100;
+	s.xenon = XEType::XE_EQ;
+	s.sm = SMType::SM_TR;
+	s.tin = 0.0;
+
+	simon.runSteady(s);
+	printf("PPM : %.2f\n", simon.ppm());
+
+	exit(0);
+
 	float dburn = 1000; // MWD/MTU
 	float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0 ;
 
@@ -269,7 +284,7 @@ void outOfMemHandler() {
 //
 //    int nstep = 1;
 //
-//    for (size_t istep = 0; istep < nstep; istep++) {
+//    for (int istep = 0; istep < nstep; istep++) {
 //        float bucyc, buavg, efpd;
 //        readStep(&bucyc, &buavg, &efpd);
 //        readDensity(&NISO, &(d->dnst(0, 0)));
@@ -372,7 +387,7 @@ void outOfMemHandler() {
 //
 //    //int maxout = 1;
 //
-//    //for (size_t iout = 0; iout < maxout; iout++)
+//    //for (int iout = 0; iout < maxout; iout++)
 //    //{
 //    //    float dppm = 0.0;
 //

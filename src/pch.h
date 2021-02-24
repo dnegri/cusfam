@@ -19,7 +19,7 @@ using namespace std;
     #include "helper_cuda.h"
     class Managed {
     public:
-        void* operator new(size_t len) {
+        void* operator new(int len) {
             void* ptr;
             cudaMallocManaged(&ptr, len);
             checkCudaErrors(cudaDeviceSynchronize());
@@ -150,7 +150,7 @@ __constant__ static const int ISOMAC[]{ U234, U235, U236, NP37, U238,
                                         PU48, NP39, PU49, PU40, PU41, 
                                         PU42, AM43, RESI, POIS, FP1 , STRM};
 
-//  9 - the number of isotopes(pm47, ps48, pm48, pm49, sm, i135, xe, b10, h2o)
+//  9 - the number of isotopes(pm47, ps48, pm48, pm49, sm, i135, xenon, b10, h2o)
 __constant__ static const int NNIS = 9;
 __constant__ static const int ISONIS[]{ PM47, PS48, PM48, PM49, SM49, 
                                         I135, XE45, SB10, H2O};
@@ -208,7 +208,7 @@ enum PROP_TYPE {
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 
-#define NODAL_PRECISION float
+#define NODAL_VAR float
 
 #define CMFD_VAR    float
 #define SOL_VAR    float

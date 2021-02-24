@@ -77,6 +77,7 @@ void Depletion::updateB10Abundance(const float& b10ap)
 
 void Depletion::dep(const float& tsec)
 {
+    #pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
         dep(l, tsec, _dnst, _dnst_new, _dnst_avg);
     }
@@ -356,7 +357,7 @@ void Depletion::depp(const int& l, const float& tsec, const float* ati, float* a
 
 
 void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm) {
-
+#pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
 		if (xsmica(1,U235, l) == 0) continue;
 

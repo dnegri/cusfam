@@ -16,27 +16,27 @@ NodalCPU::NodalCPU(Geometry &g, CrossSection& xs) : Nodal(g), xs(xs) {
 	*_nxyz = _g.nxyz();
 	*_nsurf = _g.nsurf();
 
-	_trlcff0 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_trlcff1 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_trlcff2 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_eta1 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_eta2 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_m260 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_m251 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_m253 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_m262 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_m264 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_diagDI = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_diagD = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_dsncff2 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_dsncff4 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_dsncff6 = new NODAL_PRECISION[nxyz() * NDIRMAX * ng()];
-	_mu = new NODAL_PRECISION[nxyz() * NDIRMAX * ng2()];
-	_tau = new NODAL_PRECISION[nxyz() * NDIRMAX * ng2()];
-	_matM = new NODAL_PRECISION[nxyz() * ng2()];
-	_matMI = new NODAL_PRECISION[nxyz() * ng2()];
-	_matMs = new NODAL_PRECISION[nxyz() * ng2()];
-	_matMf = new NODAL_PRECISION[nxyz() * ng2()];
+	_trlcff0 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_trlcff1 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_trlcff2 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_eta1 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_eta2 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_m260 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_m251 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_m253 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_m262 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_m264 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_diagDI = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_diagD = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_dsncff2 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_dsncff4 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_dsncff6 = new NODAL_VAR[nxyz() * NDIRMAX * ng()];
+	_mu = new NODAL_VAR[nxyz() * NDIRMAX * ng2()];
+	_tau = new NODAL_VAR[nxyz() * NDIRMAX * ng2()];
+	_matM = new NODAL_VAR[nxyz() * ng2()];
+	_matMI = new NODAL_VAR[nxyz() * ng2()];
+	_matMs = new NODAL_VAR[nxyz() * ng2()];
+	_matMf = new NODAL_VAR[nxyz() * ng2()];
 
 	_xsnf = &xs.xsnf(0, 0);
 	_xsdf = &xs.xsdf(0, 0);
@@ -59,7 +59,7 @@ void NodalCPU::init() {
 
 }
 
-void NodalCPU::reset(CrossSection& xs, double& reigv, SOL_VAR* jnet, SOL_VAR* phif) {
+void NodalCPU::reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif) {
 	_flux = phif;
 	_jnet = jnet;
 	_reigv = reigv;
