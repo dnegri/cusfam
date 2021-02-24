@@ -142,7 +142,6 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\Nodal.cpp" />
     <ClCompile Include="..\src\NodalCPU.cpp" />
-    <ClCompile Include="..\src\sanm2n.cpp" />
     <ClCompile Include="..\src\Simon.cpp" />
     <ClCompile Include="..\src\SimonCPU.cpp" />
     <ClCompile Include="..\src\SteamTable.cpp" />
@@ -162,7 +161,6 @@
     <ClInclude Include="..\src\Nodal.h" />
     <ClInclude Include="..\src\NodalCPU.h" />
     <ClInclude Include="..\src\pch.h" />
-    <ClInclude Include="..\src\sanm2n.h" />
     <ClInclude Include="..\src\Simon.h" />
     <ClInclude Include="..\src\SimonCPU.h" />
     <ClInclude Include="..\src\SteamTable.h" />

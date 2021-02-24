@@ -11,6 +11,8 @@
 #include "omp.h"
 #include "SimonCPU.h"
 
+#include <fenv.h>
+
 #ifndef CPU
     #include "SimonCuda.h"
     #include "GeometryCuda.h"
@@ -30,6 +32,8 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
+	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+
 	omp_set_num_threads(16);
 
 	SimonCPU simon;

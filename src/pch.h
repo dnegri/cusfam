@@ -208,7 +208,7 @@ enum PROP_TYPE {
 #define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
 #define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
 
-#define NODAL_PRECISION double
+#define NODAL_PRECISION float
 
 #define CMFD_VAR    float
 #define SOL_VAR    float

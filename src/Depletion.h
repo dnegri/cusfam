@@ -101,7 +101,7 @@ public:
 	__host__ __device__ float* buconf() { return _buconf; };
 	__host__ __device__ float& totmass() { return _totmass; };
 
-    __host__ __device__ int& nheavy(const int& ichn) { return _nheavy[ichn]; };
+    __host__ __device__ int& nhchn(const int& ichn) { return _nheavy[ichn]; };
     __host__ __device__ int& ihchn(const int& step, const int& ichn) { return _hvyids[_ihvys[ichn]+ step]; };
     __host__ __device__ int& idpct(const int& step, const int& ichn) { return _hvyupd[_ihvys[ichn] + step]; };
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };

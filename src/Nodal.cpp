@@ -94,7 +94,9 @@ __host__ __device__ void Nodal::updateConstant(const int& lk)
             m253(ig, lkd) = 2 * (kp * (15 + kp2) * coshkp - 3 * (5 + 2 * kp2) * sinhkp) * oddtemp * rkp2;
             m262(ig, lkd) = 2 * (-3 * kp * coshkp + (3 + kp2) * sinhkp + 7 * kp * bfcff4) * eventemp * rkp;
             m264(ig, lkd) = 2 * (-5 * kp * (21 + 2 * kp2) * coshkp + (105 + 45 * kp2 + kp4) * sinhkp) * eventemp * rkp3;
-            if (m264(ig, lkd) == 0.0) m264(ig, lkd) = 1.e-10;
+			//if (m264(ig, lkd) == 0.0) {
+			//	m264(ig, lkd) = 1.e-10;
+			//}
 
             diagD(ig, lkd) = 4 * xsdf(ig,lk) / (hmesh(idir, lk) * hmesh(idir, lk));
             diagDI(ig, lkd) = 1.0 / diagD(ig, lkd);
@@ -268,7 +270,10 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
         NODAL_PRECISION at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
         for (size_t igd = 0; igd < ng(); igd++) {
-            rm4464[igd] = m044 / m264(igd, lkd);
+			rm4464[igd] = 0.0;
+			
+			if(m264(igd, lkd) != 0.0) rm4464[igd] = m044 / m264(igd, lkd);
+
             auto mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
 
             for (size_t igs = 0; igs < ng(); igs++) {

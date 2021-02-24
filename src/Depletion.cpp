@@ -116,7 +116,7 @@ void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, flo
 void Depletion::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 	for (int ic = 0; ic < _nhvychn; ++ic) {
-		for (int i = 0; i < nheavy(ic); ++i) {
+		for (int i = 0; i < nhchn(ic); ++i) {
 			atd(ihchn(i, ic), l) = 0.0;
 			atavg(ihchn(i, ic), l) = 0.0;
 		}
@@ -126,14 +126,14 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 
 	for (int ic = 0; ic < _nhvychn; ++ic) {
 
-		for (int i = 0; i < nheavy(ic); ++i) {
+		for (int i = 0; i < nhchn(ic); ++i) {
 			r[i] = 0.0;
-			for (int j = 1; j < nheavy(ic); ++j) {
+			for (int j = 1; j < nhchn(ic); ++j) {
 				a[i][j] = 0.0;
 			}
 		}
 
-		for (int i = 0; i < nheavy(ic); ++i) {
+		for (int i = 0; i < nhchn(ic); ++i) {
 			r[i] = rem(ihchn(i, ic), l);
 			exg[i] = exp(-r[i] * tsec);
 
@@ -168,7 +168,8 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 						break;
 					}
 
-					a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+					a[i][j] = 0.0;
+					if(r[i] != r[j]) a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
 				}
 			}
 
