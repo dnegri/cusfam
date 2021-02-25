@@ -32,12 +32,12 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
-	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
-//	omp_set_num_threads(16);
+	omp_set_num_threads(8);
 
 	SimonCPU simon;
-	simon.initialize("../run/simondb0");
+	simon.initialize("../run/geom.simon");
 
 #ifndef CPU
 	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
@@ -50,33 +50,47 @@ int main() {
 	THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
 #endif
 
-	simon.setBurnup(1000);
+	float dburn = 1000;
+	float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0;
 
 	SteadyOption s;
-	s.searchOption = SearchOption::CBC;
+	s.searchOption = CriticalOption::CBC;
 	s.feedtm = true;
 	s.feedtf = true;
 	s.eigvt = 1.0;
 	s.maxiter = 100;
 	s.xenon = XEType::XE_EQ;
-	s.sm = SMType::SM_TR;
 	s.tin = 0.0;
+	s.ppm = 800.0;
+	s.plevel = 1.0;
 
-	simon.runSteady(s);
-	printf("PPM : %.2f\n", simon.ppm());
+	DepletionOption d_option;
+	d_option.isotope = DepletionIsotope::DEP_ALL;
+	d_option.sm = SMType::SM_TR;
+	d_option.xe = s.xenon;
+	d_option.tsec = tsec;
 
-	exit(0);
 
-	float dburn = 1000; // MWD/MTU
-	float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0 ;
+
+	//printf("PPM : %.2f\n", simon.ppm());
+//simon.fnorm() = 1.0;
+//std::fill_n(simon.flux(), simon.g().ngxyz(), 1.E+14);
+
+	simon.setBurnup(1000.0);
 
 	auto start = chrono::steady_clock::now();
+	float burn = 0.0;
 
-	for (int idep = 0; idep < 20; idep++)
+	for (int idep = 0; idep < simon.nburn(); idep++)
 	{
-	    simon.runECP(100, 1.0);
-	    simon.runDepletion(tsec);
-	    printf("DEPLETION : %d,  CBC : %.2f\n", idep, simon.ppm());
+		burn = simon.burn(idep); // MWD/MTU
+		//simon.setBurnup(burn);
+		simon.runSteady(s);
+
+		simon.runDepletion(d_option);
+		printf("DEPLETION : %d,  CBC : %.2f, EIGV : %.6f\n", idep, simon.ppm(), simon.eigv());
+		s.ppm = simon.ppm();
+
 	}
 
 	auto end = chrono::steady_clock::now();

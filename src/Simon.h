@@ -13,26 +13,34 @@
 #include "CrossSection.h"
 #include "Feedback.h"
 
-enum SearchOption {
+enum CriticalOption {
     KEFF,
     CBC
 };
-enum DepletionOption {
+enum DepletionIsotope {
     DEP_ALL,
     DEP_FP,
     DEP_XE
 };
 
 typedef struct _SteadyOption {
-    SearchOption   searchOption;
+    CriticalOption   searchOption;
     bool feedtf;
     bool feedtm;
     XEType xenon;
-    SMType sm;
     float tin;
     double eigvt;
     int maxiter;
+	float ppm;
+	float plevel;
 } SteadyOption ;
+
+typedef struct _DepletionOption {
+	DepletionIsotope isotope;
+	XEType xe;
+	SMType sm;
+	float  tsec;
+} DepletionOption;
 
 class Simon : public Managed {
 protected:
@@ -47,11 +55,14 @@ protected:
 
     float* _bucyc;
     float* _power;
+
+	float _pload;
+	float _pload0;
+
     SOL_VAR* _flux;
     SOL_VAR* _jnet;
     double _reigv;
     double _eigv;
-    double _pload;
     double _fnorm;
 
     float _ppm;
@@ -78,7 +89,7 @@ public:
     __host__ virtual void runSteady(const SteadyOption& condition) = 0;
     __host__ virtual void runKeff(const int& nmaxout)=0;
     __host__ virtual void runECP(const int& nmaxout, const double& eigvt) =0;
-    __host__ virtual void runDepletion(const float& dburn) = 0;
+    __host__ virtual void runDepletion(const DepletionOption& option) = 0;
     __host__ virtual void runXenonTransient() = 0;
     __host__ virtual void normalize() = 0;
 
@@ -89,8 +100,20 @@ public:
     __host__ inline SOL_VAR* flux() { return _flux; };
     __host__ inline SOL_VAR* jnet() { return _jnet; };
     __host__ inline float& ppm() { return _ppm; };
-    __host__ inline double& fnorm() { return _fnorm; };
-	__host__ inline double& pload() { return _pload; };
+	__host__ inline double& eigv() { return _eigv; };
+	__host__ inline double& fnorm() { return _fnorm; };
+	__host__ inline float& pload() { return _pload; };
+	__host__ inline const int& nburn() { return _nstep; };
+
+	__host__ inline float& burn(const int& istep) { return _bucyc[istep]; };
+	__host__ inline float dburn(const int& istep) { 
+		if (istep == 0) {
+			return _bucyc[istep];
+		}
+		else {
+			return _bucyc[istep] - _bucyc[istep - 1];
+		}
+	};
 
     __host__ void print(Geometry& g, CrossSection& x, Feedback& f, Depletion& d);
 

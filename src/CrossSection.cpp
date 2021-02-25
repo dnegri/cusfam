@@ -176,26 +176,6 @@ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, 
 		}
 		xsdf(ig, l) = 1. / (3 * xsdf(ig, l));
 	}
-
-	// Equilibrium Xenon and depletion
-    for (int i = 0; i < NHEAVY; i++)
-    {
-        int iso = ISOHVY[i];
-
-        for (int ig = 0; ig < _ng; ig++)
-        {
-            xsmicf(ig, iso, l) = xsmicf0(ig, iso, l) + xdpmicf(ig, iso, l) * dppm + xdfmicf(ig, iso, l) * dtf + xdmmicf(ig, 0, iso, l) * dtm + xdmmicf(ig, 1, iso, l) * dtm2;
-        }
-    }
-
-    // Equilibrium Xenon and depletion
-    for (int iso = 0; iso < NDEP; iso++)
-    {
-        for (int ig = 0; ig < _ng; ig++)
-        {
-            xsmica(ig, iso, l) = xsmica0(ig, iso, l) + xdpmica(ig, iso, l) * dppm + xdfmica(ig, iso, l) * dtf + xdmmica(ig, 0, iso, l) * dtm + xdmmica(ig, 1, iso, l) * dtm2;
-        }
-    }
 }
 
 void CrossSection::updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm)
@@ -235,6 +215,65 @@ void CrossSection::updateRodXS(ControlRod& r, const float* dppm, const float* dt
             updateRodXS(l, r.cea(l), r.ratio(l), dppm[l], dtf[l], dtm[l]);
         }
     }
+}
+
+void CrossSection::updateXenonXS(const int& l, const float& dppm, const float& dtf, const float& dtm)
+{
+	float dtm2 = dtm * dtm;
+
+	// Equilibrium Xenon and depletion
+	for (int i = 0; i < NHEAVY; i++)
+	{
+		int iso = ISOHVY[i];
+
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			xsmicf(ig, iso, l) = xsmicf0(ig, iso, l) + xdpmicf(ig, iso, l) * dppm + xdfmicf(ig, iso, l) * dtf + xdmmicf(ig, 0, iso, l) * dtm + xdmmicf(ig, 1, iso, l) * dtm2;
+		}
+	}
+
+	for (int iso = XE45; iso <= XE45; iso++)
+	{
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			xsmica(ig, iso, l) = xsmica0(ig, iso, l) + xdpmica(ig, iso, l) * dppm + xdfmica(ig, iso, l) * dtf + xdmmica(ig, 0, iso, l) * dtm + xdmmica(ig, 1, iso, l) * dtm2;
+		}
+	}
+}
+
+void CrossSection::updateXenonXS(const float* dppm, const float* dtf, const float* dtm)
+{
+#pragma omp parallel for
+	for (int l = 0; l < _nxyz; l++)
+	{
+		updateXenonXS(l, dppm[l], dtf[l], dtm[l]);
+	}
+
+}
+
+
+void CrossSection::updateDepletionXS(const int& l, const float& dppm, const float& dtf, const float& dtm)
+{
+	float dtm2 = dtm * dtm;
+
+	for (int iso = 1; iso <= NDEP; iso++)
+	{
+		for (int ig = 0; ig < _ng; ig++)
+		{
+			xsmicf(ig, iso, l) = xsmicf0(ig, iso, l) + xdpmicf(ig, iso, l) * dppm + xdfmicf(ig, iso, l) * dtf + xdmmicf(ig, 0, iso, l) * dtm + xdmmicf(ig, 1, iso, l) * dtm2;
+			xsmica(ig, iso, l) = xsmica0(ig, iso, l) + xdpmica(ig, iso, l) * dppm + xdfmica(ig, iso, l) * dtf + xdmmica(ig, 0, iso, l) * dtm + xdmmica(ig, 1, iso, l) * dtm2;
+		}
+	}
+}
+
+void CrossSection::updateDepletionXS(const float* dppm, const float* dtf, const float* dtm)
+{
+#pragma omp parallel for
+	for (int l = 0; l < _nxyz; l++)
+	{
+		updateDepletionXS(l, dppm[l], dtf[l], dtm[l]);
+	}
+
 }
 
 

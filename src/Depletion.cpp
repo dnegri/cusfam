@@ -75,15 +75,15 @@ void Depletion::updateB10Abundance(const float& b10ap)
 }
 
 
-void Depletion::dep(const float& tsec)
+void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt)
 {
     #pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
-        dep(l, tsec, _dnst, _dnst_new, _dnst_avg);
+        dep(l, tsec, xeopt, smopt, _dnst, _dnst_new, _dnst_avg);
     }
 }
 
-void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg)
+void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, float* ati, float* atd, float* atavg)
 {
     if(ati(U235,l) == 0) return;
 
@@ -95,7 +95,7 @@ void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, flo
     depp(l, tsec, ati, atd,  atavg);
 	ati(POIS, l) = atd(POIS, l);
 
-	if (ism == SMType::SM_TR) {
+	if (smopt == SMType::SM_TR) {
 		depsm(l, tsec, ati, atd, atavg);
 
 		ati(PM47, l) = atd(PM47, l);
@@ -105,7 +105,7 @@ void Depletion::dep(const int& l, const float& tsec, float* ati, float* atd, flo
 		ati(SM49, l) = atd(SM49, l);
 	}
 
-	if (ixe == XEType::XE_TR) {
+	if (xeopt== XEType::XE_TR) {
 		depxe(l, tsec, ati, atd, atavg);
 		ati(I135, l) = atd(I135, l);
 		ati(XE45, l) = atd(XE45, l);
@@ -228,8 +228,6 @@ void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* 
 void Depletion::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
 {
 
-	if (ixe != XEType::XE_EQ) return;
-
 	for (int l = 0; l < _g.nxyz(); l++)
 	{
 	    if(xsmicf(1,U235,l) == 0) continue;
@@ -275,8 +273,6 @@ void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, con
 
 void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
-
-	if (ism != SMType::SM_TR) return;
 
 	float exp47 = exp(-rem(PM47, l) * tsec);
 	float exp48s = exp(-rem(PS48, l) * tsec);

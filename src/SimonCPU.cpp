@@ -17,14 +17,14 @@ void SimonCPU::initialize(const char* dbfile)
     _cmfd = new BICGCMFD(g(), x());
     _cmfd->init();
     cmfd().setNcmfd(4);
-    cmfd().setEshift(0.1);
+    cmfd().setEshift(0.04);
 
 }
 
 void SimonCPU::updateCriteria(const float& crit_flux) {
     _crit_flux = crit_flux;
     _crit_xenon = crit_flux*10.0;
-    _crit_nodal = crit_flux*10.0;
+    _crit_nodal = 1.0E-4;
 }
 
 void SimonCPU::runKeff(const int& nmaxout) {
@@ -126,10 +126,11 @@ float SimonCPU::updatePPM(const bool& first, const double& eigvt, const float& p
     return ppmn;
 }
 
-void SimonCPU::runDepletion(const float& tsec) {
+void SimonCPU::runDepletion(const DepletionOption& option) {
 
+	x().updateDepletionXS(f().dppm(), f().dtf(), f().dtm());
     d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
-    d().dep(tsec);
+    d().dep(option.tsec, option.xe, option.sm);
 }
 
 void SimonCPU::runXenonTransient() {
@@ -150,7 +151,7 @@ void SimonCPU::normalize()
         ptotal += power(l);
     }
 
-    _fnorm = _pload * _g->part() / ptotal;
+    _fnorm = _pload / ptotal;
 
     for (int l = 0; l < _g->nxyz(); l++)
     {
@@ -160,45 +161,86 @@ void SimonCPU::normalize()
 }
 
 void SimonCPU::runSteady(const SteadyOption& condition) {
-    float errl2 = 0.0;
+    float errl2 = 1.0;
     int nboiling = 0;
 
     cmfd().updpsi(_flux);
 
-    float ppmd = _ppm;
-    double eigvd = _eigv;
+	_pload = _pload0*std::max(condition.plevel, float(1.E-9))*_g->part();
 
     if(condition.tin != 0) f().updateTin(condition.tin);
+	if(condition.ppm != 0) _ppm = condition.ppm;
 
+	float ppmd = _ppm;
+	double eigvd = _eigv;
+	bool updppm = true;
+	bool updxs = true;
+	bool updls = true;
+	bool xsupdated = false;
     for (int iout = 0; iout < condition.maxiter; iout++)
     {
-        f().updatePPM(_ppm);
-        d().updateH2ODensity(f().dm(), _ppm);
-        x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
-        cmfd().upddtil();
-        cmfd().setls(_eigv);
+		if (updppm) {
+			f().updatePPM(_ppm);
+			d().updateH2ODensity(f().dm(), _ppm);
+			updppm = false;
+			updxs = true;
+		}
+
+		if (updxs) {
+			printf("XS Update\n");
+			x().updateXS(d().dnst(), f().dppm(), f().dtf(), f().dtm());
+			cmfd().upddtil();
+			updxs = false;
+			updls = true;
+		}
+
+		if (errl2 < _crit_nodal) {
+			printf("Nodal Update\n");
+			cmfd().updnodal(_eigv, _flux, _jnet);
+			updls = true;
+		}
+
+		if (updls) {
+			cmfd().setls(_eigv);
+			updls = false;
+		}
+
         cmfd().drive(_eigv, _flux, errl2);
         normalize();
 
         if (iout > 3 && errl2 < _crit_flux) break;
 
-        if (errl2 < _crit_xenon && condition.xenon == XEType::XE_EQ) {
+        if (iout % 2 == 1 && errl2 < _crit_xenon && condition.xenon == XEType::XE_EQ) {
+			printf("Xenon Update\n");
+			x().updateXenonXS(f().dppm(), f().dtf(), f().dtm());
             d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);
-        }
-        if (errl2 < _crit_nodal) {
-            cmfd().updnodal(_eigv, _flux, _jnet);
+			xsupdated = true;
         }
 
         //search critical
-        if(condition.feedtm) f().updateTm(_power, nboiling);
-        if(condition.feedtf) f().updateTf(_power, d().burn());
+		if (condition.feedtm) {
+			printf("TM Update\n");
+			f().updateTm(_power, nboiling);
+			updxs = true;
+			updppm = true;
+		}
 
-        if(condition.searchOption == SearchOption::CBC) {
-            double ppmn = updatePPM(iout == 0, condition.eigvt, _ppm, ppmd, _eigv, eigvd);
+		if (condition.feedtf) {
+			printf("TF Update\n");
+			f().updateTf(_power, d().burn());
+			updxs = true;
+		}
+
+        if(condition.searchOption == CriticalOption::CBC) {
+            float ppmn = updatePPM(iout == 0, condition.eigvt, _ppm, ppmd, _eigv, eigvd);
             ppmd = _ppm;
             _ppm = ppmn;
+			updppm = true;
+			printf("CBC Update : %.2f\n", ppmn);
+
         }
 
         eigvd = _eigv;
+		xsupdated = false;
     }
 }

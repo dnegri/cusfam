@@ -6,7 +6,7 @@
 
 class BICGCMFD : public CMFD {
 protected:
-//    BICGSolver* _ls;
+    //BICGSolver* _ls;
     JacobiBicgSolver* _ls;
     NodalCPU* _nodal;
 

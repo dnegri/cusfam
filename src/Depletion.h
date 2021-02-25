@@ -57,9 +57,6 @@ protected:
     float* _fis;
     float* _tn2n;
 
-    XEType ixe = XEType::XE_EQ;
-    SMType ism = SMType::SM_TR;
-
     float* _dnst;
     float* _dnst_new;
     float* _dnst_avg;
@@ -110,11 +107,8 @@ public:
     __host__ void eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
 
-    __host__ __device__ const XEType& xeopt() { return ixe; };
-    __host__ __device__ const SMType& smopt() { return ism; };
-
-    __host__ void dep(const float& tsec);
-    __host__ __device__ void dep(const int& l, const float& tsec, float* ati, float* atd, float* atavg);
+    __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt);
+    __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);

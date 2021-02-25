@@ -18,7 +18,7 @@ class SimonCPU : public Simon {
 private:
     BICGCMFD* _cmfd;
     float _crit_xenon = 1.E-4;
-    float _crit_nodal = 1.E-4;
+    float _crit_nodal = 1.E-1;
     float _crit_flux = 1.E-5;
 
 public:
@@ -30,7 +30,7 @@ public:
     void initialize(const char* dbfile) override;
     void runKeff(const int& nmaxout) override;
     void runECP(const int& nmaxout, const double& eigvt) override;
-    void runDepletion(const float& tsec) override;
+    void runDepletion(const DepletionOption& option) override;
     void runXenonTransient() override;
     void normalize() override;
 

@@ -191,9 +191,11 @@ void BICGSolver::sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x) {
         for (int i = _g.nxs(j); i < _g.nxe(j); ++i) {
             int l = _g.ijtol(i, j) + k * _g.nxy();
             int ln = _g.neib(SOUTH, l);
-            for (int ig = 0; ig < _g.ng(); ++ig) {
-                b01d(ig, l) = x(ig, ln) * cc(RIGHT, YDIR, ig, l);
-            }
+			if (ln > -1) {
+				for (int ig = 0; ig < _g.ng(); ++ig) {
+					b01d(ig, l) = x(ig, ln) * cc(RIGHT, YDIR, ig, l);
+				}
+			}
         }
         sol1d(j, k, _b01d, _s1dl);
         for (int i = _g.nxs(j); i < _g.nxe(j); ++i) {
@@ -414,7 +416,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
     }
 }
 
-void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, double &r2) {
+void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, CMFD_VAR &r2) {
     int n = _g.nxyz() * _g.ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm

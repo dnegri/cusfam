@@ -56,7 +56,7 @@ void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double&
 
     //compute new eigenvalue
     double eigvd = eigv;
-    if (icy < 0) {
+    if (icy < 0 || gammad < 0 || gamman < 0) {
         double sumf = 0;
         double summ = 0;
         #pragma omp parallel for reduction(+ : summ, sumf)
@@ -76,7 +76,7 @@ void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double&
     }
     reigv = 1 / eigv;
 
-    errl2 = sqrt(errl2 / gammad);
+    errl2 = sqrt(abs(errl2 / gammad));
     double erreig = abs(eigv - eigvd);;
 
     double eigvs = eigv;
@@ -240,7 +240,7 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
             negative = 0;
         }
 
-        if(negative != 0 && icmfd < 5*_ncmfd) iout--;
+        if(negative != 0 && icmfd < 20*_ncmfd) iout--;
 
         printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iter, eigv, errl2, negative);
 

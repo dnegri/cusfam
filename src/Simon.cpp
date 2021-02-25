@@ -3,7 +3,8 @@
 
 extern "C" {
     void opendb(int* length, const char* file);
-    void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
+	void closedb();
+	void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
     void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr,
                    float* hmesh);
     void readBoundary(int* symopt, int* symang, float* albedo);
@@ -12,7 +13,7 @@ extern "C" {
     void readNXYZ8(const int* nxyz, double* val);
     void readNXYZI(const int* nxyz, int* val);
 
-    void readStep(float* bucyc, float* buavg, float* efpd, double* eigv, double* power, double* fnorm);
+    void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
     void readConstantF(const int& n, float* data);
     void readConstantD(const int& n, double* data);
     void readConstantI(const int& n, int* data);
@@ -85,6 +86,10 @@ void Simon::initialize(const char* dbfile) {
 	readConstantF(1, &b10ap);
 	_d->updateB10Abundance(b10ap);
 	
+	readConstantF(1, &_pload0);
+	_pload = _pload0 * _g->part();
+
+
 	readConstantF(1, &_d->totmass());
 	readNXYZ(&nxyz, _d->buconf());
 
@@ -121,9 +126,11 @@ void Simon::initialize(const char* dbfile) {
     _jnet = new SOL_VAR[_g->nsurf() * _g->ng()]{};
 
     //readBurnupList
-    _nstep = 3;
+    _nstep = 18;
 
-    _bucyc = new float[_nstep] {0.0};
+    _bucyc = new float[_nstep] {0, 50, 150, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 13650};
+
+	closedb();
 
     delete[] nxs;
     delete[] nxe;
@@ -135,21 +142,22 @@ void Simon::initialize(const char* dbfile) {
 }
 
 void Simon::setBurnup(const float& burnup) {
-
-    int i = _nstep-1;
-    for (; i >= 0; --i) {
-        if(_bucyc[i] < burnup) break;
+	
+	int i = 0;
+	for (; i < _nstep; ++i) {
+        if(burnup-10.0 < _bucyc[i] ) break;
     }
 
-    if(i == -1) i=0;
+	char dbfile[19];
+	int intbu = round(_bucyc[i]);
+	sprintf(dbfile, "../run/%05d.simon", intbu);
+	printf("Started reading burn file : %s\n", dbfile);
 
+	int length = strlen(dbfile);
+	opendb(&length, dbfile);
 
-    //skip (i-1) burnup data
-    //skip
-
-    //read (i)-th burnup data
     float bucyc, buavg, efpd;
-    readStep(&bucyc, &buavg, &efpd, &_eigv, &_pload, &_fnorm);
+    readStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
 
     _reigv = 1. / _eigv;
 
@@ -214,6 +222,9 @@ void Simon::setBurnup(const float& burnup) {
     _f->updateTin(_tin);
     _f->initDelta(_ppm);
     _x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
+
+	closedb();
+	printf("Finished reading burn file : %s\n", dbfile);
 
 }
 

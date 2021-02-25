@@ -174,72 +174,72 @@ public:
 		_xsmacn0 = new XS_PRECISION[_ng * _nxyz]; // (:,:,:,:)
 
 
-		_xsmicd = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmica = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz]; // (:,:,:,:,:)
-		_xsmicf = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmick = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmicn = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
+		_xsmicd = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmica = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz]{}; // (:,:,:,:,:)
+		_xsmicf = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmick = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmicn = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
 
 		_xsmic2n = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:)
-		_xsmicd0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmica0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmics0 = new XS_PRECISION[_ng * _ng * NISO * _nxyz]; // (:,:,:,:,:)
-		_xsmicf0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmick0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
-		_xsmicn0 = new XS_PRECISION[_ng * NISO * _nxyz]; // (:,:,:,:)
+		_xsmicd0 = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmica0 = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmics0 = new XS_PRECISION[_ng * _ng * NISO * _nxyz]{}; // (:,:,:,:,:)
+		_xsmicf0 = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmick0 = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
+		_xsmicn0 = new XS_PRECISION[_ng * NISO * _nxyz]{}; // (:,:,:,:)
 
-		_xdfmicd = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdfmica = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xddmicd = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xddmica = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdpmicd = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdpmica = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdmmicd = new XS_PRECISION[_ng * NPTM * NISO * _nxyz];
-		_xdmmica = new XS_PRECISION[_ng * NPTM * NISO * _nxyz];
-		_xddmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz];
-		_xdpmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz];
-		_xdfmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz];
-		_xdmmics = new XS_PRECISION[_ng * _ng * NPTM * NISO * _nxyz];
+		_xdfmicd = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdfmica = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xddmicd = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xddmica = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdpmicd = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdpmica = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdmmicd = new XS_PRECISION[_ng * NPTM * NISO * _nxyz]{};
+		_xdmmica = new XS_PRECISION[_ng * NPTM * NISO * _nxyz]{};
+		_xddmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz]{};
+		_xdpmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz]{};
+		_xdfmics = new XS_PRECISION[_ng * _ng * NISO * _nxyz]{};
+		_xdmmics = new XS_PRECISION[_ng * _ng * NPTM * NISO * _nxyz]{};
 
-		_xdfmicn = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xddmicn = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdpmicn = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdmmicn = new XS_PRECISION[_ng * NPTM * NISO * _nxyz];
-		_xdpmicf = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdfmicf = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xddmicf = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdmmicf = new XS_PRECISION[_ng * NPTM * NISO * _nxyz];
-		_xdpmick = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdfmick = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xddmick = new XS_PRECISION[_ng * NISO * _nxyz];
-		_xdmmick = new XS_PRECISION[_ng * NPTM * NISO * _nxyz];
+		_xdfmicn = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xddmicn = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdpmicn = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdmmicn = new XS_PRECISION[_ng * NPTM * NISO * _nxyz]{};
+		_xdpmicf = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdfmicf = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xddmicf = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdmmicf = new XS_PRECISION[_ng * NPTM * NISO * _nxyz]{};
+		_xdpmick = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdfmick = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xddmick = new XS_PRECISION[_ng * NISO * _nxyz]{};
+		_xdmmick = new XS_PRECISION[_ng * NPTM * NISO * _nxyz]{};
 
 
-		_dpmacd = new XS_PRECISION[_nxyz * _ng];
-		_dpmaca = new XS_PRECISION[_nxyz * _ng];
-		_dpmacf = new XS_PRECISION[_nxyz * _ng];
-		_dpmack = new XS_PRECISION[_nxyz * _ng];
-		_dpmacn = new XS_PRECISION[_nxyz * _ng];
-		_dpmacs = new XS_PRECISION[_nxyz * _ng * _ng];
-		_ddmacd = new XS_PRECISION[_nxyz * _ng];
-		_ddmaca = new XS_PRECISION[_nxyz * _ng];
-		_ddmacf = new XS_PRECISION[_nxyz * _ng];
-		_ddmack = new XS_PRECISION[_nxyz * _ng];
-		_ddmacn = new XS_PRECISION[_nxyz * _ng];
-		_ddmacs = new XS_PRECISION[_nxyz * _ng * _ng];
-		_dmmacd = new XS_PRECISION[_nxyz * NPTM * _ng];
-		_dmmaca = new XS_PRECISION[_nxyz * NPTM * _ng];
-		_dmmacf = new XS_PRECISION[_nxyz * NPTM * _ng];
-		_dmmack = new XS_PRECISION[_nxyz * NPTM * _ng];
-		_dmmacn = new XS_PRECISION[_nxyz * NPTM * _ng];
-		_dmmacs = new XS_PRECISION[_nxyz * NPTM * _ng * _ng];
-		_dfmacd = new XS_PRECISION[_nxyz * _ng];
-		_dfmaca = new XS_PRECISION[_nxyz * _ng];
-		_dfmacf = new XS_PRECISION[_nxyz * _ng];
-		_dfmack = new XS_PRECISION[_nxyz * _ng];
-		_dfmacn = new XS_PRECISION[_nxyz * _ng];
-		_dfmacs = new XS_PRECISION[_nxyz * _ng * _ng];
+		_dpmacd = new XS_PRECISION[_nxyz * _ng]{};
+		_dpmaca = new XS_PRECISION[_nxyz * _ng]{};
+		_dpmacf = new XS_PRECISION[_nxyz * _ng]{};
+		_dpmack = new XS_PRECISION[_nxyz * _ng]{};
+		_dpmacn = new XS_PRECISION[_nxyz * _ng]{};
+		_dpmacs = new XS_PRECISION[_nxyz * _ng * _ng]{};
+		_ddmacd = new XS_PRECISION[_nxyz * _ng]{};
+		_ddmaca = new XS_PRECISION[_nxyz * _ng]{};
+		_ddmacf = new XS_PRECISION[_nxyz * _ng]{};
+		_ddmack = new XS_PRECISION[_nxyz * _ng]{};
+		_ddmacn = new XS_PRECISION[_nxyz * _ng]{};
+		_ddmacs = new XS_PRECISION[_nxyz * _ng * _ng]{};
+		_dmmacd = new XS_PRECISION[_nxyz * NPTM * _ng]{};
+		_dmmaca = new XS_PRECISION[_nxyz * NPTM * _ng]{};
+		_dmmacf = new XS_PRECISION[_nxyz * NPTM * _ng]{};
+		_dmmack = new XS_PRECISION[_nxyz * NPTM * _ng]{};
+		_dmmacn = new XS_PRECISION[_nxyz * NPTM * _ng]{};
+		_dmmacs = new XS_PRECISION[_nxyz * NPTM * _ng * _ng]{};
+		_dfmacd = new XS_PRECISION[_nxyz * _ng]{};
+		_dfmaca = new XS_PRECISION[_nxyz * _ng]{};
+		_dfmacf = new XS_PRECISION[_nxyz * _ng]{};
+		_dfmack = new XS_PRECISION[_nxyz * _ng]{};
+		_dfmacn = new XS_PRECISION[_nxyz * _ng]{};
+		_dfmacs = new XS_PRECISION[_nxyz * _ng * _ng]{};
 
 
 		for (int l = 0; l < _nxyz; l++)
@@ -306,7 +306,14 @@ public:
 
 	__host__ __device__ void updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm);
     __host__ void updateXS(const float* dnst, const float* dppm, const float* dtf, const float* dtm);
-    __host__ __device__ void updateRodXS(const int& l, const int& iso_rod, const float& ratio, const float& dppm, const float& dtf, const float& dtm);
+
+	__host__ __device__ void updateXenonXS(const int& l, const float& dppm, const float& dtf, const float& dtm);
+	__host__ void updateXenonXS(const float* dppm, const float* dtf, const float* dtm);
+
+	__host__ __device__ void updateDepletionXS(const int& l, const float& dppm, const float& dtf, const float& dtm);
+	__host__ void updateDepletionXS(const float* dppm, const float* dtf, const float* dtm);
+
+	__host__ __device__ void updateRodXS(const int& l, const int& iso_rod, const float& ratio, const float& dppm, const float& dtf, const float& dtm);
     __host__ void updateRodXS(ControlRod& r, const float* dppm, const float* dtf, const float* dtm);
 
     __host__ __device__ inline XS_PRECISION& xsnf(const int& ig, const int& l) { return _xsnf[l * _ng + ig]; };

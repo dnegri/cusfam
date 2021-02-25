@@ -71,12 +71,12 @@ contains
         
     end subroutine
     
-    subroutine readstep(bucyc, buavg, efpd, eigv, power, fnorm)   bind(c, name="readStep")
-        real(4)         :: bucyc, buavg, efpd
-        real(8)         :: eigv, power, fnorm
+    subroutine readstep(power, bucyc, buavg, efpd, eigv, fnorm)   bind(c, name="readStep")
+        real(4)         :: power, bucyc, buavg, efpd
+        real(8)         :: eigv, fnorm
         
-        read(ifile) bucyc, buavg, efpd
-        read(ifile) eigv, power, fnorm
+        read(ifile) power, bucyc, buavg, efpd
+        read(ifile) eigv, fnorm
         
     end subroutine
     
