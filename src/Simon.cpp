@@ -161,7 +161,14 @@ void Simon::setBurnup(const float& burnup) {
 
     _reigv = 1. / _eigv;
 
-    readDensity(&NISO, &(_d->dnst(0, 0)));
+
+    readDensity(&NISO, _d->dnst_new());
+
+	if (burnup == 0.0) {
+		std::copy_n(_d->dnst_new(), NISO * _g->nxyz(), _d->dnst());
+	}
+
+
     readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
     readNXYZ(&(_g->nxyz()), _power);
 

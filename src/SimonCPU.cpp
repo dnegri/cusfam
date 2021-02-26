@@ -12,19 +12,18 @@ SimonCPU::~SimonCPU() {
 
 void SimonCPU::initialize(const char* dbfile)
 {
-    updateCriteria(1.E-5);
     Simon::initialize(dbfile);
     _cmfd = new BICGCMFD(g(), x());
     _cmfd->init();
-    cmfd().setNcmfd(4);
+    cmfd().setNcmfd(5);
     cmfd().setEshift(0.04);
-
+	updateCriteria(1.E-5);
 }
 
 void SimonCPU::updateCriteria(const float& crit_flux) {
     _crit_flux = crit_flux;
-    _crit_xenon = crit_flux*10.0;
-    _crit_nodal = 1.0E-4;
+    _crit_xenon = crit_flux*100.0;
+    _crit_nodal = 1.0E-3;
 }
 
 void SimonCPU::runKeff(const int& nmaxout) {

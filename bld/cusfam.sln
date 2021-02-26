@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1401
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cusfam", "cusfam.vcxproj", "{7BA30CD2-F2B9-4F20-8680-574B2C5912BD}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -11,6 +11,9 @@ EndProject
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "cusfamf", "cusfamf.vfproj", "{8B7EA7FC-2BD4-4718-B305-46A29AB431D2}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86

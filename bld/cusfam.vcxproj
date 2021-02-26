@@ -123,6 +123,8 @@
       <OpenMP>GenerateParallelCode</OpenMP>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <Parallelization>true</Parallelization>
+      <EnableGapAnalysis>Disable</EnableGapAnalysis>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +168,7 @@
     <ClInclude Include="..\src\Simon.h" />
     <ClInclude Include="..\src\SimonCPU.h" />
     <ClInclude Include="..\src\SteamTable.h" />
+    <ClInclude Include="..\src\TableSet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

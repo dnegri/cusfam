@@ -50,8 +50,8 @@ int main() {
 	THREADS_SURFACE = dim3(NTHREADSPERBLOCK, 1, 1);
 #endif
 
-	float dburn = 1000;
-	float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0;
+	//float dburn = 1000;
+	//float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0;
 
 	SteadyOption s;
 	s.searchOption = CriticalOption::CBC;
@@ -68,7 +68,6 @@ int main() {
 	d_option.isotope = DepletionIsotope::DEP_ALL;
 	d_option.sm = SMType::SM_TR;
 	d_option.xe = s.xenon;
-	d_option.tsec = tsec;
 
 
 
@@ -76,17 +75,18 @@ int main() {
 //simon.fnorm() = 1.0;
 //std::fill_n(simon.flux(), simon.g().ngxyz(), 1.E+14);
 
-	simon.setBurnup(1000.0);
+	simon.setBurnup(0);
 
 	auto start = chrono::steady_clock::now();
 	float burn = 0.0;
 
-	for (int idep = 0; idep < simon.nburn(); idep++)
+	for (int idep = 0; idep < simon.nburn()-1; idep++)
 	{
 		burn = simon.burn(idep); // MWD/MTU
 		//simon.setBurnup(burn);
 		simon.runSteady(s);
 
+		d_option.tsec = simon.dburn(idep) / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
 		simon.runDepletion(d_option);
 		printf("DEPLETION : %d,  CBC : %.2f, EIGV : %.6f\n", idep, simon.ppm(), simon.eigv());
 		s.ppm = simon.ppm();

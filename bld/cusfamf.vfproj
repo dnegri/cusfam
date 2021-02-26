@@ -94,6 +94,7 @@
 		<File RelativePath="..\src.nist\visc.f"/>
 		<File RelativePath="..\src.nist\wtrans.f"/></Filter>
 		<File RelativePath="..\src\CSteamTable.f90"/>
+		<File RelativePath="..\src\CTableSet.f90"/>
 		<File RelativePath="..\src\cusfam.f90"/>
 		<File RelativePath="..\src\simondbreader.f90"/></Filter></Files>
 	<Globals/></VisualStudioProject>
