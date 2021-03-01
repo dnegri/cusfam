@@ -37,7 +37,7 @@ file(GLOB SOURCES
         ../src/SimonCPU.*
         )
 
-file(GLOB FortranSources ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)
+file(GLOB FortranSources ../src/CTableSet.f90 ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)
 
 set(CMAKE_Fortran_FLAGS "-finit-local-zero -fno-automatic -fdefault-real-8")
 include_directories(/usr/local/include /opt/homebrew/include)

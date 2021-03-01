@@ -32,7 +32,7 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+//	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
 	omp_set_num_threads(8);
 
