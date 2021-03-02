@@ -3,6 +3,7 @@
 
 extern "C" {
     void opendb(int* length, const char* file);
+	void readTableSet(int* length, const char* file, int* ncomp, char compnames[][12]);
 	void closedb();
 	void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
     void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr,
@@ -25,6 +26,8 @@ extern "C" {
     void readXSDTM(const int* niso, float* xs);
     void readXSSDTM(const int* niso, float* xs);
     void readDensity(const int* niso, float* dnst);
+
+
 
 }
 
@@ -139,6 +142,14 @@ void Simon::initialize(const char* dbfile) {
     delete[] ijtol;
     delete[] neibr;
     delete[] hmesh;
+}
+
+void Simon::readTableSet(const char * tsetfile)
+{
+	int length = strlen(tsetfile);
+	int ncomp = 1;
+	char compnames[1][12] = { "KSTD_A0C" };
+	::readTableSet(&length, tsetfile, &ncomp, compnames);
 }
 
 void Simon::setBurnup(const float& burnup) {
