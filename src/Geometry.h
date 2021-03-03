@@ -57,6 +57,10 @@ protected :
 	int* _ijtol;
 	int* _neib;
 
+	int* _comps;
+	int  _ncomp;
+	char _compnames[50][13];
+
 	int* _lklr;
 	int* _idirlr;
 	int* _sgnlr;
@@ -133,6 +137,11 @@ public:
 	__host__ __device__ inline int& idirlr(const int& lr, const int& ls) { return _idirlr[ls * LR + lr]; };
 	__host__ __device__ inline int& sgnlr(const int& lr, const int& ls) { return _sgnlr[ls * LR + lr]; };
 	__host__ __device__ inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir)*LR + lr]; };
+
+	__host__ __device__ inline int& comp(const int& l) { return _comps[l]; };
+	__host__ __device__ inline int* comp() { return _comps; };
+	__host__ __device__ inline int& ncomp() { return _ncomp; };
+	__host__ __device__ char** compnames() { return (char**)_compnames; };
 
 	__host__ __device__ inline float& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
     __host__ __device__ inline float& vol(const int& lk) { return _vol[lk]; };

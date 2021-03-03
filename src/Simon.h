@@ -87,6 +87,7 @@ public:
 
     __host__ virtual void initialize(const char* dbfile);
 	__host__ virtual void readTableSet(const char* tsetfile);
+	__host__ virtual void updateBurnup();
 
     __host__ virtual void runSteady(const SteadyOption& condition) = 0;
     __host__ virtual void runKeff(const int& nmaxout)=0;

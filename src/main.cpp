@@ -39,6 +39,7 @@ int main() {
 	SimonCPU simon;
 	simon.initialize("../run/geom.simon");
 	simon.readTableSet("../run/KMYGN34C01_PLUS7_XSE.XS");
+	simon.updateBurnup();
 
 #ifndef CPU
 	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);

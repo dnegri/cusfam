@@ -39,6 +39,29 @@ contains
         
     end subroutine
     
+    subroutine readComposition(nxy, nz, ncomp, names, comps)   bind(c, name="readComposition")
+        use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char , c_char   
+        integer                                 :: nxy, nz, ncomp
+        integer                                 :: comps(nxy,nz)
+        type(c_ptr)                             :: names
+        character(len=12), dimension(50)        :: fnames
+        character(kind=c_char), dimension(:,:), pointer :: fptr
+        integer                             :: i, j
+        
+        read(ifile) ncomp
+        read(ifile) fnames(1:ncomp)
+        read(ifile) comps
+        
+        call c_f_pointer(c_loc(names), fptr, [13, 50])
+        do i = 1, ncomp
+            do j=1, 12
+                fptr(j,i) = fnames(i)(j:j)
+            enddo
+        enddo
+        
+    end subroutine
+    
+    
     subroutine readConstantI(n, cnst)   bind(c, name="readConstantI")
         integer         :: n
         integer         :: cnst(n)

@@ -21,6 +21,8 @@ protected:
 	XS_PRECISION* _chif;
 	XS_PRECISION* _xsadf;
 
+	XS_PRECISION* _xehfp;
+
 	//
 	// pointers for micro cross section derivative for isotopes
 	//
@@ -165,6 +167,7 @@ public:
 		_chif = new XS_PRECISION[_ng * _nxyz]{};
 		_xssf = new XS_PRECISION[_ng * _ng * _nxyz]{};
 		_xsadf = new XS_PRECISION[_ng * _nxyz]{};
+		_xehfp = new XS_PRECISION[ _nxyz]{};
 
 		_xsmacd0 = new XS_PRECISION[_ng * _nxyz]; // (:,:,:,:)
 		_xsmaca0 = new XS_PRECISION[_ng * _nxyz]; // (:,:,:,:)
@@ -383,7 +386,7 @@ public:
 	__host__ __device__ inline XS_PRECISION& dmmacf(const int& ig, const int& ip, const int& l) { return _dmmacf[l * _ng * NPTM + ip * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& dmmack(const int& ig, const int& ip, const int& l) { return _dmmack[l * _ng * NPTM + ip * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& dmmacn(const int& ig, const int& ip, const int& l) { return _dmmacn[l * _ng * NPTM + ip * _ng + ig]; };
-	__host__ __device__ inline XS_PRECISION& dmmacs(const int& igs, const int& ip, const int& ige, const int& l) { return _dmmacs[l * _ng * _ng * NPTM + ip * _ng * _ng + ige * _ng + igs]; };
+	__host__ __device__ inline XS_PRECISION& dmmacs(const int& igs, const int& ige, const int& ip, const int& l) { return _dmmacs[l * _ng * _ng * NPTM + ip * _ng * _ng + ige * _ng + igs]; };
 	__host__ __device__ inline XS_PRECISION& dfmacd(const int& ig, const int& l) { return _dfmacd[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& dfmaca(const int& ig, const int& l) { return _dfmaca[l * _ng + ig]; };
 	__host__ __device__ inline XS_PRECISION& dfmacf(const int& ig, const int& l) { return _dfmacf[l * _ng + ig]; };
@@ -472,6 +475,130 @@ public:
 	const XS_PRECISION* dfmack() const { return _dfmack; };
 	const XS_PRECISION* dfmacn() const { return _dfmacn; };
 	const XS_PRECISION* dfmacs() const { return _dfmacs; };
+
+	__host__ __device__ inline XS_PRECISION* xsnf(const int& l) { return &_xsnf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsdf(const int& l) { return &_xsdf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xssf(const int& l) { return &_xssf[l * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xstf(const int& l) { return &_xstf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xskf(const int& l) { return &_xskf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* chif(const int& l) { return &_chif[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsadf(const int& l) { return &_xsadf[l * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xdfmicd(const int& iiso, const int& l) { return &_xdfmicd[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmicd(const int& iiso, const int& l) { return &_xddmicd[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicd(const int& iiso, const int& l) { return &_xdpmicd[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicf(const int& iiso, const int& l) { return &_xdpmicf[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdfmicf(const int& iiso, const int& l) { return &_xdfmicf[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmicf(const int& iiso, const int& l) { return &_xddmicf[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdfmica(const int& iiso, const int& l) { return &_xdfmica[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmica(const int& iiso, const int& l) { return &_xddmica[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmica(const int& iiso, const int& l) { return &_xdpmica[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicn(const int& iiso, const int& l) { return &_xdpmicn[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdfmicn(const int& iiso, const int& l) { return &_xdfmicn[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmicn(const int& iiso, const int& l) { return &_xddmicn[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmick(const int& iiso, const int& l) { return &_xdpmick[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdfmick(const int& iiso, const int& l) { return &_xdfmick[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmick(const int& iiso, const int& l) { return &_xddmick[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdfmics(const int& iiso, const int& l) { return &_xdfmics[l * _ng * _ng * NISO + iiso * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xddmics(const int& iiso, const int& l) { return &_xddmics[l * _ng * _ng * NISO + iiso * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdpmics(const int& iiso, const int& l) { return &_xdpmics[l * _ng * _ng * NISO + iiso * _ng * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xdmmicd(const int& ip, const int& iiso, const int& l) { return &_xdmmicd[l * _ng * NPTM * NISO + iiso * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdmmicf(const int& ip, const int& iiso, const int& l) { return &_xdmmicf[l * _ng * NPTM * NISO + iiso * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdmmica(const int& ip, const int& iiso, const int& l) { return &_xdmmica[l * _ng * NPTM * NISO + iiso * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdmmicn(const int& ip, const int& iiso, const int& l) { return &_xdmmicn[l * _ng * NPTM * NISO + iiso * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdmmick(const int& ip, const int& iiso, const int& l) { return &_xdmmick[l * _ng * NPTM * NISO + iiso * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xdmmics(const int& ip, const int& iiso, const int& l) { return &_xdmmics[l * _ng * _ng * NPTM * NISO + iiso * _ng * _ng * NPTM + ip * _ng * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xsmic2n(const int& l) { return &_xsmic2n[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmicd(const int& iiso, const int& l) { return &_xsmicd[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmica(const int& iiso, const int& l) { return &_xsmica[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmics(const int& iiso, const int& l) { return &_xsmics[l * _ng * _ng * NISO + iiso * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmicf(const int& iiso, const int& l) { return &_xsmicf[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmick(const int& iiso, const int& l) { return &_xsmick[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmicn(const int& iiso, const int& l) { return &_xsmicn[l * _ng * NISO + iiso * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xsmicd0(const int& iiso, const int& l) { return &_xsmicd0[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmica0(const int& iiso, const int& l) { return &_xsmica0[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmicf0(const int& iiso, const int& l) { return &_xsmicf0[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmick0(const int& iiso, const int& l) { return &_xsmick0[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmicn0(const int& iiso, const int& l) { return &_xsmicn0[l * _ng * NISO + iiso * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmics0(const int& iiso, const int& l) { return &_xsmics0[l * _ng * _ng * NISO + iiso * _ng * _ng]; };
+
+
+	__host__ __device__ inline XS_PRECISION* dpmacd(const int& l) { return &_dpmacd[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dpmaca(const int& l) { return &_dpmaca[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dpmacf(const int& l) { return &_dpmacf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dpmack(const int& l) { return &_dpmack[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dpmacn(const int& l) { return &_dpmacn[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dpmacs(const int& l) { return &_dpmacs[l * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmacd(const int& l) { return &_ddmacd[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmaca(const int& l) { return &_ddmaca[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmacf(const int& l) { return &_ddmacf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmack(const int& l) { return &_ddmack[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmacn(const int& l) { return &_ddmacn[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* ddmacs(const int& l) { return &_ddmacs[l * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmacd(const int& ip, const int& l) { return &_dmmacd[l * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmaca(const int& ip, const int& l) { return &_dmmaca[l * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmacf(const int& ip, const int& l) { return &_dmmacf[l * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmack(const int& ip, const int& l) { return &_dmmack[l * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmacn(const int& ip, const int& l) { return &_dmmacn[l * _ng * NPTM + ip * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dmmacs(const int& ip, const int& l) { return &_dmmacs[l * _ng * _ng * NPTM + ip * _ng * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmacd(const int& l) { return &_dfmacd[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmaca(const int& l) { return &_dfmaca[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmacf(const int& l) { return &_dfmacf[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmack(const int& l) { return &_dfmack[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmacn(const int& l) { return &_dfmacn[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* dfmacs(const int& l) { return &_dfmacs[l * _ng * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xsmacd0(const int& l) { return &_xsmacd0[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmaca0(const int& l) { return &_xsmaca0[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmacf0(const int& l) { return &_xsmacf0[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmack0(const int& l) { return &_xsmack0[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmacn0(const int& l) { return &_xsmacn0[l * _ng]; };
+	__host__ __device__ inline XS_PRECISION* xsmacs0(const int& l) { return &_xsmacs0[l * _ng * _ng]; };
+
+	__host__ __device__ inline XS_PRECISION* xdfmicd(const int& l) { return &_xdfmicd[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmicd(const int& l) { return &_xddmicd[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicd(const int& l) { return &_xdpmicd[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicf(const int& l) { return &_xdpmicf[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdfmicf(const int& l) { return &_xdfmicf[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmicf(const int& l) { return &_xddmicf[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdfmica(const int& l) { return &_xdfmica[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmica(const int& l) { return &_xddmica[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmica(const int& l) { return &_xdpmica[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmicn(const int& l) { return &_xdpmicn[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdfmicn(const int& l) { return &_xdfmicn[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmicn(const int& l) { return &_xddmicn[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmick(const int& l) { return &_xdpmick[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdfmick(const int& l) { return &_xdfmick[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmick(const int& l) { return &_xddmick[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdfmics(const int& l) { return &_xdfmics[l * _ng * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xddmics(const int& l) { return &_xddmics[l * _ng * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdpmics(const int& l) { return &_xdpmics[l * _ng * _ng * NISO]; };
+
+	__host__ __device__ inline XS_PRECISION* xdmmicd(const int& l) { return &_xdmmicd[l * _ng * NPTM * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdmmicf(const int& l) { return &_xdmmicf[l * _ng * NPTM * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdmmica(const int& l) { return &_xdmmica[l * _ng * NPTM * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdmmicn(const int& l) { return &_xdmmicn[l * _ng * NPTM * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdmmick(const int& l) { return &_xdmmick[l * _ng * NPTM * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xdmmics(const int& l) { return &_xdmmics[l * _ng * _ng * NPTM * NISO * NPTM]; };
+
+	__host__ __device__ inline XS_PRECISION* xsmicd(const int& l) { return &_xsmicd[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmica(const int& l) { return &_xsmica[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmics(const int& l) { return &_xsmics[l * _ng * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmicf(const int& l) { return &_xsmicf[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmick(const int& l) { return &_xsmick[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmicn(const int& l) { return &_xsmicn[l * _ng * NISO]; };
+
+	__host__ __device__ inline XS_PRECISION* xsmicd0(const int& l) { return &_xsmicd0[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmica0(const int& l) { return &_xsmica0[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmicf0(const int& l) { return &_xsmicf0[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmick0(const int& l) { return &_xsmick0[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmicn0(const int& l) { return &_xsmicn0[l * _ng * NISO]; };
+	__host__ __device__ inline XS_PRECISION* xsmics0(const int& l) { return &_xsmics0[l * _ng * _ng * NISO]; };
+
+	__host__ __device__ inline XS_PRECISION* xehfp(const int& l) { return &_xehfp[l]; };
 
 
 };

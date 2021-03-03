@@ -5,7 +5,8 @@ module cusfam
     implicit none
     
     type(SteamTable), pointer :: stable
-    type(TableSet)              :: tset
+    type(TableSet)            :: tset
+    integer                   :: ng =2, NISO = 40
 contains
 
     subroutine readTableSet(lenf, file, ncomp, compnames) bind(c, name="readTableSet")
@@ -17,12 +18,12 @@ contains
         integer(kind=c_int),                 intent(in) :: ncomp
         type(c_ptr), target,                 intent(in) :: compnames
         character(kind=c_char), dimension(:,:), pointer :: fptr
-        character(len=12), dimension(ncomp)             :: fstring
+        character(len=13), dimension(ncomp)             :: fstring
         integer                                         :: i, slen
         
         fstring(:) = "            "
         
-        call c_f_pointer(c_loc(compnames), fptr, [12, ncomp])
+        call c_f_pointer(c_loc(compnames), fptr, [13, ncomp])
         do i = 1, ncomp
             slen = 0
             do while(fptr(slen+1,i) /= c_null_char)
@@ -38,6 +39,36 @@ contains
         call tset.init(ncomp, fstring)
         call tset%readFile(file2)
     end subroutine
+    
+    subroutine calculateReference(icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp) bind(c, name="calculateReference")
+        integer             :: icomp
+        real(4)             :: burn
+        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmicn(ng,NISO), xsmicf(ng,NISO), xsmick(ng,NISO), xsmics(ng,ng,NISO), xsmic2n(ng), xehfp
+
+        call tset%comps(icomp)%calculateReference(burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
+        
+    end subroutine
+    
+    subroutine calculateVariation(icomp, burn,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+                                                xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmica, xdfmica, xdmmica, xddmica, &
+                                                xdpmicd, xdfmicd, xdmmicd, xddmicd, &
+                                                xdpmics, xdfmics, xdmmics, xddmics )  bind(c, name="calculateVariation")
+        integer             :: icomp
+        real(4)             :: burn
+        real(4)             ::  xdpmicn(ng,NISO), xdfmicn(ng,NISO), xdmmicn(ng,3,NISO), xddmicn(ng,NISO), &
+                                xdpmicf(ng,NISO), xdfmicf(ng,NISO), xdmmicf(ng,3,NISO), xddmicf(ng,NISO), &
+                                xdpmica(ng,NISO), xdfmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
+                                xdpmicd(ng,NISO), xdfmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
+                                xdpmics(ng,ng,NISO), xdfmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        
+        call tset%comps(icomp)%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+                                                xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmica, xdfmica, xdmmica, xddmica, &
+                                                xdpmicd, xdfmicd, xdmmicd, xddmicd, &
+                                                xdpmics, xdfmics, xdmmics, xddmics )
+        
+    end subroutine       
 
 
     subroutine setTHPressure(press)   bind(C, name="setTHPressure")

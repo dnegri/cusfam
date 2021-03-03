@@ -46,6 +46,8 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	_nys = new int[_nx];
 	_nye = new int[_nx];
 
+	_comps = new int[_nxyz];
+
 	for (int j = 0; j < _ny; j++)
 	{
 		nxs(j) = nxs_[j]-1;
