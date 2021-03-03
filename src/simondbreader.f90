@@ -43,7 +43,7 @@ contains
         use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char , c_char   
         integer                                 :: nxy, nz, ncomp
         integer                                 :: comps(nxy,nz)
-        type(c_ptr)                             :: names
+        type(c_ptr),target                      :: names
         character(len=12), dimension(50)        :: fnames
         character(kind=c_char), dimension(:,:), pointer :: fptr
         integer                             :: i, j

@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 project(cusfam CXX Fortran)
-set(CMAKE_CXX_STANDARD 14)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
@@ -37,15 +36,26 @@ file(GLOB SOURCES
         ../src/SimonCPU.*
         )
 
-file(GLOB FortranSources ../src/CTableSet.f90 ../src/simondbreader.f90 ../src/cusfam.f90 ../src/CSteamTable.f90 ../src.nist/*.f)
+file(GLOB FortranSources
+        ../src/CIsotope.f90
+        ../src/CReflector.f90
+        ../src/CComposition.f90
+        ../src/CTableSet.f90
+        ../src/simondbreader.f90
+        ../src/cusfam.f90
+        ../src/CSteamTable.f90
+        ../src/quad1.f90
+        ../src.nist/*.f)
 
-set(CMAKE_Fortran_FLAGS "-finit-local-zero -fno-automatic -fdefault-real-8")
+set(CMAKE_CXX_STANDARD 14)
+
+set(CMAKE_Fortran_FLAGS "-ffree-line-length-none -finit-local-zero -fno-automatic -fdefault-real-8")
 include_directories(/usr/local/include /opt/homebrew/include)
 link_directories(/usr/local/lib /opt/homebrew/lib)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
 SET_SOURCE_FILES_PROPERTIES(${FortranSources} PROPERTIES LANGUAGE Fortran )
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${FortranSources})
+add_executable(${PROJECT_NAME} ${FortranSources} ${SOURCES} )
 target_link_libraries(${PROJECT_NAME} Ginkgo::ginkgo OpenMP::OpenMP_CXX)
 

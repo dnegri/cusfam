@@ -215,8 +215,8 @@ contains
             endif
             
             idiso = this%indexOfIsotope(header(1:4))
-            comp%iso(idiso).id = idiso
-            call this.readFuelIsotope(ifile, comp, comp%iso(idiso), header)
+            comp%iso(idiso)%id = idiso
+            call this%readFuelIsotope(ifile, comp, comp%iso(idiso), header)
         enddo
         
 1       continue
@@ -435,7 +435,7 @@ contains
         class(TableSet)      :: this
         integer             :: icomp
         real(4)             :: burn
-        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmicn(ng,NISO), xsmicf(ng,NISO), xsmick(ng,NISO), xsmics(ng,ng,NISO), xsmic2n(ng), xehfp(ng)
+        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmicn(ng,NISO), xsmicf(ng,NISO), xsmick(ng,NISO), xsmics(ng,ng,NISO), xsmic2n(ng), xehfp
 
         call this%comps(icomp)%calculateReference(burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
         

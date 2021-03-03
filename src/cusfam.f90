@@ -36,7 +36,7 @@ contains
             file2(i:i)= file(i)
         enddo
         
-        call tset.init(ncomp, fstring)
+        call tset%init(ncomp, fstring)
         call tset%readFile(file2)
     end subroutine
     
