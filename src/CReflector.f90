@@ -94,14 +94,14 @@ contains
             xsmicd(ig,ID_STRM)=this%rasigt(2,ig,3)
         enddo
         
-        !do igs=1,ng
-        !do ige=1,ng
-        !    if(igs == ige) cycle
-        !    xsmics(igs,ige, ID_B10)=this%rasigst(igs,ige,1)
-        !    xsmics(igs,ige, ID_H2O)=this%rasigst(igs,ige,2)
-        !    xsmics(igs,ige,ID_STRM)=this%rasigst(igs,ige,3)
-        !enddo
-        !enddo
+        do igs=1,ng
+        do ige=1,ng
+            if(igs == ige) cycle
+            xsmics(igs,ige, ID_B10)=this%rasigst(igs,ige,1)
+            xsmics(igs,ige, ID_H2O)=this%rasigst(igs,ige,2)
+            xsmics(igs,ige,ID_STRM)=this%rasigst(igs,ige,3)
+        enddo
+        enddo
         
     end subroutine    
     
@@ -160,7 +160,7 @@ contains
             
         do igs=1,ng
         do ige=1,ng
-            if(igs.eq.ige) cycle
+            if(igs == ige) cycle
             xsmics(igs,ige,ID_STRM)=this%rrsigs(1,igs,ige,1)
         enddo
         enddo

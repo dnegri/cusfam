@@ -50,6 +50,8 @@ file(GLOB FortranSources
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_Fortran_FLAGS "-ffree-line-length-none -finit-local-zero -fno-automatic -fdefault-real-8")
+set(CMAKE_CXX_FLAGS "-ffpe-trap=invalid,zero,overflow")
+
 include_directories(/usr/local/include /opt/homebrew/include)
 link_directories(/usr/local/lib /opt/homebrew/lib)
 

@@ -75,15 +75,15 @@ void Depletion::updateB10Abundance(const float& b10ap)
 }
 
 
-void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt)
+void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt, const float* power)
 {
     #pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
-        dep(l, tsec, xeopt, smopt, _dnst, _dnst_new, _dnst_avg);
+        dep(l, tsec, xeopt, smopt, power[l], _dnst, _dnst_new, _dnst_avg);
     }
 }
 
-void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, float* ati, float* atd, float* atavg)
+void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg)
 {
     if(ati(U235,l) == 0) return;
 
@@ -110,6 +110,9 @@ void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const 
 		ati(I135, l) = atd(I135, l);
 		ati(XE45, l) = atd(XE45, l);
 	}
+
+//    burn(l) = burn(l) + power * tsec / (buconf(l)*3600.0*24.0);
+
 
 
 }

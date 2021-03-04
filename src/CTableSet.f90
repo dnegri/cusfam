@@ -163,7 +163,7 @@ contains
         
             do j1=1,1
             do igs=1,ng
-               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,1), refl%rrsigs(j1,igs,igs+1:ng,1)
+               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,2), refl%rrsigs(j1,igs,igs+1:ng,2)
             enddo
             enddo
             refl%rfrppm(REFL_EDGE) = dum(1)

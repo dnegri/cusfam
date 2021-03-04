@@ -129,7 +129,7 @@ void SimonCPU::runDepletion(const DepletionOption& option) {
 
 	x().updateDepletionXS(f().dppm(), f().dtf(), f().dtm());
     d().pickData(x().xsmica(), x().xsmicf(), x().xsmic2n(), _flux, _fnorm);
-    d().dep(option.tsec, option.xe, option.sm);
+    d().dep(option.tsec, option.xe, option.sm, power());
 }
 
 void SimonCPU::runXenonTransient() {

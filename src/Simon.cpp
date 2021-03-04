@@ -179,6 +179,8 @@ void Simon::updateBurnup()
 	float temps[2 *2* 40];
 	float tempstm[2 * 2 * 40 * 3];
 	float rb10wp = 1. / _d->b10wp();
+
+#pragma omp parallel for
 	for (int l = 0; l < _g->nxyz(); l++)
 	{
 
@@ -198,11 +200,20 @@ void Simon::updateBurnup()
 
 		}
 		else {
-			calculateReflector(_g->comp(l), rb10wp,
-				_x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
+//			calculateReflector(_g->comp(l), rb10wp,
+//				_x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
+//				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
+//				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+//				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
+
+            calculateReflector(_g->comp(l), rb10wp,
+                               _x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
 				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
 				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
 				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
+//                               temp, temptm, temp,
+//                               temp, temptm, temp,
+//                               temps, tempstm, temps);
 
 		}
 	}
@@ -302,6 +313,7 @@ void Simon::setBurnup(const float& burnup) {
 	_f->updatePressure(_press);
 	_f->updateTin(_tin);
 	_f->initDelta(_ppm);
+	_d->updateH2ODensity(_f->dm(), _ppm);
 	_x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
 
 	closedb();

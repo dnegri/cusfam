@@ -82,6 +82,7 @@ public:
     __host__ __device__ float& h2on(const int& l) { return _h2on[l]; };
 
     __host__ __device__ float& burn(const int& l) { return _burn[l]; };
+    __host__ __device__ float& buconf(const int& l) { return _buconf[l]; };
     __host__ __device__ float& cap(const int& iiso, const int& l) { return _cap[l*NDEP + iiso]; } ;
     __host__ __device__ float& rem(const int& iiso, const int& l) { return _rem[l*NDEP + iiso]; } ;
     __host__ __device__ float& fis(const int& iiso, const int& l) { return _fis[l*NDEP + iiso]; } ;
@@ -93,6 +94,7 @@ public:
     __host__ __device__ float* dnst() { return _dnst; };
     __host__ __device__ float* dnst_new() { return _dnst_new; };
     __host__ __device__ float* dnst_avg() { return _dnst_avg; };
+
     __host__ __device__ float* burn() { return _burn; };
     __host__ __device__ float* h2on() { return _h2on; };
 	__host__ __device__ float* buconf() { return _buconf; };
@@ -107,8 +109,8 @@ public:
     __host__ void eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm);
 
-    __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt);
-    __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, float* ati, float* atd, float* atavg);
+    __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt, const float* power);
+    __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);

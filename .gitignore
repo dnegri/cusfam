@@ -91,6 +91,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+*.mod
 
 # Chutzpah Test files
 _Chutzpah*
@@ -349,3 +350,13 @@ MigrationBackup/
 .ionide/
 *.u2d
 /include/blitz
+/cmake-build-debug-llvm-11/
+/cmake-build-release-llvm-11/
+/CMakeFiles/
+/.idea/
+/cmake_install.cmake
+/Makefile
+/bld/CMakeFiles/
+/bld/Makefile
+/bld/cmake_install.cmake
+/bld/cusfam
