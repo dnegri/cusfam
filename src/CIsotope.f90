@@ -140,7 +140,6 @@ contains
                                 xdpmics(ng,ng), xdfmics(ng,ng), xdmmics(ng,ng,3), xddmics(ng,ng)
         integer             :: ig
 
-        
         call this%calculateVariation1(klo, af, 2, xdpmicn(:), xdpmicf(:), xdpmica(:), xdpmicd(:), xdpmics(:,:))
         call this%calculateVariation1(klo, af, 4, xdfmicn(:), xdfmicf(:), xdfmica(:), xdfmicd(:), xdfmics(:,:))
         call this%calculateVariation1(klo, af, 6, xdmmicn(:,1), xdmmicf(:,1), xdmmica(:,1), xdmmicd(:,1), xdmmics(:,:,1))

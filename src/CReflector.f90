@@ -3,18 +3,19 @@ module CReflector
     implicit none
     private
     
-    integer, public, parameter :: REFL_BOTTOM = 1
-    integer, public, parameter :: REFL_TOP = 2
-    integer, public, parameter :: REFL_CORNER = 3
-    integer, public, parameter :: REFL_EDGE = 4
-    integer, public, parameter :: REFL_NTYPE = 4
+    integer, public, parameter :: REFL_BOTTOM   = -1
+    integer, public, parameter :: REFL_TOP      = -2
+    integer, public, parameter :: REFL_CORNER   = -3
+    integer, public, parameter :: REFL_EDGE     = -4
+    integer, public, parameter :: REFL_NTYPE    =  4
                                                                
                                                                
     type, public    :: Reflector
         real(4)                     :: rasigb(4,ng,3), rasigsb(ng,ng,3)
         real(4)                     :: rasigt(4,ng,3), rasigst(ng,ng,3)
         real(4)                     :: rrsig(4,ng,4), rrsigs(2,ng,ng,2)
-        real(4)                     :: rfrppm(REFL_NTYPE), rfrtf(REFL_NTYPE), rfrtm(REFL_NTYPE), rfrdm(REFL_NTYPE) ,rfrprs(REFL_NTYPE), rfratm(REFL_NTYPE), b10ap(REFL_NTYPE)
+        real(4)                     :: rfrppm(REFL_EDGE:REFL_BOTTOM), rfrtf(REFL_EDGE:REFL_BOTTOM), rfrtm(REFL_EDGE:REFL_BOTTOM), &
+                                        rfrdm(REFL_EDGE:REFL_BOTTOM) ,rfrprs(REFL_EDGE:REFL_BOTTOM), rfratm(REFL_EDGE:REFL_BOTTOM), b10ap(REFL_EDGE:REFL_BOTTOM)
     contains
         procedure calculate
         procedure calculateBottom
@@ -71,6 +72,7 @@ contains
         
         do igs=1,ng
         do ige=1,ng
+            if(igs == ige) cycle
             xsmics(igs,ige, ID_B10)=this%rasigsb(igs,ige,1)
             xsmics(igs,ige, ID_H2O)=this%rasigsb(igs,ige,2)
             xsmics(igs,ige,ID_STRM)=this%rasigsb(igs,ige,3)
@@ -92,13 +94,14 @@ contains
             xsmicd(ig,ID_STRM)=this%rasigt(2,ig,3)
         enddo
         
-        do igs=1,ng
-        do ige=1,ng
-            xsmics(igs,ige, ID_B10)=this%rasigst(igs,ige,1)
-            xsmics(igs,ige, ID_H2O)=this%rasigst(igs,ige,2)
-            xsmics(igs,ige,ID_STRM)=this%rasigst(igs,ige,3)
-        enddo
-        enddo
+        !do igs=1,ng
+        !do ige=1,ng
+        !    if(igs == ige) cycle
+        !    xsmics(igs,ige, ID_B10)=this%rasigst(igs,ige,1)
+        !    xsmics(igs,ige, ID_H2O)=this%rasigst(igs,ige,2)
+        !    xsmics(igs,ige,ID_STRM)=this%rasigst(igs,ige,3)
+        !enddo
+        !enddo
         
     end subroutine    
     

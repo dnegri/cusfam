@@ -43,10 +43,11 @@ contains
         use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char , c_char   
         integer                                 :: nxy, nz, ncomp
         integer                                 :: comps(nxy,nz)
+        integer                                 :: b10wp0(nxy,nz)
         type(c_ptr),target                      :: names
         character(len=12), dimension(50)        :: fnames
         character(kind=c_char), dimension(:,:), pointer :: fptr
-        integer                             :: i, j
+        integer                             :: i, j, k, l
         
         read(ifile) ncomp
         read(ifile) fnames(1:ncomp)
@@ -57,8 +58,9 @@ contains
             do j=1, 12
                 fptr(j,i) = fnames(i)(j:j)
             enddo
+            fptr(13,i) = c_null_char
         enddo
-        
+                    
     end subroutine
     
     
@@ -178,7 +180,7 @@ contains
     end subroutine    
     
     subroutine readxsdtm(niso, xs) bind(c, name="readXSDTM")
-        real(4)            :: xs(ng,2,niso,nxyz)
+        real(4)            :: xs(ng,3,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xs(:,:,:,l)
@@ -188,7 +190,7 @@ contains
     
     
     subroutine readxssdtm(niso, xss)  bind(c, name="readXSSDTM")
-        real(4)            :: xss(ng, ng,2,niso,nxyz)
+        real(4)            :: xss(ng, ng,3,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xss(:,:,:,:,l)

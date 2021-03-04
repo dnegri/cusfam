@@ -7,7 +7,8 @@ module CTableSet
                                                                
     character*(*), parameter    :: FORMAT_HEADER = "(A4,A44,I1,I3,I1,1X,I2,I1,1X,I2,3I4)"
     character*(*), parameter    :: FORMAT_VALUE = "(6E12.6)"
-
+    real, parameter ::  b10aw  = 10.012937
+    real, parameter ::  b11aw  = 11.009305    
                                                                
     type, public   :: TableSet
         integer             :: nrefl
@@ -100,6 +101,9 @@ contains
         
         read(ifile,FORMAT_HEADER) nd,titl,nax
         read(ifile,'(7f12.5)') dum(:) ! rfrppm(irefl), rfrtf(irefl), rfrtm(irefl), rfrdm(irefl) ,rfrprs(irefl), rfratm(irefl), b10ap        
+        if(dum(7) == 0) dum(7) = 19.8
+        dum(7)  = (dum(7)*b10aw) / (dum(7)*b10aw + (100.-dum(7))*b11aw) * 100.0
+
         select case (header(10:12))
         case('BOT')
             mxra = 2
@@ -121,7 +125,7 @@ contains
             if (nax == 3) mxra = 3
             do i1=1,mxra
             do ig=1,ng
-               read(ifile,FORMAT_VALUE) refl%rasigt(1:3,ig,i1),refl%rasigst(ig,1:ig-1,i1), refl%rasigsb(ig,ig+1:ng,i1)
+               read(ifile,FORMAT_VALUE) refl%rasigt(1:3,ig,i1),refl%rasigst(ig,1:ig-1,i1), refl%rasigst(ig,ig+1:ng,i1)
             enddo
             enddo      
             refl%rfrppm(REFL_TOP) = dum(1)
@@ -195,12 +199,15 @@ contains
         class(TableSet) :: this
         integer         :: ifile
         type(Composition)   :: comp
-        character*(*)   :: header
+        character*(*)       :: header
         integer             :: idiso
+        real                :: b10ap
         
-        READ (ifile,'(6F12.6)')  comp%refvar(1:4), comp%refpress, comp%b10ap
+        READ (ifile,'(6F12.6)')  comp%refvar(1:4), comp%refpress, b10ap
         
-        if (comp%b10ap == 0) comp%b10ap = 19.8
+        if (b10ap == 0) b10ap = 19.8
+    
+        comp%b10ap  = (b10ap*b10aw) / (b10ap*b10aw + (100.-b10ap)*b11aw)  * 100.0
 
         !b10wp1  = b10abnd*b10aw / (b10abnd*b10aw + (100.-b10abnd)*b11aw)
         !ppmcorr = b10wp1*100.0 / b10wp
@@ -234,8 +241,9 @@ contains
         character*(4)       :: nd
         character*(44)      :: titl
         integer             :: nax, iwab, nbltab(5), nskip, lin1, lin2, ires
-        real                :: ppm, tfuel, tmod, dm, pressxs, void
+        real(4)                :: ppm, tfuel, tmod, dm, pressxs, void
         integer             :: ind, i, ib, ie, j, idum, ixs, mok, idxdrv, ivar, ngnp, idf, ig, ip
+        real(4) :: temp(12)
         
         if(header(5:7) == 'N2N') n2n = .true.
         
@@ -343,14 +351,15 @@ contains
 
             if(nbltab(ixs) /= 16) then
                mok=nbltab(ixs)
-               idxdrv = 1
+               idxdrv = 0
                ! variation type : ppm, tf, tm, dm
                do ivar=1,VAR_NTYPE
                   if(mod(mok,2)==1) then
 
                      do ig=1,ngs
                      do ip = 0, comp%npoly(ivar)
-                        call this%readXSOne(ifile, comp%nvar2, lin2, 1, nv, iso%dxsigs(:,ngs,idxdrv+ip+1))
+                        call this%readXSOne(ifile, comp%nvar2, lin2, 1, nv, iso%dxsigs(:,ig,idxdrv+ip+1))
+                        !temp(:) = iso%dxsigs(:,ngs,idxdrv+ip+1)
                      enddo
                      enddo
 

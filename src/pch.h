@@ -179,7 +179,7 @@ __constant__ static const float FPYLD[]{
             2.387710E-02, 1.598400E-02, 7.388510E-02, 1.057970E-03,
             2.336130E-02, 1.555480E-02, 6.034700E-02, 7.250690E-03};
 
-__constant__ static const int NPTM = 2;
+__constant__ static const int NPTM = 3;
 
 __constant__ static const float HAW = 1.0079;
 __constant__ static const float OAW = 15.994915;

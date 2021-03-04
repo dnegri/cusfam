@@ -2,6 +2,7 @@ module cusfam
     use iso_c_binding
     use CSteamTable
     use CTableSet
+    use CComposition
     implicit none
     
     type(SteamTable), pointer :: stable
@@ -40,6 +41,27 @@ contains
         call tset%readFile(file2)
     end subroutine
     
+    subroutine calculateReflector(irefl, rb10wp, xsmica, xsmicd, xsmics,    &
+                                         xdpmica, xdmmica, xddmica, &
+                                         xdpmicd, xdmmicd, xddmicd, &
+                                         xdpmics, xdmmics, xddmics) bind(c, name="calculateReflector")
+        integer             :: irefl
+        real(4)             :: rb10wp
+        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
+        real(4)             ::  xdpmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
+                                xdpmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
+                                xdpmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+
+        call tset%refl%calculate(irefl, xsmica, xsmicd, xsmics,     &
+                                        xdpmica, xdmmica, xddmica,  &
+                                        xdpmicd, xdmmicd, xddmicd,  &
+                                        xdpmics, xdmmics, xddmics)
+        xdpmica = xdpmica*rb10wp*tset%refl%b10ap(irefl)
+        xdpmicd = xdpmicd*rb10wp*tset%refl%b10ap(irefl)
+        xdpmics = xdpmics*rb10wp*tset%refl%b10ap(irefl)
+    end subroutine
+    
+    
     subroutine calculateReference(icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp) bind(c, name="calculateReference")
         integer             :: icomp
         real(4)             :: burn
@@ -49,24 +71,31 @@ contains
         
     end subroutine
     
-    subroutine calculateVariation(icomp, burn,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+    subroutine calculateVariation(icomp, burn, rb10wp,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )  bind(c, name="calculateVariation")
         integer             :: icomp
-        real(4)             :: burn
+        real(4)             :: burn, rb10wp
         real(4)             ::  xdpmicn(ng,NISO), xdfmicn(ng,NISO), xdmmicn(ng,3,NISO), xddmicn(ng,NISO), &
                                 xdpmicf(ng,NISO), xdfmicf(ng,NISO), xdmmicf(ng,3,NISO), xddmicf(ng,NISO), &
                                 xdpmica(ng,NISO), xdfmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
                                 xdpmicd(ng,NISO), xdfmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
                                 xdpmics(ng,ng,NISO), xdfmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        type(Composition), pointer :: c
         
-        call tset%comps(icomp)%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
-                                                xdpmicf, xdfmicf, xdmmicf, xddmicf, &
-                                                xdpmica, xdfmica, xdmmica, xddmica, &
-                                                xdpmicd, xdfmicd, xdmmicd, xddmicd, &
-                                                xdpmics, xdfmics, xdmmics, xddmics )
+        c =>tset%comps(icomp)
+        call c%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+                                        xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                        xdpmica, xdfmica, xdmmica, xddmica, &
+                                        xdpmicd, xdfmicd, xdmmicd, xddmicd, &
+                                        xdpmics, xdfmics, xdmmics, xddmics )
+        xdpmicn = xdpmicn*rb10wp*c%b10ap
+        xdpmicf = xdpmicf*rb10wp*c%b10ap
+        xdpmica = xdpmica*rb10wp*c%b10ap
+        xdpmicd = xdpmicd*rb10wp*c%b10ap
+        xdpmics = xdpmics*rb10wp*c%b10ap
         
     end subroutine       
 

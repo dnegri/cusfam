@@ -32,14 +32,13 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
-//	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
 	omp_set_num_threads(8);
 
 	SimonCPU simon;
 	simon.initialize("../run/geom.simon");
 	simon.readTableSet("../run/KMYGN34C01_PLUS7_XSE.XS");
-	simon.updateBurnup();
 
 #ifndef CPU
 	BLOCKS_NGXYZ = dim3(simon.g().ngxyz() / NTHREADSPERBLOCK + 1, 1, 1);
@@ -56,12 +55,12 @@ int main() {
 	//float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0;
 
 	SteadyOption s;
-	s.searchOption = CriticalOption::CBC;
-	s.feedtm = true;
-	s.feedtf = true;
+	s.searchOption = CriticalOption::KEFF;
+	s.feedtm = false;
+	s.feedtf = false;
 	s.eigvt = 1.0;
 	s.maxiter = 100;
-	s.xenon = XEType::XE_EQ;
+	s.xenon = XEType::XE_NO;
 	s.tin = 0.0;
 	s.ppm = 800.0;
 	s.plevel = 1.0;
@@ -77,7 +76,10 @@ int main() {
 //simon.fnorm() = 1.0;
 //std::fill_n(simon.flux(), simon.g().ngxyz(), 1.E+14);
 
-	simon.setBurnup(0);
+	//simon.setBurnup(0);
+	simon.updateBurnup();
+	simon.runSteady(s);
+	exit(0);
 
 	auto start = chrono::steady_clock::now();
 	float burn = 0.0;

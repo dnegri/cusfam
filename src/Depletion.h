@@ -121,5 +121,7 @@ public:
 	__host__ void updateH2ODensity(const float* dm, const float& ppm);
     __host__ __device__ void updateH2ODensity(const int& l, const float* dm, const float& ppm);
 
+	const float& b10wp() {return _b10wp;};
+
 
 };

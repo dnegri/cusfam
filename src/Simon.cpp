@@ -33,12 +33,18 @@ extern "C" {
 	void calculateReference(const int& icomp, const float& burn, const float* xsmicd, const float* xsmica, const float* xsmicn,
 		const float* xsmicf, const float* xsmick, const float* xsmics, const float* xsmic2n, const float* xehfp);
 
-	void calculateVariation(const int& icomp, const float& burn,
+	void calculateVariation(const int& icomp, const float& burn, const float& b10wp,
 		const float*xdpmicn, const float*xdfmicn, const float* xdmmicn, const float* xddmicn,
 		const float* xdpmicf, const float* xdfmicf, const float* xdmmicf, const float* xddmicf,
 		const float* xdpmica, const float* xdfmica, const float* xdmmica, const float* xddmica,
 		const float* xdpmicd, const float* xdfmicd, const float* xdmmicd, const float* xddmicd,
 		const float* xdpmics, const float* xdfmics, const float* xdmmics, const float* xddmics);
+
+	void calculateReflector(const int & irefl, const float& b10wp, 
+		const float * xsmica, const float * xsmicd, const float * xsmics,
+		const float * xdpmica, const float * xdmmica, const float * xddmica,
+		const float * xdpmicd, const float * xdmmicd, const float * xddmicd,
+		const float * xdpmics, const float * xdmmics, const float * xddmics);
 
 }
 
@@ -94,9 +100,8 @@ void Simon::initialize(const char* dbfile) {
 	_g->setBoundaryCondition(&symopt, &symang, albedo);
 
 	int ncomp = 0;
-	int* comp = new int[nxyz];
 
-	readComposition(&nxy, &nz, &_g->ncomp(), _g->compnames(), comp);
+	readComposition(&nxy, &nz, &_g->ncomp(), _g->compnames(), _g->comp());
 
 	_x = new CrossSection(ng, nxyz);
 
@@ -169,19 +174,42 @@ void Simon::readTableSet(const char * tsetfile)
 
 void Simon::updateBurnup()
 {
+	float temp[2*40];
+	float temptm[2 * 40 * 3] ;
+	float temps[2 *2* 40];
+	float tempstm[2 * 2 * 40 * 3];
+	float rb10wp = 1. / _d->b10wp();
 	for (int l = 0; l < _g->nxyz(); l++)
 	{
-		calculateReference(_g->comp(l), _d->burn(l), 
-			_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l), 
-			_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
 
-		calculateVariation(_g->comp(l), _d->burn(l), 
-			_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
-			_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
-			_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
-			_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
-			_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
+		if (_g->comp(l) > 0) {
+
+			calculateReference(_g->comp(l), _d->burn(l),
+				_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l),
+				_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
+
+
+			calculateVariation(_g->comp(l), _d->burn(l), rb10wp,
+				_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
+				_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
+				_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
+				_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+				_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
+
+		}
+		else {
+			calculateReflector(_g->comp(l), rb10wp,
+				_x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
+				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
+				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
+
+		}
 	}
+
+	_x->updateMacroXS(&(_d->dnst(0, 0)));
+	_x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
+
 }
 
 void Simon::setBurnup(const float& burnup) {
@@ -229,6 +257,9 @@ void Simon::setBurnup(const float& burnup) {
 	readNXYZ(&(_g->nxyz()), &(_f->tf(0)));
 	readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
 	readNXYZ(&(_g->nxyz()), &(_f->dm(0)));
+
+	fill_n(_f->tf(), 6266, 1000.0);
+	fill_n(_f->tm(), 6266, 300.0);
 
 	readXS(&NISO, &(_x->xsmicd0(0, 0, 0)));
 	readXS(&NISO, &(_x->xsmica0(0, 0, 0)));

@@ -582,7 +582,7 @@ public:
 	__host__ __device__ inline XS_PRECISION* xdmmica(const int& l) { return &_xdmmica[l * _ng * NPTM * NISO]; };
 	__host__ __device__ inline XS_PRECISION* xdmmicn(const int& l) { return &_xdmmicn[l * _ng * NPTM * NISO]; };
 	__host__ __device__ inline XS_PRECISION* xdmmick(const int& l) { return &_xdmmick[l * _ng * NPTM * NISO]; };
-	__host__ __device__ inline XS_PRECISION* xdmmics(const int& l) { return &_xdmmics[l * _ng * _ng * NPTM * NISO * NPTM]; };
+	__host__ __device__ inline XS_PRECISION* xdmmics(const int& l) { return &_xdmmics[l * _ng * _ng * NPTM * NISO]; };
 
 	__host__ __device__ inline XS_PRECISION* xsmicd(const int& l) { return &_xsmicd[l * _ng * NISO]; };
 	__host__ __device__ inline XS_PRECISION* xsmica(const int& l) { return &_xsmica[l * _ng * NISO]; };
