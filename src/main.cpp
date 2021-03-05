@@ -32,7 +32,7 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
-//	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
 	omp_set_num_threads(4);
 
@@ -76,7 +76,6 @@ int main() {
 //simon.fnorm() = 1.0;
 //std::fill_n(simon.flux(), simon.g().ngxyz(), 1.E+14);
 
-	simon.setBurnup(0);
 
 //    for (int i = 0; i < 20; ++i) {
 //        simon.eigv() = 1.0;
@@ -87,20 +86,29 @@ int main() {
 
 	auto start = chrono::steady_clock::now();
 	float burn = 0.0;
+	simon.setBurnup(0);
+	simon.updateBurnup();
+	simon.runSteady(s);
+	printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", 1, burn, simon.ppm(), simon.eigv());
 
-	for (int idep = 0; idep < simon.nburn()-1; idep++)
+	//for (int idep = 1; idep < simon.nburn(); idep++)
+	for (int idep = 1; idep < 2; idep++)
 	{
-		burn = simon.burn(idep); // MWD/MTU
-		//simon.setBurnup(burn);
-        simon.updateBurnup();
-		simon.runSteady(s);
-
-		d_option.tsec = simon.dburn(idep) / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
-		simon.runDepletion(d_option);
-		printf("DEPLETION : %d,  CBC : %.2f, EIGV : %.6f\n", idep, simon.ppm(), simon.eigv());
+		float burn = simon.burn(idep);
+		simon.setBurnup(burn);
+		//burn = simon.burn(idep); // MWD/MTU
+		//d_option.tsec = simon.dburn(idep) / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
+		//simon.runDepletion(d_option);
 		s.ppm = simon.ppm();
+		simon.updateBurnup();
+		simon.runSteady(s);
+		printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", idep+1, burn, simon.ppm(), simon.eigv());
 
 	}
+
+	//simon.updateBurnup();
+	//simon.runSteady(s);
+	//printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", simon.nburn(), burn, simon.ppm(), simon.eigv());
 
 	auto end = chrono::steady_clock::now();
 	std::cout << "Elapsed time in milliseconds : "

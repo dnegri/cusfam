@@ -120,7 +120,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <OpenMP>GenerateParallelCode</OpenMP>
+      <OpenMP>GenerateSequentialCode</OpenMP>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Strict</FloatingPointModel>
       <Parallelization>true</Parallelization>

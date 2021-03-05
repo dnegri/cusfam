@@ -110,7 +110,7 @@ public:
 
 	__host__ inline float& burn(const int& istep) { return _bucyc[istep]; };
 	__host__ inline float dburn(const int& istep) { 
-		return _bucyc[istep+1] - _bucyc[istep];
+		return _bucyc[istep] - _bucyc[istep-1];
 	};
 
     __host__ void print(Geometry& g, CrossSection& x, Feedback& f, Depletion& d);

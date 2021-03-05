@@ -81,6 +81,8 @@ void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt
     for (int l = 0; l < _g.nxyz(); ++l) {
         dep(l, tsec, xeopt, smopt, power[l], _dnst, _dnst_new, _dnst_avg);
     }
+
+
 }
 
 void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg)
@@ -88,6 +90,7 @@ void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const 
     if(ati(U235,l) == 0) return;
 
     deph(l, tsec, ati, atd, atavg);
+
 	for (int ihvy = 0; ihvy < NHEAVY; ihvy++)
 	{
 		ati(ISOHVY[ihvy], l) = atd(ISOHVY[ihvy], l);
@@ -111,10 +114,7 @@ void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const 
 		ati(XE45, l) = atd(XE45, l);
 	}
 
-//    burn(l) = burn(l) + power * tsec / (buconf(l)*3600.0*24.0);
-
-
-
+    burn(l) = burn(l) + power * tsec / (buconf(l)*3600.0*24.0*_g.vol(l));
 }
 
 void Depletion::deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)

@@ -60,8 +60,10 @@ protected:
     float* _dnst;
     float* _dnst_new;
     float* _dnst_avg;
+	float* _h2on;
+
+	float  _cburn;
     float* _burn;
-    float* _h2on;
 	float* _buconf;
 
     float _b10ap;

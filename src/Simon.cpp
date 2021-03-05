@@ -186,17 +186,21 @@ void Simon::updateBurnup()
 
 		if (_g->comp(l) > 0) {
 
+
 			calculateReference(_g->comp(l), _d->burn(l),
-				_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l),
-				_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
+				temp, temp, temp, temp,
+				_x->xsmick0(l), temps, _x->xsmic2n(l), _x->xehfp(l));
 
+			//calculateReference(_g->comp(l), _d->burn(l),
+			//	_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l),
+			//	_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
 
-			calculateVariation(_g->comp(l), _d->burn(l), rb10wp,
-				_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
-				_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
-				_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
-				_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
-				_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
+			//calculateVariation(_g->comp(l), _d->burn(l), rb10wp,
+			//	_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
+			//	_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
+			//	_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
+			//	_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+			//	_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
 
 		}
 		else {
@@ -206,11 +210,11 @@ void Simon::updateBurnup()
 //				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
 //				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
 
-            calculateReflector(_g->comp(l), rb10wp,
-                               _x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
-				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
-				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
-				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
+    //        calculateReflector(_g->comp(l), rb10wp,
+    //                           _x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
+				//_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
+				//_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+				//_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
 //                               temp, temptm, temp,
 //                               temp, temptm, temp,
 //                               temps, tempstm, temps);
@@ -244,11 +248,11 @@ void Simon::setBurnup(const float& burnup) {
 	_reigv = 1. / _eigv;
 
 
-	readDensity(&NISO, _d->dnst_new());
+	readDensity(&NISO, _d->dnst());
 
-	if (burnup == 0.0) {
-		std::copy_n(_d->dnst_new(), NISO * _g->nxyz(), _d->dnst());
-	}
+	//if (burnup == 0.0) {
+	//	std::copy_n(_d->dnst_new(), NISO * _g->nxyz(), _d->dnst());
+	//}
 
 
 	readNXYZ(&(_g->nxyz()), &(_d->burn(0)));
@@ -269,8 +273,11 @@ void Simon::setBurnup(const float& burnup) {
 	readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
 	readNXYZ(&(_g->nxyz()), &(_f->dm(0)));
 
-	fill_n(_f->tf(), 6266, 1000.0);
-	fill_n(_f->tm(), 6266, 300.0);
+	_f->updatePressure(_press);
+	_f->updateTin(_tin);
+	_f->initDelta(_ppm);
+	_d->updateH2ODensity(_f->dm(), _ppm);
+
 
 	readXS(&NISO, &(_x->xsmicd0(0, 0, 0)));
 	readXS(&NISO, &(_x->xsmica0(0, 0, 0)));
@@ -309,12 +316,6 @@ void Simon::setBurnup(const float& burnup) {
 	readXSSDTM(&NISO, &(_x->xdmmics(0, 0, 0, 0, 0)));
 
 	_x->updateMacroXS(&(_d->dnst(0, 0)));
-
-	_f->updatePressure(_press);
-	_f->updateTin(_tin);
-	_f->initDelta(_ppm);
-	_d->updateH2ODensity(_f->dm(), _ppm);
-	_x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
 
 	closedb();
 	printf("Finished reading burn file : %s\n", dbfile);
