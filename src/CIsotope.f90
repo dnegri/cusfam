@@ -7,6 +7,7 @@ module CIsotope
     integer, public, parameter   :: nnucl = 40
     integer, public, parameter   :: LEN_ISOTOPE = 4
     integer, public, parameter   :: NISO = 40
+    integer, public, parameter   :: NDEP = 25
     integer, public, parameter   :: ng = 2
     integer, public, parameter   :: ngs = (ng-1)*ng !skip self-scattering 
     integer, public, parameter   :: XSSIG_NTYPE = 4

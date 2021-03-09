@@ -11,8 +11,6 @@ protected:
 	int _ng;
 	int _nxyz;
 
-	float _eps_rod = 0.01;
-
 	XS_PRECISION* _xsnf;
 	XS_PRECISION* _xsdf;
 	XS_PRECISION* _xssf;

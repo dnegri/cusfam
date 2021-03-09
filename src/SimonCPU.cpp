@@ -209,7 +209,8 @@ void SimonCPU::runSteady(const SteadyOption& condition) {
 
         if (iout > 3 && errl2 < _crit_flux) break;
 
-        if (iout % 2 == 1 && errl2 < _crit_xenon && condition.xenon == XEType::XE_EQ) {
+        //if (iout % 2 == 1 && errl2 < _crit_xenon && condition.xenon == XEType::XE_EQ) {
+		if (errl2 < _crit_xenon && condition.xenon == XEType::XE_EQ) {
 			printf("Xenon Update\n");
 			x().updateXenonXS(f().dppm(), f().dtf(), f().dtm());
             d().eqxe(x().xsmica(), x().xsmicf(), _flux, _fnorm);

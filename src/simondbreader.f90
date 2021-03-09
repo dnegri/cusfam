@@ -63,6 +63,26 @@ contains
                     
     end subroutine
     
+    subroutine readString(n, length, strings)   bind(c, name="readString")
+        use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char , c_char   
+        integer                                 :: n
+        type(c_ptr),target                      :: strings
+        character(len=length-1), dimension(n)     :: fstrings
+        character(kind=c_char), dimension(:,:), pointer :: fptr
+        integer                             :: i, j, k, l
+        
+        read(ifile) fstrings(1:n)
+        
+        call c_f_pointer(c_loc(strings), fptr, [length, n])
+        do i = 1, n
+            do j=1, length-1
+                fptr(j,i) = fstrings(i)(j:j)
+            enddo
+            fptr(length,i) = c_null_char
+        enddo
+                    
+    end subroutine
+    
     
     subroutine readConstantI(n, cnst)   bind(c, name="readConstantI")
         integer         :: n

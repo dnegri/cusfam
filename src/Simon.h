@@ -49,6 +49,7 @@ protected:
     CrossSection* _x;
     Depletion* _d;
     Feedback* _f;
+	ControlRod* _r;
 
     int _nstep;
     float _epsbu;

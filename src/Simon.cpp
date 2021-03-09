@@ -20,7 +20,7 @@ extern "C" {
 	void readConstantF(const int& n, float* data);
 	void readConstantD(const int& n, double* data);
 	void readConstantI(const int& n, int* data);
-
+	void readString(const int& n, const int& length, char** strings);
 	void readXS(const int* niso, float* xs);
 	void readXSS(const int* niso, float* xs);
 	void readXSD(const int* niso, float* xs);
@@ -102,6 +102,13 @@ void Simon::initialize(const char* dbfile) {
 	int ncomp = 0;
 
 	readComposition(&nxy, &nz, &_g->ncomp(), _g->compnames(), _g->comp());
+
+	_r = new ControlRod(*_g);
+
+	readConstantI(1, &_r->ncea());
+	readString(_r->ncea(), LEN_ROD_NAME, _r->idcea());
+	readConstantI(_r->ncea(), _r->abstype());
+	readConstantI(nxy, _r->ceamap());
 
 	_x = new CrossSection(ng, nxyz);
 
@@ -188,27 +195,27 @@ void Simon::updateBurnup()
 
 
 			calculateReference(_g->comp(l), _d->burn(l),
-				temp, temp, temp, temp,
-				_x->xsmick0(l), temps, _x->xsmic2n(l), _x->xehfp(l));
+				_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l),
+				_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
 
 			//calculateReference(_g->comp(l), _d->burn(l),
 			//	_x->xsmicd0(l), _x->xsmica0(l), _x->xsmicn0(l), _x->xsmicf0(l),
 			//	_x->xsmick0(l), _x->xsmics0(l), _x->xsmic2n(l), _x->xehfp(l));
 
-			//calculateVariation(_g->comp(l), _d->burn(l), rb10wp,
-			//	_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
-			//	_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
-			//	_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
-			//	_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
-			//	_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
+			calculateVariation(_g->comp(l), _d->burn(l), rb10wp,
+				_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
+				_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
+				_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
+				_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+				_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
 
 		}
 		else {
-//			calculateReflector(_g->comp(l), rb10wp,
-//				_x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
-//				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
-//				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
-//				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
+			calculateReflector(_g->comp(l), rb10wp,
+				_x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
+				_x->xdpmica(l), _x->xdmmica(l), _x->xddmica(l),
+				_x->xdpmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
+				_x->xdpmics(l), _x->xdmmics(l), _x->xddmics(l));
 
     //        calculateReflector(_g->comp(l), rb10wp,
     //                           _x->xsmica0(l), _x->xsmicd0(l), _x->xsmics0(l),
@@ -279,43 +286,43 @@ void Simon::setBurnup(const float& burnup) {
 	_d->updateH2ODensity(_f->dm(), _ppm);
 
 
-	readXS(&NISO, &(_x->xsmicd0(0, 0, 0)));
-	readXS(&NISO, &(_x->xsmica0(0, 0, 0)));
-	readXS(&NISO, &(_x->xsmicf0(0, 0, 0)));
-	readXS(&NISO, &(_x->xsmicn0(0, 0, 0)));
-	readXS(&NISO, &(_x->xsmick0(0, 0, 0)));
-	readXSS(&NISO, &(_x->xsmics0(0, 0, 0, 0)));
+	//readXS(&NISO, &(_x->xsmicd0(0, 0, 0)));
+	//readXS(&NISO, &(_x->xsmica0(0, 0, 0)));
+	//readXS(&NISO, &(_x->xsmicf0(0, 0, 0)));
+	//readXS(&NISO, &(_x->xsmicn0(0, 0, 0)));
+	//readXS(&NISO, &(_x->xsmick0(0, 0, 0)));
+	//readXSS(&NISO, &(_x->xsmics0(0, 0, 0, 0)));
 
-	readXSD(&NISO, &(_x->xdpmicd(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdpmica(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdpmicf(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdpmicn(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdpmick(0, 0, 0)));
-	readXSSD(&NISO, &(_x->xdpmics(0, 0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdpmicd(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdpmica(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdpmicf(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdpmicn(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdpmick(0, 0, 0)));
+	//readXSSD(&NISO, &(_x->xdpmics(0, 0, 0, 0)));
 
-	readXSD(&NISO, &(_x->xdfmicd(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdfmica(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdfmicf(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdfmicn(0, 0, 0)));
-	readXSD(&NISO, &(_x->xdfmick(0, 0, 0)));
-	readXSSD(&NISO, &(_x->xdfmics(0, 0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdfmicd(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdfmica(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdfmicf(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdfmicn(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xdfmick(0, 0, 0)));
+	//readXSSD(&NISO, &(_x->xdfmics(0, 0, 0, 0)));
 
-	readXSD(&NISO, &(_x->xddmicd(0, 0, 0)));
-	readXSD(&NISO, &(_x->xddmica(0, 0, 0)));
-	readXSD(&NISO, &(_x->xddmicf(0, 0, 0)));
-	readXSD(&NISO, &(_x->xddmicn(0, 0, 0)));
-	readXSD(&NISO, &(_x->xddmick(0, 0, 0)));
-	readXSSD(&NISO, &(_x->xddmics(0, 0, 0, 0)));
+	//readXSD(&NISO, &(_x->xddmicd(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xddmica(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xddmicf(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xddmicn(0, 0, 0)));
+	//readXSD(&NISO, &(_x->xddmick(0, 0, 0)));
+	//readXSSD(&NISO, &(_x->xddmics(0, 0, 0, 0)));
 
 
-	readXSDTM(&NISO, &(_x->xdmmicd(0, 0, 0, 0)));
-	readXSDTM(&NISO, &(_x->xdmmica(0, 0, 0, 0)));
-	readXSDTM(&NISO, &(_x->xdmmicf(0, 0, 0, 0)));
-	readXSDTM(&NISO, &(_x->xdmmicn(0, 0, 0, 0)));
-	readXSDTM(&NISO, &(_x->xdmmick(0, 0, 0, 0)));
-	readXSSDTM(&NISO, &(_x->xdmmics(0, 0, 0, 0, 0)));
+	//readXSDTM(&NISO, &(_x->xdmmicd(0, 0, 0, 0)));
+	//readXSDTM(&NISO, &(_x->xdmmica(0, 0, 0, 0)));
+	//readXSDTM(&NISO, &(_x->xdmmicf(0, 0, 0, 0)));
+	//readXSDTM(&NISO, &(_x->xdmmicn(0, 0, 0, 0)));
+	//readXSDTM(&NISO, &(_x->xdmmick(0, 0, 0, 0)));
+	//readXSSDTM(&NISO, &(_x->xdmmics(0, 0, 0, 0, 0)));
 
-	_x->updateMacroXS(&(_d->dnst(0, 0)));
+	//_x->updateMacroXS(&(_d->dnst(0, 0)));
 
 	closedb();
 	printf("Finished reading burn file : %s\n", dbfile);

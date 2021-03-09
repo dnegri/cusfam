@@ -240,62 +240,74 @@ contains
         logical             :: n2n
         character*(4)       :: nd
         character*(44)      :: titl
-        integer             :: nax, iwab, nbltab(5), nskip, lin1, lin2, ires
+        integer             :: nax, iwab, nbltab(5), nskip, lin1, lin2, ires, nvar2, nvar
         real(4)                :: ppm, tfuel, tmod, dm, pressxs, void
         integer             :: ind, i, ib, ie, j, idum, ixs, mok, idxdrv, ivar, ngnp, idf, ig, ip
-        real(4) :: temp(12)
+        real(4)             :: xsbu(ns), dxsbu(nv)
         
         if(header(5:7) == 'N2N') n2n = .true.
         
-        read(header,FORMAT_HEADER) nd,titl,nax,comp%nvar,iwab,nbltab(1),nskip, (nbltab(i),i=2,5)
+        read(header,FORMAT_HEADER) nd,titl,nax,nvar,iwab,nbltab(1),nskip, (nbltab(i),i=2,5)
         
         call skip(ifile, nskip)
         
         if (iwab > 0) then
-            read(ifile,*) idum,idum,comp%nvar2
+            read(ifile,*) idum,idum,nvar2
             call skip(ifile,1)
         endif
-        
-        if(comp%nvar<0) comp%nvar=-comp%nvar
+
+        if(nvar < 0) nvar=-nvar
+        if(nvar2<0) nvar2=-nvar2
 
         read(ifile,FORMAT_VALUE) ppm,tfuel,tmod,dm,pressxs,void
 
-        lin1 = comp%nvar/6
-        ires = mod(comp%nvar,6)
+        lin1 = nvar/6
+        ires = mod(nvar,6)
         if(ires>0) lin1=lin1+1
         
         if(iso%id == ID_DETE .or. iso%id == ID_V) then
-            comp%npdet(1) = comp%nvar
+            comp%npdet(1) = nvar
             comp%npdet(2) = nax
-            call this%readXSOne(ifile, comp%nvar, lin1, 1, ns, comp%dpdet)
+            call this%readXSOne(ifile, nvar, lin1, 1, ns, comp%dpdet)
             
-            lin2=comp%nvar2/6
-            ires=mod(comp%nvar2,6)
+            lin2=nvar2/6
+            ires=mod(nvar2,6)
             if(ires.gt.0) lin2=lin2+1
             
             call skip(ifile, 1)
             
-            do i=1,comp%nvar
-                call this%readXSOne(ifile, comp%nvar2, lin2, ng, nv, comp%dxsdet(:,:,i))
+            do i=1,nvar
+                call this%readXSOne(ifile, nvar2, lin2, ng, nv, comp%dxsdet(:,:,i))
             enddo
             
             return
         endif
 
-        call this%readXSOne(ifile, comp%nvar, lin1, 1, ns, comp%xsbu)
-
+        call this%readXSOne(ifile, nvar, lin1, 1, ns, xsbu)
         if (iwab.gt.0) then
-            lin2=comp%nvar2/6
-            ires=mod(comp%nvar2,6)
+            lin2=nvar2/6
+            ires=mod(nvar2,6)
             if(ires.gt.0) lin2=lin2+1
             
-            call this%readXSOne(ifile, comp%nvar2, lin2, 1, nv, comp%dxsbu)
+            call this%readXSOne(ifile, nvar2, lin2, 1, nv, dxsbu)
+        endif
+        
+
+        if(iso%id == ID_U235) then
+            comp%nvar = nvar
+            comp%nvar2 = nvar2
+            comp%xsbu = xsbu
+            comp%dxsbu = dxsbu
+        else if(iso%id == ID_DEL1) then
+            comp%nvarcr = nvar
+            comp%nvar2cr = nvar2
+            comp%xsbucr = xsbu
+            comp%dxsbucr = dxsbu
         endif
 
         if(iso%id == ID_XSE) then
             call this%readXSOne(ifile, comp%nvar, lin1, 1, ns, comp%xsend)
         endif
-        
         
         if(nbltab(1)>0) read(ifile,FORMAT_VALUE) (iso%cappa(i),i=1,ng)
         
@@ -316,7 +328,7 @@ contains
          do ixs=1,XSSIG_NTYPE
             if(nbltab(ixs)==0) cycle
 
-            call this%readXSOne(ifile, comp%nvar, lin1, ng, ns, iso%xssig(:,:,ixs))
+            call this%readXSOne(ifile, nvar, lin1, ng, ns, iso%xssig(:,:,ixs))
 
             ! 1111 --> from right, 1st;ppm, 2nd;tf, 3rd;tm, 4th;dm
             if(nbltab(ixs)==16) cycle
@@ -328,7 +340,7 @@ contains
                   
                   do ig=1,ng
                   do ip = 0, comp%npoly(ivar)
-                    call this%readXSOne(ifile, comp%nvar2, lin2, 1, nv, iso%dxssig(:,ig,idxdrv+ip+1,ixs))
+                    call this%readXSOne(ifile, nvar2, lin2, 1, nv, iso%dxssig(:,ig,idxdrv+ip+1,ixs))
                   enddo
                   enddo
                   
@@ -347,7 +359,7 @@ contains
          ! scattering xs
          ixs=5
          if(nbltab(ixs)>0) then
-           call this%readXSOne(ifile, comp%nvar, lin1, ngs, ns, iso%xsigs(:,:))
+           call this%readXSOne(ifile, nvar, lin1, ngs, ns, iso%xsigs(:,:))
 
             if(nbltab(ixs) /= 16) then
                mok=nbltab(ixs)
@@ -358,7 +370,7 @@ contains
 
                      do ig=1,ngs
                      do ip = 0, comp%npoly(ivar)
-                        call this%readXSOne(ifile, comp%nvar2, lin2, 1, nv, iso%dxsigs(:,ig,idxdrv+ip+1))
+                        call this%readXSOne(ifile, nvar2, lin2, 1, nv, iso%dxsigs(:,ig,idxdrv+ip+1))
                         !temp(:) = iso%dxsigs(:,ngs,idxdrv+ip+1)
                      enddo
                      enddo
@@ -377,13 +389,13 @@ contains
          
         if(iso%id == ID_MAC) then
             do idf=1,3    ! adf, cdf, mdf
-                call this%readXSOne(ifile, comp%nvar, lin1, ng, ns, comp%df(:,:,idf))
+                call this%readXSOne(ifile, nvar, lin1, ng, ns, comp%df(:,:,idf))
             enddo            
         endif
         
         if(iso%id == ID_DEL1 .or. iso%id == ID_DEL2 .or. iso%id == ID_DEL3 ) then
             do idf=1,3    ! adf, cdf, mdf
-                call this%readXSOne(ifile, comp%nvar, lin1, ng, ns, comp%ddf(:,:,idf,ID_DEL1-ID_MAC))
+                call this%readXSOne(ifile, nvar, lin1, ng, ns, comp%ddf(:,:,idf,ID_DEL1-ID_MAC))
             enddo            
         endif
          

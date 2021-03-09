@@ -19,6 +19,8 @@ module CComposition
         real(4)                     :: xsend(ns),xsn2n(ns), chi(ns,ng), dpdet(ns), dxsdet(nv,ng,ns), df(ns,ng,3), ddf(ns,ng,3,3)
         integer                     :: nvar, nvar2
         real(4)                     :: xsbu(ns), dxsbu(nv)        
+        integer                     :: nvarcr, nvar2cr
+        real(4)                     :: xsbucr(ns), dxsbucr(nv)        
     
     contains
         procedure calculateReference
@@ -39,7 +41,12 @@ contains
         xsmic2n(1) = af(1) * this%xsn2n(klo) + af(2) * this%xsn2n(klo+1) + af(3) * this%xsn2n(klo+2)
         xehfp = af(1) * this%xsend(klo) + af(2) * this%xsend(klo+1) + af(3) * this%xsend(klo+2)
         
-        do i = 1, NISO
+        do i = 1, NDEP
+            call this%iso(i)%calculateReference(klo, af, xsmicd(:,i), xsmica(:,i), xsmicn(:,i), xsmicf(:,i), xsmick(:,i), xsmics(:,:,i))
+        enddo
+        
+        call quad1(this%nvarcr, this%xsbucr(:), burn, klo, af)
+        do i = ID_DEL1, ID_DEL3
             call this%iso(i)%calculateReference(klo, af, xsmicd(:,i), xsmica(:,i), xsmicn(:,i), xsmicf(:,i), xsmick(:,i), xsmics(:,:,i))
         enddo
         
@@ -62,13 +69,23 @@ contains
         
         call quad1(this%nvar2, this%dxsbu(:), burn, klo, af)
 
-        do i = 1, NISO
+        do i = 1, NDEP
             call this%iso(i)%calculateVariation(klo, af, xdpmicn(:,i), xdfmicn(:,i), xdmmicn(:,:,i), xddmicn(:,i), &
                                                          xdpmicf(:,i), xdfmicf(:,i), xdmmicf(:,:,i), xddmicf(:,i), &
                                                          xdpmica(:,i), xdfmica(:,i), xdmmica(:,:,i), xddmica(:,i), &
                                                          xdpmicd(:,i), xdfmicd(:,i), xdmmicd(:,:,i), xddmicd(:,i), &
                                                          xdpmics(:,:,i), xdfmics(:,:,i), xdmmics(:,:,:,i), xddmics(:,:,i))
         enddo
+        
+        call quad1(this%nvar2cr, this%dxsbucr(:), burn, klo, af)
+        do i = ID_DEL1, ID_DEL3
+            call this%iso(i)%calculateVariation(klo, af, xdpmicn(:,i), xdfmicn(:,i), xdmmicn(:,:,i), xddmicn(:,i), &
+                                                         xdpmicf(:,i), xdfmicf(:,i), xdmmicf(:,:,i), xddmicf(:,i), &
+                                                         xdpmica(:,i), xdfmica(:,i), xdmmica(:,:,i), xddmica(:,i), &
+                                                         xdpmicd(:,i), xdfmicd(:,i), xdmmicd(:,:,i), xddmicd(:,i), &
+                                                         xdpmics(:,:,i), xdfmics(:,:,i), xdmmics(:,:,:,i), xddmics(:,:,i))
+        enddo
+        
     end subroutine    
 
 end module

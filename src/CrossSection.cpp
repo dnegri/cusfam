@@ -211,8 +211,9 @@ CrossSection::updateRodXS(const int& l, const int& iso_rod, const float& ratio, 
 void CrossSection::updateRodXS(ControlRod& r, const float* dppm, const float* dtf, const float* dtm) {
 #pragma omp parallel for
     for (int l = 0; l < nxyz(); ++l) {
-        if(r.ratio(l) > _eps_rod) {
-            updateRodXS(l, r.cea(l), r.ratio(l), dppm[l], dtf[l], dtm[l]);
+        if(r.ratio(l) > EPS_ROD_IN) {
+			int abst = r.abstype(r.cea(l)) + Isotope::MAC;
+            updateRodXS(l, abst, r.ratio(l), dppm[l], dtf[l], dtm[l]);
         }
     }
 }

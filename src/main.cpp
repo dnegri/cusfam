@@ -34,7 +34,7 @@ dim3 THREADS_SURFACE;
 int main() {
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
-	omp_set_num_threads(4);
+	omp_set_num_threads(8);
 
 	SimonCPU simon;
 	simon.initialize("../run/geom.simon");
@@ -92,13 +92,13 @@ int main() {
 	printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", 1, burn, simon.ppm(), simon.eigv());
 
 	//for (int idep = 1; idep < simon.nburn(); idep++)
-	for (int idep = 1; idep < 2; idep++)
+	for (int idep = 1; idep < simon.nburn(); idep++)
 	{
 		float burn = simon.burn(idep);
-		simon.setBurnup(burn);
-		//burn = simon.burn(idep); // MWD/MTU
-		//d_option.tsec = simon.dburn(idep) / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
-		//simon.runDepletion(d_option);
+		//simon.setBurnup(burn);
+		burn = simon.burn(idep); // MWD/MTU
+		d_option.tsec = simon.dburn(idep) / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
+		simon.runDepletion(d_option);
 		s.ppm = simon.ppm();
 		simon.updateBurnup();
 		simon.runSteady(s);
