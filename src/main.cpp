@@ -88,8 +88,11 @@ int main() {
 	float burn = 0.0;
 	simon.setBurnup(0);
 	simon.updateBurnup();
+	simon.r().setPosition("R5", 300.0);
 	simon.runSteady(s);
 	printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", 1, burn, simon.ppm(), simon.eigv());
+
+	exit(0);
 
 	//for (int idep = 1; idep < simon.nburn(); idep++)
 	for (int idep = 1; idep < simon.nburn(); idep++)

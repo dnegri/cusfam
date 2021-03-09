@@ -83,6 +83,7 @@ public:
     __host__ __device__ Feedback& f() { return *_f; };
     __host__ __device__ Depletion& d() { return *_d; };
     __host__ __device__ SteamTable& steam() { return *_steam; };
+	__host__ __device__ ControlRod& r() { return *_r; };
 
     __host__ void setBurnup(const float& burnup);
 

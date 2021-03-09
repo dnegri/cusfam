@@ -24,8 +24,8 @@ public:
 
     void setPosition(const int& rodidx, const int& pos);
 
-    const float& ratio(const int& l) {return _ratio[l];};
-    const int& cea(const int& l) {return _ceamap[l];};
+    float& ratio(const int& l) {return _ratio[l];};
+    int& cea(const int& l) {return _ceamap[l];};
 	int* ceamap() { return _ceamap; };
 
 	int& ncea() { return _ncea; };

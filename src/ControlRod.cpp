@@ -7,7 +7,7 @@
 ControlRod::ControlRod(Geometry& g) {
     _g = &g;
 	_ceamap = new int[_g->nxy()];
-	_ratio = new float[_g->nxyz()];
+	_ratio = new float[_g->nxyz()]{};
 }
 
 ControlRod::~ControlRod() {

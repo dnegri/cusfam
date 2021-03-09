@@ -110,6 +110,8 @@ void Simon::initialize(const char* dbfile) {
 	readConstantI(_r->ncea(), _r->abstype());
 	readConstantI(nxy, _r->ceamap());
 
+	for (int l = 0; l < nxy; l++) _r->cea(l) = _r->cea(l) - 1;
+
 	_x = new CrossSection(ng, nxyz);
 
 	_d = new Depletion(*_g);
