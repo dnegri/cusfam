@@ -85,7 +85,7 @@ public:
     __host__ __device__ SteamTable& steam() { return *_steam; };
 	__host__ __device__ ControlRod& r() { return *_r; };
 
-    __host__ void setBurnup(const float& burnup);
+    __host__ void setBurnup(const char* dir_burn, const float& burnup);
 
     __host__ virtual void initialize(const char* dbfile);
 	__host__ virtual void readTableSet(const char* tsetfile);

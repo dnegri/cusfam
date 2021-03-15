@@ -169,6 +169,14 @@ void Feedback::updateTin(const float& tin)
     _tin = tin;
     _steam.getEnthalpy(tin, _hin);
     _steam.getDensity(tin, _din);
+
+	for (int l = 0; l < _g.nxyz(); l++)
+	{
+		_tf[l] = _tin;
+		_tm[l] = _tin;
+		_dm[l] = _din;
+	}
+
 }
 
 void Feedback::updateTf(const float* power, const float* burnup)

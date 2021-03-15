@@ -11,9 +11,9 @@ module CReflector
                                                                
                                                                
     type, public    :: Reflector
-        real(4)                     :: rasigb(4,ng,3), rasigsb(ng,ng,3)
-        real(4)                     :: rasigt(4,ng,3), rasigst(ng,ng,3)
-        real(4)                     :: rrsig(4,ng,4), rrsigs(2,ng,ng,2)
+        real(4)                     :: rasigb(4,NUM_GRP,3), rasigsb(NUM_GRP,NUM_GRP,3)
+        real(4)                     :: rasigt(4,NUM_GRP,3), rasigst(NUM_GRP,NUM_GRP,3)
+        real(4)                     :: rrsig(4,NUM_GRP,4), rrsigs(2,NUM_GRP,NUM_GRP,2)
         real(4)                     :: rfrppm(REFL_EDGE:REFL_BOTTOM), rfrtf(REFL_EDGE:REFL_BOTTOM), rfrtm(REFL_EDGE:REFL_BOTTOM), &
                                         rfrdm(REFL_EDGE:REFL_BOTTOM) ,rfrprs(REFL_EDGE:REFL_BOTTOM), rfratm(REFL_EDGE:REFL_BOTTOM), b10ap(REFL_EDGE:REFL_BOTTOM)
     contains
@@ -32,10 +32,10 @@ contains
                                                            xdpmics, xdmmics, xddmics )
         class(Reflector)    :: this
         integer             :: reflType
-        real(4)             ::  xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
-        real(4)             ::  xdpmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
-                                xdpmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
-                                xdpmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        real(XS_PREC)             ::  xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
+        real(XS_PREC)             ::  xdpmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
         
 
         select case(reflType)
@@ -59,9 +59,9 @@ contains
     
     subroutine calculateBottom(this, xsmica, xsmicd, xsmics)
         class(Reflector)    :: this
-        real(4)             ::  xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
+        real(XS_PREC)             ::  xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
         integer             :: ig, igs, ige
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmica(ig, ID_B10)=this%rasigb(1,ig,1)
             xsmicd(ig, ID_B10)=this%rasigb(2,ig,1)
             xsmica(ig, ID_H2O)=this%rasigb(1,ig,2)
@@ -70,8 +70,8 @@ contains
             xsmicd(ig,ID_STRM)=this%rasigb(2,ig,3)
         enddo
         
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs == ige) cycle
             xsmics(igs,ige, ID_B10)=this%rasigsb(igs,ige,1)
             xsmics(igs,ige, ID_H2O)=this%rasigsb(igs,ige,2)
@@ -83,9 +83,9 @@ contains
     
     subroutine calculateTop(this, xsmica, xsmicd, xsmics)
         class(Reflector)    :: this
-        real(4)             ::  xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
+        real(XS_PREC)             ::  xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
         integer             :: ig, igs, ige        
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmica(ig, ID_B10)=this%rasigt(1,ig,1)
             xsmicd(ig, ID_B10)=this%rasigt(2,ig,1)
             xsmica(ig, ID_H2O)=this%rasigt(1,ig,2)
@@ -94,8 +94,8 @@ contains
             xsmicd(ig,ID_STRM)=this%rasigt(2,ig,3)
         enddo
         
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs == ige) cycle
             xsmics(igs,ige, ID_B10)=this%rasigst(igs,ige,1)
             xsmics(igs,ige, ID_H2O)=this%rasigst(igs,ige,2)
@@ -109,24 +109,24 @@ contains
                                                            xdpmicd, xdmmicd, xddmicd, &
                                                            xdpmics, xdmmics, xddmics )
         class(Reflector)    :: this
-        real(4)             ::  xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
-        real(4)             ::  xdpmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
-                                xdpmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
-                                xdpmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
-        integer             :: ig, igs, ige        
-        do ig=1,ng
+        real(XS_PREC)             ::  xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
+        real(XS_PREC)             ::  xdpmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
+        integer             :: ig, igs, ige   
+        do ig=1,NUM_GRP
             xsmica(ig,ID_STRM)=this%rrsig(1,ig,3)
             xsmicd(ig,ID_STRM)=this%rrsig(1,ig,4)
         enddo
             
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs.eq.ige) cycle
             xsmics(igs,ige,ID_STRM)=this%rrsigs(1,igs,ige,2)
         enddo
         enddo
         
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xdpmica(ig,ID_STRM)=this%rrsig(2,ig,3)
             xdpmicd(ig,ID_STRM)=this%rrsig(2,ig,4)
             xdmmica(ig,1,ID_STRM)=this%rrsig(3,ig,3)
@@ -135,8 +135,8 @@ contains
             xddmicd(ig,ID_STRM)=this%rrsig(4,ig,4)
         enddo
         
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs.eq.ige) cycle
             xdpmics(igs,ige,ID_STRM)=this%rrsigs(2,igs,ige,2)
         enddo
@@ -148,24 +148,24 @@ contains
                                                            xdpmicd, xdmmicd, xddmicd, &
                                                            xdpmics, xdmmics, xddmics )
         class(Reflector)    :: this
-        real(4)             ::  xsmicd(ng,NISO), xsmica(ng,NISO), xsmics(ng,ng,NISO)
-        real(4)             ::  xdpmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
-                                xdpmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
-                                xdpmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        real(XS_PREC)             ::  xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
+        real(XS_PREC)             ::  xdpmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
         integer             :: ig, igs, ige        
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmica(ig,ID_STRM)=this%rrsig(1,ig,1)
             xsmicd(ig,ID_STRM)=this%rrsig(1,ig,2)
         enddo
             
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs == ige) cycle
             xsmics(igs,ige,ID_STRM)=this%rrsigs(1,igs,ige,1)
         enddo
         enddo
         
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xdpmica(ig,ID_STRM)=this%rrsig(2,ig,1)
             xdpmicd(ig,ID_STRM)=this%rrsig(2,ig,2)
             xdmmica(ig,1,ID_STRM)=this%rrsig(3,ig,1)
@@ -174,8 +174,8 @@ contains
             xddmicd(ig,ID_STRM)=this%rrsig(4,ig,2)
         enddo
         
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs.eq.ige) cycle
             xdpmics(igs,ige,ID_STRM)=this%rrsigs(2,igs,ige,1)
         enddo

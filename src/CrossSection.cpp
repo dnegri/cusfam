@@ -123,7 +123,7 @@ void CrossSection::updateMacroXS(float* dnst)
 	}
 }
 
-void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm )
+void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, const float& dtf, const float& dtm)
 {
 	float dtm2 = dtm * dtm;
 
@@ -140,7 +140,7 @@ void CrossSection::updateXS(const int& l, const float* dnst, const float& dppm, 
 		xsdf(ig, l) = xsmacd0(ig, l) + dpmacd(ig, l) * dppm + dfmacd(ig, l) * dtf + dmmacd(ig, 0, l) * dtm + dmmacd(ig, 1, l) * dtm2;
 		xskf(ig, l) = xsmack0(ig, l) + dpmack(ig, l) * dppm + dfmack(ig, l) * dtf + dmmack(ig, 0, l) * dtm + dmmack(ig, 1, l) * dtm2;
 		xsnf(ig, l) = xsmacn0(ig, l) + dpmacn(ig, l) * dppm + dfmacn(ig, l) * dtf + dmmacn(ig, 0, l) * dtm + dmmacn(ig, 1, l) * dtm2;
-		xstf(ig, l) = xsmaca0(ig, l) + dpmaca(ig, l) * dppm + dfmaca(ig, l) * dtf + dmmaca(ig, 0, l) * dtm + dmmaca(ig, 1, l) * dtm2;		
+		xstf(ig, l) = xsmaca0(ig, l) + dpmaca(ig, l) * dppm + dfmaca(ig, l) * dtf + dmmaca(ig, 0, l) * dtm + dmmaca(ig, 1, l) * dtm2;
 	}
 
 
@@ -193,29 +193,37 @@ CrossSection::updateRodXS(const int& l, const int& iso_rod, const float& ratio, 
 
 	float dtm2 = dtm * dtm;
 
-    for (int ig = 0; ig < _ng; ig++)
-    {
-        xsdf(ig, l) = xsdf(ig, l) + (xsmicd0(ig, iso_rod, l) + xdpmicd(ig, iso_rod, l) * dppm + xdfmicd(ig, iso_rod, l) * dtf + xdmmicd(ig, 0, iso_rod, l) * dtm + xdmmicd(ig, 1, iso_rod, l) * dtm2)*ratio;
-        xskf(ig, l) = xskf(ig, l) + (xsmick0(ig, iso_rod, l) + xdpmick(ig, iso_rod, l) * dppm + xdfmick(ig, iso_rod, l) * dtf + xdmmick(ig, 0, iso_rod, l) * dtm + xdmmick(ig, 1, iso_rod, l) * dtm2)*ratio;
-        xsnf(ig, l) = xsnf(ig, l) + (xsmicn0(ig, iso_rod, l) + xdpmicn(ig, iso_rod, l) * dppm + xdfmicn(ig, iso_rod, l) * dtf + xdmmicn(ig, 0, iso_rod, l) * dtm + xdmmicn(ig, 1, iso_rod, l) * dtm2)*ratio;
-        xstf(ig, l) = xstf(ig, l) + (xsmica0(ig, iso_rod, l) + xdpmica(ig, iso_rod, l) * dppm + xdfmica(ig, iso_rod, l) * dtf + xdmmica(ig, 0, iso_rod, l) * dtm + xdmmica(ig, 1, iso_rod, l) * dtm2)*ratio;
+	for (int ig = 0; ig < _ng; ig++)
+	{
+		xsdf(ig, l) = xsdf(ig, l) + (xsmicd0(ig, iso_rod, l) + xdpmicd(ig, iso_rod, l) * dppm + xdfmicd(ig, iso_rod, l) * dtf + xdmmicd(ig, 0, iso_rod, l) * dtm + xdmmicd(ig, 1, iso_rod, l) * dtm2)*ratio;
+		xskf(ig, l) = xskf(ig, l) + (xsmick0(ig, iso_rod, l) + xdpmick(ig, iso_rod, l) * dppm + xdfmick(ig, iso_rod, l) * dtf + xdmmick(ig, 0, iso_rod, l) * dtm + xdmmick(ig, 1, iso_rod, l) * dtm2)*ratio;
+		xsnf(ig, l) = xsnf(ig, l) + (xsmicn0(ig, iso_rod, l) + xdpmicn(ig, iso_rod, l) * dppm + xdfmicn(ig, iso_rod, l) * dtf + xdmmicn(ig, 0, iso_rod, l) * dtm + xdmmicn(ig, 1, iso_rod, l) * dtm2)*ratio;
+		xstf(ig, l) = xstf(ig, l) + (xsmica0(ig, iso_rod, l) + xdpmica(ig, iso_rod, l) * dppm + xdfmica(ig, iso_rod, l) * dtf + xdmmica(ig, 0, iso_rod, l) * dtm + xdmmica(ig, 1, iso_rod, l) * dtm2)*ratio;
 
+	}
+	for (int ige = 0; ige < _ng; ige++)
+	{
+		for (int igs = 0; igs < _ng; igs++)
+		{
+			if (igs == ige) continue;
 
-        for (int igs = 0; igs < _ng; igs++)
-        {
-            xssf(igs, ig, l) = xssf(igs, ig, l) + (xsmics0(igs, ig, iso_rod, l) + xdpmics(igs, ig, iso_rod, l) * dppm + xdfmics(igs, ig, iso_rod, l) * dtf + xdmmics(igs, ig, 0, iso_rod, l) * dtm + xdmmics(igs, ig, 1, iso_rod, l) * dtm2) * ratio;
-        }
-    }
+			float dxss = (xsmics0(igs, ige, iso_rod, l) + xdpmics(igs, ige, iso_rod, l) * dppm + xdfmics(igs, ige, iso_rod, l) * dtf + xdmmics(igs, ige, 0, iso_rod, l) * dtm + xdmmics(igs, ige, 1, iso_rod, l) * dtm2) * ratio;
+			xssf(igs, ige, l) = xssf(igs, ige, l) + dxss;
+			xstf(igs, l) += dxss;
+		}
+	}
+
 }
 
 void CrossSection::updateRodXS(ControlRod& r, const float* dppm, const float* dtf, const float* dtm) {
 #pragma omp parallel for
-    for (int l = 0; l < nxyz(); ++l) {
-        if(r.ratio(l) > EPS_ROD_IN) {
-			int abst = r.abstype(r.cea(l)) + Isotope::MAC;
-            updateRodXS(l, abst, r.ratio(l), dppm[l], dtf[l], dtm[l]);
-        }
-    }
+	for (int l = 0; l < nxyz(); ++l) {
+		if (r.ratio(l) > EPS_ROD_IN) {
+			int l2d = l % _nxy;
+			int abst = r.abstype(r.cea(l2d)) + Isotope::MAC;
+			updateRodXS(l, abst, r.ratio(l), dppm[l], dtf[l], dtm[l]);
+		}
+	}
 }
 
 void CrossSection::updateXenonXS(const int& l, const float& dppm, const float& dtf, const float& dtm)
@@ -257,7 +265,7 @@ void CrossSection::updateDepletionXS(const int& l, const float& dppm, const floa
 {
 	float dtm2 = dtm * dtm;
 
-	for (int iso = 1; iso <= NDEP; iso++)
+	for (int iso = 0; iso <= NDEP; iso++)
 	{
 		for (int ig = 0; ig < _ng; ig++)
 		{
@@ -276,5 +284,3 @@ void CrossSection::updateDepletionXS(const float* dppm, const float* dtf, const 
 	}
 
 }
-
-

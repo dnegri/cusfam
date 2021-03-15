@@ -34,7 +34,7 @@ dim3 THREADS_SURFACE;
 int main() {
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
-	omp_set_num_threads(8);
+	//omp_set_num_threads(8);
 
 	SimonCPU simon;
 	simon.initialize("../run/geom.simon");
@@ -55,15 +55,15 @@ int main() {
 	//float tsec = dburn / (simon.pload() * simon.g().part()) * simon.d().totmass() * 3600.0 * 24.0;
 
 	SteadyOption s;
-	s.searchOption = CriticalOption::CBC;
+	s.plevel = 0.0;
+	s.ppm = 800.0;
+	s.tin = 295.8;
+	s.searchOption = CriticalOption::KEFF;
 	s.feedtm = true;
 	s.feedtf = true;
 	s.eigvt = 1.0;
 	s.maxiter = 100;
-	s.xenon = XEType::XE_EQ;
-	s.tin = 0.0;
-	s.ppm = 800.0;
-	s.plevel = 1.0;
+	s.xenon = XEType::XE_NO;
 
 	DepletionOption d_option;
 	d_option.isotope = DepletionIsotope::DEP_ALL;
@@ -86,11 +86,26 @@ int main() {
 
 	auto start = chrono::steady_clock::now();
 	float burn = 0.0;
-	simon.setBurnup(0);
+	simon.setBurnup("", 0);
 	simon.updateBurnup();
-	simon.r().setPosition("R5", 300.0);
+
+	simon.r().setPosition("R", 0.0);
+	simon.r().setPosition("P", 0.0);
+	simon.r().setPosition("A", 0.0);
+	simon.r().setPosition("B", 0.0);
+
 	simon.runSteady(s);
 	printf("DEPLETION : %d,  BURNUP : %.2f (MWD/MTU), CBC : %.2f (PPM), EIGV : %.6f\n", 1, burn, simon.ppm(), simon.eigv());
+	exit(0);
+
+	s.ppm = simon.ppm();
+	s.searchOption = CriticalOption::KEFF;
+	s.feedtm = false;
+	s.feedtf = false;
+	s.xenon = XEType::XE_TR;
+
+	simon.runSteady(s);
+
 
 	exit(0);
 

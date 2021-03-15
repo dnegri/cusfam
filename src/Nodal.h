@@ -24,22 +24,22 @@ protected:
     int* _symopt;
     int* _symang;
 
-    float* _albedo;
+	GEOM_VAR* _albedo;
 
     int* _neib;
     int* _lktosfc;
-    float* _hmesh;
+	GEOM_VAR* _hmesh;
 
     int* _lklr;
     int* _idirlr;
     int* _sgnlr;
 
-    XS_PRECISION* _xstf;
-    XS_PRECISION* _xsdf;
-    XS_PRECISION* _xsnf;
-    XS_PRECISION* _chif;
-    XS_PRECISION* _xssf;
-    XS_PRECISION* _xsadf;
+    XS_VAR* _xstf;
+    XS_VAR* _xsdf;
+    XS_VAR* _xsnf;
+    XS_VAR* _chif;
+    XS_VAR* _xssf;
+    XS_VAR* _xsadf;
 
     NODAL_VAR* _trlcff0;
     NODAL_VAR* _trlcff1;

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cstring>
+#include "plog/Log.h"
 
 using namespace std;
 
@@ -192,7 +193,7 @@ __constant__ static const float B11AW = 11.009305;
 __constant__ static const int TF_POINT = 20;
 
 enum SteamError {
-    NO_ERROR,
+	STEAM_TABLE_ERROR_NONE,
     STEAM_TABLE_ERROR_MAXENTH
 };
 
@@ -211,6 +212,8 @@ enum PROP_TYPE {
 #define NODAL_VAR double
 
 #define CMFD_VAR    double
-#define SOL_VAR    double
+#define SOL_VAR     double
+#define GEOM_VAR    double
+#define XS_VAR		double
 
 #endif /* PCH_H_ */

@@ -30,21 +30,21 @@ extern "C" {
 	void readDensity(const int* niso, float* dnst);
 
 
-	void calculateReference(const int& icomp, const float& burn, const float* xsmicd, const float* xsmica, const float* xsmicn,
-		const float* xsmicf, const float* xsmick, const float* xsmics, const float* xsmic2n, const float* xehfp);
+	void calculateReference(const int& icomp, const XS_VAR& burn, const XS_VAR* xsmicd, const XS_VAR* xsmica, const XS_VAR* xsmicn,
+		const XS_VAR* xsmicf, const XS_VAR* xsmick, const XS_VAR* xsmics, const XS_VAR* xsmic2n, const XS_VAR* xehfp);
 
-	void calculateVariation(const int& icomp, const float& burn, const float& b10wp,
-		const float*xdpmicn, const float*xdfmicn, const float* xdmmicn, const float* xddmicn,
-		const float* xdpmicf, const float* xdfmicf, const float* xdmmicf, const float* xddmicf,
-		const float* xdpmica, const float* xdfmica, const float* xdmmica, const float* xddmica,
-		const float* xdpmicd, const float* xdfmicd, const float* xdmmicd, const float* xddmicd,
-		const float* xdpmics, const float* xdfmics, const float* xdmmics, const float* xddmics);
+	void calculateVariation(const int& icomp, const XS_VAR& burn, const XS_VAR& b10wp,
+		const XS_VAR*xdpmicn, const XS_VAR*xdfmicn, const XS_VAR* xdmmicn, const XS_VAR* xddmicn,
+		const XS_VAR* xdpmicf, const XS_VAR* xdfmicf, const XS_VAR* xdmmicf, const XS_VAR* xddmicf,
+		const XS_VAR* xdpmica, const XS_VAR* xdfmica, const XS_VAR* xdmmica, const XS_VAR* xddmica,
+		const XS_VAR* xdpmicd, const XS_VAR* xdfmicd, const XS_VAR* xdmmicd, const XS_VAR* xddmicd,
+		const XS_VAR* xdpmics, const XS_VAR* xdfmics, const XS_VAR* xdmmics, const XS_VAR* xddmics);
 
-	void calculateReflector(const int & irefl, const float& b10wp, 
-		const float * xsmica, const float * xsmicd, const float * xsmics,
-		const float * xdpmica, const float * xdmmica, const float * xddmica,
-		const float * xdpmicd, const float * xdmmicd, const float * xddmicd,
-		const float * xdpmics, const float * xdmmics, const float * xddmics);
+	void calculateReflector(const int & irefl, const XS_VAR& b10wp,
+		const XS_VAR * xsmica, const XS_VAR * xsmicd, const XS_VAR * xsmics,
+		const XS_VAR * xdpmica, const XS_VAR * xdmmica, const XS_VAR * xddmica,
+		const XS_VAR * xdpmicd, const XS_VAR * xdmmicd, const XS_VAR * xddmicd,
+		const XS_VAR * xdpmics, const XS_VAR * xdmmics, const XS_VAR * xddmics);
 
 }
 
@@ -112,7 +112,7 @@ void Simon::initialize(const char* dbfile) {
 
 	for (int l = 0; l < nxy; l++) _r->cea(l) = _r->cea(l) - 1;
 
-	_x = new CrossSection(ng, nxyz);
+	_x = new CrossSection(ng, nxy, nxyz);
 
 	_d = new Depletion(*_g);
 	_d->init();
@@ -236,16 +236,17 @@ void Simon::updateBurnup()
 
 }
 
-void Simon::setBurnup(const float& burnup) {
+void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 
 	int i = 0;
 	for (; i < _nstep; ++i) {
 		if (burnup - 10.0 < _bucyc[i]) break;
 	}
 
-	char dbfile[19];
+	char dbfile[_MAX_PATH];
+
 	int intbu = round(_bucyc[i]);
-	sprintf(dbfile, "../run/%05d.simon", intbu);
+	sprintf(dbfile, "%s/%05d.simon", dir_burn, intbu);
 	printf("Started reading burn file : %s\n", dbfile);
 
 	int length = strlen(dbfile);

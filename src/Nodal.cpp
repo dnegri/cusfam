@@ -59,30 +59,30 @@ __host__ __device__ void Nodal::updateConstant(const int& lk)
         int lkd = lkd0 + idir;
 
         for (int ig = 0; ig < ng(); ig++) {
-            auto kp2 = xstf(ig,lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
-            auto kp = sqrt(kp2);
-            auto kp3 = kp2 * kp;
-            auto kp4 = kp2 * kp2;
-            auto kp5 = kp2 * kp3;
-            auto rkp = 1 / kp;
-            auto rkp2 = rkp * rkp;
-            auto rkp3 = rkp2 * rkp;
-            auto rkp4 = rkp2 * rkp2;
-            auto rkp5 = rkp2 * rkp3;
-            auto sinhkp = sinh(kp);
-            auto coshkp = cosh(kp);
+            NODAL_VAR kp2 = xstf(ig,lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
+            NODAL_VAR kp = sqrt(kp2);
+            NODAL_VAR kp3 = kp2 * kp;
+            NODAL_VAR kp4 = kp2 * kp2;
+            NODAL_VAR kp5 = kp2 * kp3;
+            NODAL_VAR rkp = 1 / kp;
+            NODAL_VAR rkp2 = rkp * rkp;
+            NODAL_VAR rkp3 = rkp2 * rkp;
+            NODAL_VAR rkp4 = rkp2 * rkp2;
+            NODAL_VAR rkp5 = rkp2 * rkp3;
+            NODAL_VAR sinhkp = sinh(kp);
+            NODAL_VAR coshkp = cosh(kp);
 
             //calculate coefficient of basic functions P5and P6
-            auto bfcff0 = -sinhkp * rkp;
-            auto bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
-            auto bfcff4 =
+			NODAL_VAR  bfcff0 = -sinhkp * rkp;
+			NODAL_VAR  bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
+			NODAL_VAR  bfcff4 =
                 -9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
                 rkp5;
-            auto bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
-            auto bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
+			NODAL_VAR  bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
+			NODAL_VAR  bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
 
-            auto oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
-            auto eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
+			NODAL_VAR  oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
+			NODAL_VAR  eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
 
             //eta1, eta2
             eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
@@ -123,7 +123,7 @@ __host__ __device__ void Nodal::updateMatrix(const int& lk)
     double det = matM(0, 0, lk) * matM(1, 1, lk) - matM(1, 0, lk) * matM(0, 1, lk);
 
     if (abs(det) > 1.E-10) {
-        auto rdet = 1 / det;
+		NODAL_VAR rdet = 1 / det;
         matMI(0, 0, lk) = rdet * matM(1, 1, lk);
         matMI(1, 0, lk) = -rdet * matM(1, 0, lk);
         matMI(0, 1, lk) = -rdet * matM(0, 1, lk);
@@ -136,7 +136,7 @@ __host__ __device__ void Nodal::updateMatrix(const int& lk)
         matMI(1, 1, lk) = 0;
     }
 
-    auto rm011 = 1. / m011;
+	NODAL_VAR  rm011 = 1. / m011;
 
     for (int idir = 0; idir < NDIRMAX; idir++) {
         int lkd = lkd0 + idir;
@@ -203,8 +203,8 @@ __host__ __device__ void Nodal::caltrlcff0(const int& lk)
 
     for (int ig = 0; ig < ng(); ig++) {
         for (int idir = 0; idir < NDIRMAX; idir++) {
-            auto lsl = lktosfc(LEFT, idir, lk);
-            auto lsr = lktosfc(RIGHT, idir, lk);
+            int lsl = lktosfc(LEFT, idir, lk);
+            int lsr = lktosfc(RIGHT, idir, lk);
 
             avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) / hmesh(idir, lk);
         }
@@ -266,15 +266,16 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
     int lkd0 = lk * NDIRMAX;
 
     for (int idir = 0; idir < NDIRMAX; idir++) {
-        auto lkd = lkd0 + idir;
+        int lkd = lkd0 + idir;
         NODAL_VAR at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
         for (int igd = 0; igd < ng(); igd++) {
 			rm4464[igd] = 0.0;
 			
-			if(m264(igd, lkd) != 0.0) rm4464[igd] = m044 / m264(igd, lkd);
+			if(m264(igd, lkd) > 1.0E-6 && m264(igd, lkd) < -1.0E-6) rm4464[igd] = m044 / m264(igd, lkd);
+			//printf("m264(igd, lkd) : %12.5e\n", m264(igd, lkd));
 
-            auto mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
+			NODAL_VAR mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
 
             for (int igs = 0; igs < ng(); igs++) {
                 at2[igs][igd] = m022 * rm220 * mu2 * matM(igs, igd, lk);
@@ -283,7 +284,7 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
         }
 
         for (int igd = 0; igd < ng(); igd++) {
-            auto mu1 = rm4464[igd] * m262(igd, lkd);
+			NODAL_VAR mu1 = rm4464[igd] * m262(igd, lkd);
             for (int igs = 0; igs < ng(); igs++) {
                 a[igs][igd] =
                     mu1 * matM(igs, igd, lk) + matM(0, igd, lk) * at2[igs][0] + matM(1, igd, lk) * at2[igs][1];
@@ -297,9 +298,18 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
             b[ig] = m022 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
         }
 
-        auto rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
-        dsncff4(0, lkd) = rdet * (a[1][1] * b[0] - a[1][0] * b[1]);
-        dsncff4(1, lkd) = rdet * (a[0][0] * b[1] - a[0][1] * b[0]);
+		NODAL_VAR rdet = (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+		//printf("rdet : %12.5e\n", rdet);
+
+		if (rdet != 0.0) {
+			rdet = 1. / rdet;
+			dsncff4(0, lkd) = rdet * (a[1][1] * b[0] - a[1][0] * b[1]);
+			dsncff4(1, lkd) = rdet * (a[0][0] * b[1] - a[0][1] * b[0]);
+		}
+		else {
+			dsncff4(0, lkd) = 0.0;
+			dsncff4(1, lkd) = 0.0;
+		}
 
         for (int ig = 0; ig < ng(); ig++) {
             dsncff6(ig, lkd) = diagDI(ig, lkd) * rm4464[ig] *
@@ -484,7 +494,7 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
     tempz[0][1] = (mu(0, 1, lkdr) + tau(0, 1, lkdr)) * adf[1][RIGHT];
     tempz[1][1] = (mu(1, 1, lkdr) + tau(1, 1, lkdr) + 1) * adf[1][RIGHT];
 
-    auto rdet = 1 / (tempz[0][0] * tempz[1][1] - tempz[1][0] * tempz[0][1]);
+	NODAL_VAR rdet = 1 / (tempz[0][0] * tempz[1][1] - tempz[1][0] * tempz[0][1]);
     tempzI[0][0] = rdet * tempz[1][1];
     tempzI[1][0] = -rdet * tempz[1][0];
     tempzI[0][1] = -rdet * tempz[0][1];
@@ -550,7 +560,7 @@ __host__ __device__ void Nodal::calculateJnet2n(const int& ls)
     }
 
     rdet = 1 / (mat1g[0][0] * mat1g[1][1] - mat1g[1][0] * mat1g[0][1]);
-    auto tmp = mat1g[0][0];
+	NODAL_VAR tmp = mat1g[0][0];
     mat1g[0][0] = rdet * mat1g[1][1];
     mat1g[1][0] = -rdet * mat1g[1][0];
     mat1g[0][1] = -rdet * mat1g[0][1];

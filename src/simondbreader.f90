@@ -1,7 +1,7 @@
     module simondbreader
 
     integer :: ifile
-    integer :: ng, nxyz 
+    integer :: ngrp, nxyz 
 contains
     subroutine opendb(lenf, file) bind(c, name="opendb")
         use, intrinsic :: iso_c_binding, only: c_char
@@ -26,7 +26,7 @@ contains
         
         read(ifile) ng_, nxy, nz, nx, ny, nsurf
         nxyz = nxy*nz
-        ng = ng_
+        ngrp = ng_
     end subroutine
     
     subroutine readIndex(nx, ny, nxy, nz, nxs, nxe, nys, nye, nodel, neibr, hmesh)   bind(c, name="readIndex")
@@ -164,7 +164,7 @@ contains
     
     
     subroutine readxs(niso, xs)   bind(c, name="readXS")
-        real(4)            :: xs(ng,niso,nxyz)
+        real(4)            :: xs(ngrp,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xs(:,:,l) 
@@ -173,7 +173,7 @@ contains
     end subroutine
     
     subroutine readxsd(niso, xsd)  bind(c, name="readXSD")
-        real(4)            :: xsd(ng,niso,nxyz)
+        real(4)            :: xsd(ngrp,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xsd(:,:,l) 
@@ -182,7 +182,7 @@ contains
     end subroutine    
     
     subroutine readxss(niso, xss) bind(c, name="readXSS")
-        real(4)            :: xss(ng,ng,niso,nxyz)
+        real(4)            :: xss(ngrp,ngrp,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xss(:,:,:,l) 
@@ -191,7 +191,7 @@ contains
     end subroutine    
     
     subroutine readxssd(niso, xssd) bind(c, name="readXSSD")
-        real(4)            :: xssd(ng,ng,niso,nxyz)
+        real(4)            :: xssd(ngrp,ngrp,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xssd(:,:,:,l) 
@@ -200,7 +200,7 @@ contains
     end subroutine    
     
     subroutine readxsdtm(niso, xs) bind(c, name="readXSDTM")
-        real(4)            :: xs(ng,3,niso,nxyz)
+        real(4)            :: xs(ngrp,3,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xs(:,:,:,l)
@@ -210,7 +210,7 @@ contains
     
     
     subroutine readxssdtm(niso, xss)  bind(c, name="readXSSDTM")
-        real(4)            :: xss(ng, ng,3,niso,nxyz)
+        real(4)            :: xss(ngrp, ngrp,3,niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) xss(:,:,:,:,l)

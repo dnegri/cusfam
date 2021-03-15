@@ -1,7 +1,6 @@
 //
 // Created by JOO IL YOON on 2021/01/30.
 //
-
 #include "JacobiBicgSolver.h"
 #include "mat2g.h"
 #include "myblas.h"
@@ -142,7 +141,7 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VA
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
-    double crhod = _crho;
+	CMFD_VAR crhod = _crho;
     _crho = myblas::dot(n, _vr0, _vr);
     _cbeta = _crho * _calpha / (crhod * _comega);
 
@@ -193,6 +192,7 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VA
     if (r20 != 0.0) {
         r2 = sqrt(myblas::dot(n, _vt, _vt)) / r20;
     }
+
 }
 
 void JacobiBicgSolver::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux) {

@@ -68,12 +68,12 @@ protected :
 
 	int _symopt;
 	int _symang;
-	float* _albedo;
+	GEOM_VAR* _albedo;
 
-	float* _hmesh;
-	float* _vol;
+	GEOM_VAR* _hmesh;
+	GEOM_VAR* _vol;
 	
-	float _part;
+	GEOM_VAR _part;
 
 public:
 	__host__ Geometry();
@@ -95,7 +95,7 @@ public:
 	__host__ __device__ inline int& ny() { return _ny; };
 	__host__ __device__ inline int& symopt() { return _symopt; };
 	__host__ __device__ inline int& symang() { return _symang; };
-	__host__ __device__ inline float& part() { return _part; };
+	__host__ __device__ inline GEOM_VAR& part() { return _part; };
 
 	__host__ __device__ inline const int& ng() const { return _ng; };
 	__host__ __device__ inline const int& ng2() const { return _ng2; };
@@ -110,7 +110,7 @@ public:
 	__host__ __device__ inline const int& symopt() const { return _symopt; };
 	__host__ __device__ inline const int& symang() const { return _symang; };
 
-	__host__ __device__ const float* albedo() const { return _albedo; }
+	__host__ __device__ const GEOM_VAR* albedo() const { return _albedo; }
 	__host__ __device__ const int* neibr() const { return _neibr; }
 	__host__ __device__ const int* ijtol() const { return _ijtol; }
 	__host__ __device__ const int* nxs() const { return _nxs; }
@@ -118,9 +118,9 @@ public:
 	__host__ __device__ const int* nys() const { return _nys; }
 	__host__ __device__ const int* nye() const { return _nye; }
 	__host__ __device__ const int* neib() const { return _neib; }
-	__host__ __device__ const float* hmesh() const { return _hmesh; }
+	__host__ __device__ const GEOM_VAR* hmesh() const { return _hmesh; }
 	__host__ __device__ const int* lktosfc() const { return _lktosfc; }
-	__host__ __device__ const float* vol() const { return _vol; }
+	__host__ __device__ const GEOM_VAR* vol() const { return _vol; }
 	__host__ __device__ const int* idirlr() const { return _idirlr; }
 	__host__ __device__ const int* sgnlr() const { return _sgnlr; }
 	__host__ __device__ const int* lklr() const { return _lklr; }
@@ -143,9 +143,9 @@ public:
 	__host__ __device__ inline int& ncomp() { return _ncomp; };
 	__host__ __device__ char** compnames() { return (char**)_compnames; };
 
-	__host__ __device__ inline float& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
-    __host__ __device__ inline float& vol(const int& lk) { return _vol[lk]; };
-	__host__ __device__ inline float& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+	__host__ __device__ inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+    __host__ __device__ inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };
+	__host__ __device__ inline GEOM_VAR& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
 
 };
 

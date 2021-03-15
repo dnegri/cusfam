@@ -2,14 +2,13 @@ module CIsotope
     implicit none
     private
     
-    integer, public, parameter   :: ns = 60
-    integer, public, parameter   :: nv = 12
-    integer, public, parameter   :: nnucl = 40
+    integer, public, parameter   :: NUM_BURN = 60
+    integer, public, parameter   :: NUM_BUVAR = 12
     integer, public, parameter   :: LEN_ISOTOPE = 4
     integer, public, parameter   :: NISO = 40
     integer, public, parameter   :: NDEP = 25
-    integer, public, parameter   :: ng = 2
-    integer, public, parameter   :: ngs = (ng-1)*ng !skip self-scattering 
+    integer, public, parameter   :: NUM_GRP = 2
+    integer, public, parameter   :: NUM_GRPSCT = (NUM_GRP-1)*NUM_GRP !skip self-scattering 
     integer, public, parameter   :: XSSIG_NTYPE = 4
     integer, public, parameter   :: XSSIG_NUF = 1
     integer, public, parameter   :: XSSIG_FIS = 2
@@ -76,9 +75,9 @@ module CIsotope
     type, public    :: Isotope
         integer                     :: id
         integer                     :: nax, iwab,nskip,nbltab(5)
-        real(4)                     :: cappa(ng)
-        real(4)                     :: xssig(ns, ng, XSSIG_NTYPE), dxssig(nv, ng, VAR_NTNP, XSSIG_NTYPE)
-        real(4)                     :: xsigs(ns, ngs), dxsigs(nv, ngs, VAR_NTNP)
+        real(4)                     :: cappa(NUM_GRP)
+        real(4)                     :: xssig(NUM_BURN, NUM_GRP, XSSIG_NTYPE), dxssig(NUM_BUVAR, NUM_GRP, VAR_NTNP, XSSIG_NTYPE)
+        real(4)                     :: xsigs(NUM_BURN, NUM_GRPSCT), dxsigs(NUM_BUVAR, NUM_GRPSCT, VAR_NTNP)
     contains
         procedure calculateReference
         procedure calculateVariation
@@ -91,32 +90,32 @@ contains
     subroutine calculateReference(this, klo, af, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics)
         class(Isotope)     :: this
         integer             :: klo
-        real(4)             :: af(3)        
-        real(4)             ::  xsmicd(ng), xsmica(ng), xsmicn(ng), xsmicf(ng), xsmick(ng), xsmics(ng,ng)
+        real(XS_PREC)       :: af(3)        
+        real(XS_PREC)       ::  xsmicd(NUM_GRP), xsmica(NUM_GRP), xsmicn(NUM_GRP), xsmicf(NUM_GRP), xsmick(NUM_GRP), xsmics(NUM_GRP,NUM_GRP)
         integer             :: ixs, ig, igs, ige, igse
         
         ixs = 1
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmicn(ig) = af(1) * this%xssig(klo,ig,ixs) + af(2) * this%xssig(klo+1,ig,ixs) + af(3) * this%xssig(klo+2,ig,ixs)
         enddo
         ixs = 2
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmicf(ig) = af(1) * this%xssig(klo,ig,ixs) + af(2) * this%xssig(klo+1,ig,ixs) + af(3) * this%xssig(klo+2,ig,ixs)
             xsmick(ig) = xsmicf(ig)*this%cappa(ig)
         enddo
         ixs = 3
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmica(ig) = af(1) * this%xssig(klo,ig,ixs) + af(2) * this%xssig(klo+1,ig,ixs) + af(3) * this%xssig(klo+2,ig,ixs)
             xsmica(ig) = xsmica(ig) + xsmicf(ig)
         enddo
         ixs = 4
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xsmicd(ig) = af(1) * this%xssig(klo,ig,ixs) + af(2) * this%xssig(klo+1,ig,ixs) + af(3) * this%xssig(klo+2,ig,ixs)
         enddo
         
         igse = 0
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs.eq.ige) cycle
             igse = igse + 1
             xsmics(igs,ige) = af(1) * this%xsigs(klo,igse) + af(2) * this%xsigs(klo+1,igse) + af(3) * this%xsigs(klo+2,igse)
@@ -133,12 +132,12 @@ contains
                                                 xdpmics, xdfmics, xdmmics, xddmics)
         class(Isotope)      :: this
         integer             :: klo
-        real(4)             :: af(3)
-        real(4)             ::  xdpmicn(ng), xdfmicn(ng), xdmmicn(ng,3), xddmicn(ng), &
-                                xdpmicf(ng), xdfmicf(ng), xdmmicf(ng,3), xddmicf(ng), &
-                                xdpmica(ng), xdfmica(ng), xdmmica(ng,3), xddmica(ng), &
-                                xdpmicd(ng), xdfmicd(ng), xdmmicd(ng,3), xddmicd(ng), &
-                                xdpmics(ng,ng), xdfmics(ng,ng), xdmmics(ng,ng,3), xddmics(ng,ng)
+        real(XS_PREC)             :: af(3)
+        real(XS_PREC)             ::  xdpmicn(NUM_GRP), xdfmicn(NUM_GRP), xdmmicn(NUM_GRP,3), xddmicn(NUM_GRP), &
+                                xdpmicf(NUM_GRP), xdfmicf(NUM_GRP), xdmmicf(NUM_GRP,3), xddmicf(NUM_GRP), &
+                                xdpmica(NUM_GRP), xdfmica(NUM_GRP), xdmmica(NUM_GRP,3), xddmica(NUM_GRP), &
+                                xdpmicd(NUM_GRP), xdfmicd(NUM_GRP), xdmmicd(NUM_GRP,3), xddmicd(NUM_GRP), &
+                                xdpmics(NUM_GRP,NUM_GRP), xdfmics(NUM_GRP,NUM_GRP), xdmmics(NUM_GRP,NUM_GRP,3), xddmics(NUM_GRP,NUM_GRP)
         integer             :: ig
 
         call this%calculateVariation1(klo, af, 2, xdpmicn(:), xdpmicf(:), xdpmica(:), xdpmicd(:), xdpmics(:,:))
@@ -155,29 +154,29 @@ contains
     
         class(Isotope)     :: this
         integer             :: klo, idxdrv
-        real(4)             :: af(3)
-        real(4)             ::  xdmicn(ng), xdmicf(ng), xdmica(ng), xdmicd(ng), xdmics(ng,ng)
+        real(XS_PREC)             :: af(3)
+        real(XS_PREC)             ::  xdmicn(NUM_GRP), xdmicf(NUM_GRP), xdmica(NUM_GRP), xdmicd(NUM_GRP), xdmics(NUM_GRP,NUM_GRP)
         integer             :: ixs,ig, igs, ige, igse
         
         ixs = XSSIG_NUF
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xdmicn(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
         enddo
         
         ixs = XSSIG_FIS
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xdmicf(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
         enddo
         
         ixs = XSSIG_CAP
-        do ig=1,ng
+        do ig=1,NUM_GRP
             xdmica(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
             xdmica(ig) = xdmica(ig) + xdmicf(ig)
         enddo
         
         igse = 0
-        do igs=1,ng
-        do ige=1,ng
+        do igs=1,NUM_GRP
+        do ige=1,NUM_GRP
             if(igs.eq.ige) cycle
             igse = igse + 1
             xdmics(igs,ige) = af(1) * this%dxsigs(klo,igse,idxdrv) + af(2) * this%dxsigs(klo+1,igse,idxdrv) + af(3) * this%dxsigs(klo+2,igse,idxdrv)

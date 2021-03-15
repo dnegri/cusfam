@@ -20,6 +20,7 @@ private:
     float _crit_xenon = 1.E-4;
     float _crit_nodal = 1.E-1;
     float _crit_flux = 1.E-5;
+	float _crit_eigv = 1.E-6;
 
 public:
     SimonCPU();
@@ -35,6 +36,7 @@ public:
     void normalize() override;
 
     void runSteady(const SteadyOption& condition) override;
+	void runSteadySfam(const SteadyOption& condition) ;
 
     float updatePPM(const bool& first, const double& eigvt, const float& ppm, const float& ppmd, const double& eigv, const double& eigvd);
 

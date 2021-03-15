@@ -12,7 +12,7 @@ void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
 {
 	_symopt = *symopt;
 	_symang = *symang;
-	_albedo = new float[LR*NDIRMAX];
+	_albedo = new GEOM_VAR[LR*NDIRMAX];
 	for (int idir = 0; idir < NDIRMAX; idir++)
 	{
 		for (int l = 0; l < LR; l++)
@@ -78,9 +78,9 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	}
 	int nxyz6 = NEWSBT * _nxyz;
 	_neib = new int[nxyz6];
-	_hmesh = new float[nxyz6];
+	_hmesh = new GEOM_VAR[nxyz6];
 	_lktosfc = new int[nxyz6];
-	_vol = new float[_nxyz];
+	_vol = new GEOM_VAR[_nxyz];
 
 	for (int k = 0; k < _nz; k++)
 	{

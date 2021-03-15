@@ -18,7 +18,7 @@ void BICGCMFD::init()
     _nodal->init();
 
     _epsbicg = 1.E-4;
-    _nmaxbicg = 5;
+    _nmaxbicg = 10;
     _eshift = 0.01;
     iter = 0;
 
@@ -199,7 +199,9 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
     if(_eshift != 0.0) reigvs = 1. / (eigv + _eshift);
 
-    for (int iout = 0; iout < _ncmfd; ++iout) {
+	int negative = 0;
+	int iout = 0;
+    for (; iout < _ncmfd; ++iout) {
         ++iter; ++icmfd;
         double reigvdel = reigv - reigvs;
 
@@ -219,7 +221,8 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);
             //printf("JacobiBicgSolver Iteration : %d   Error : %e\n", iin, r2);
-            if(r2 < _epsbicg) break;
+			PLOG(plog::debug) << iin << "-th JacobiBicgSolver Error " << r2;
+			if(r2 < _epsbicg) break;
         }
 
         //wielandt shift
@@ -227,7 +230,7 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
         if(reigvs != 0.0) updls(reigvs);
 
-        int negative = 0;
+        negative = 0;
 #pragma omp parallel for reduction(+ : negative)
         for (int l = 0; l < _g.nxyz(); ++l) {
             for (int ig = 0; ig < _g.ng(); ++ig) {
@@ -242,11 +245,15 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
         if(negative != 0 && icmfd < 20*_ncmfd) iout--;
 
-        printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iter, eigv, errl2, negative);
+		printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iter, eigv, errl2, negative);
+		PLOG(plog::debug) << "IOUT : " << iter << ", EIGV : " << eigv << ", ERRL2 : " << errl2 << ", NEGATIVE : " << negative;
 
         if (errl2 < _epsl2) break;
 
     }
+
+	printf("NCMFD: %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", icmfd, eigv, errl2, negative);
+
 }
 
 void BICGCMFD::resetIteration() {

@@ -67,18 +67,31 @@ void NodalCPU::reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_V
 
 void NodalCPU::drive(SOL_VAR* jnet) {
 
+	printf("updateConstant\n");
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateConstant(lk);
+	}
+	printf("caltrlcff0\n");
+	for (int lk = 0; lk < nxyz(); ++lk) {
 		caltrlcff0(lk);
 	}
 
+	printf("caltrlcff12\n");
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		caltrlcff12(lk);
+	}
+	printf("updateMatrix\n");
+	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateMatrix(lk);
+	}
+	printf("calculateEven\n");
+	for (int lk = 0; lk < nxyz(); ++lk) {
+
 		calculateEven(lk);
 	}
 
+	printf("calculateJnet\n");
 	for (int ls = 0; ls < nsurf(); ++ls) {
         calculateJnet(ls);
-    }
+	}
 }

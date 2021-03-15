@@ -16,11 +16,11 @@ module CComposition
         real(4)                     :: b10ap
         
         integer                     :: npdet(2)
-        real(4)                     :: xsend(ns),xsn2n(ns), chi(ns,ng), dpdet(ns), dxsdet(nv,ng,ns), df(ns,ng,3), ddf(ns,ng,3,3)
+        real(4)                     :: xsend(NUM_BURN),xsn2n(NUM_BURN), chi(NUM_BURN,NUM_GRP), dpdet(NUM_BURN), dxsdet(NUM_BUVAR,NUM_GRP,NUM_BURN), df(NUM_BURN,NUM_GRP,3), ddf(NUM_BURN,NUM_GRP,3,3)
         integer                     :: nvar, nvar2
-        real(4)                     :: xsbu(ns), dxsbu(nv)        
+        real(4)                     :: xsbu(NUM_BURN), dxsbu(NUM_BUVAR)        
         integer                     :: nvarcr, nvar2cr
-        real(4)                     :: xsbucr(ns), dxsbucr(nv)        
+        real(4)                     :: xsbucr(NUM_BURN), dxsbucr(NUM_BUVAR)        
     
     contains
         procedure calculateReference
@@ -31,10 +31,10 @@ contains
 
     subroutine calculateReference(this, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
         class(Composition)  :: this
-        real(4)             :: burn
-        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmicn(ng,NISO), xsmicf(ng,NISO), xsmick(ng,NISO), xsmics(ng,ng,NISO), xsmic2n(ng), xehfp
+        real(XS_PREC)             :: burn
+        real(XS_PREC)             :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmicn(NUM_GRP,NISO), xsmicf(NUM_GRP,NISO), xsmick(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO), xsmic2n(NUM_GRP), xehfp
         integer             :: klo, i
-        real(4)             :: af(3)
+        real(XS_PREC)             :: af(3)
         
         call quad1(this%nvar, this%xsbu(:), burn, klo, af)
 
@@ -58,14 +58,14 @@ contains
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )
         class(Composition)  :: this
-        real(4)             :: burn
-        real(4)             ::  xdpmicn(ng,NISO), xdfmicn(ng,NISO), xdmmicn(ng,3,NISO), xddmicn(ng,NISO), &
-                                xdpmicf(ng,NISO), xdfmicf(ng,NISO), xdmmicf(ng,3,NISO), xddmicf(ng,NISO), &
-                                xdpmica(ng,NISO), xdfmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
-                                xdpmicd(ng,NISO), xdfmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
-                                xdpmics(ng,ng,NISO), xdfmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        real(XS_PREC)             :: burn
+        real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
+                                xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
         integer             :: klo, i
-        real(4)             :: af(3)
+        real(XS_PREC)             :: af(3)
         
         call quad1(this%nvar2, this%dxsbu(:), burn, klo, af)
 

@@ -67,6 +67,14 @@ void Depletion::init()
 	_buconf = new float[_g.nxyz()]{};
 }
 
+void Depletion::multiplyDensity(const int & iiso, const float & factor)
+{
+	#pragma omp parallel for
+	for (int l = 0; l < _g.nxyz(); ++l) {
+		dnst(iiso, l) *= factor;
+	}
+}
+
 void Depletion::updateB10Abundance(const float& b10ap)
 {
 	_b10ap = b10ap;
@@ -77,8 +85,9 @@ void Depletion::updateB10Abundance(const float& b10ap)
 
 void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt, const float* power)
 {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
+		if (power[l] == 0) continue;
         dep(l, tsec, xeopt, smopt, power[l], _dnst, _dnst_new, _dnst_avg);
     }
 
@@ -87,8 +96,6 @@ void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt
 
 void Depletion::dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg)
 {
-    if(ati(U235,l) == 0) return;
-
     deph(l, tsec, ati, atd, atavg);
 
 	for (int ihvy = 0; ihvy < NHEAVY; ihvy++)
@@ -126,7 +133,7 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 		}
 	}
 
-	float r[10], exg[10], a[10][10];
+	double r[10], exg[10], a[10][10];
 
 	for (int ic = 0; ic < _nhvychn; ++ic) {
 
@@ -145,7 +152,7 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 
 			if (i != 0) {
 				for (int j = 0; j <= im1; ++j) {
-					float gm1 = 0.0;
+					double gm1 = 0.0;
 
 					switch (iptyp(i, ic)) {
 					case(R_CAP):
@@ -173,7 +180,14 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 					}
 
 					a[i][j] = 0.0;
-					if(r[i] != r[j]) a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+
+					
+					if(abs(r[i]-r[j]) > 1.E-12) a[i][j] = gm1 * a[im1][j] / (r[i] - r[j]);
+
+					if (!isfinite(a[i][j])) {
+						printf("%i %i %i %12.4e %12.4e\n", l, i, j, r[i], r[j]);
+						exit(-1);
+					}
 				}
 			}
 
@@ -192,10 +206,10 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 				}
 			}
 
-			float dnew = 0.0;
-			float ditg = 0.0;
+			double dnew = 0.0;
+			double ditg = 0.0;
 			for (int j = 0; j <= i; ++j) {
-				if (r[j] != 0.0) {
+				if (r[j] > 1.E-12) {
 					dnew = dnew + a[i][j] * exg[j];
 					ditg = ditg + a[i][j] * (1. - exg[j]) / r[j];
 				}
@@ -228,9 +242,9 @@ void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* 
 	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) + (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
 }
 
-void Depletion::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
+void Depletion::eqxe(const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm)
 {
-
+#pragma omp parallel for
 	for (int l = 0; l < _g.nxyz(); l++)
 	{
 	    if(xsmicf(1,U235,l) == 0) continue;
@@ -240,7 +254,7 @@ void Depletion::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* fl
 }
 
 
-void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
+void Depletion::eqxe(const int& l, const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm)
 {
 
 	float rem_i = 0.0;
@@ -277,13 +291,13 @@ void Depletion::eqxe(const int& l, const float* xsmica, const float* xsmicf, con
 void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 
-	float exp47 = exp(-rem(PM47, l) * tsec);
-	float exp48s = exp(-rem(PS48, l) * tsec);
-	float exp48m = exp(-rem(PM48, l) * tsec);
-	float exp49 = exp(-rem(PM49, l) * tsec);
-	float expsm = exp(-rem(SM49, l) * tsec);
+	double exp47 = exp(-rem(PM47, l) * tsec);
+	double exp48s = exp(-rem(PS48, l) * tsec);
+	double exp48m = exp(-rem(PM48, l) * tsec);
+	double exp49 = exp(-rem(PM49, l) * tsec);
+	double expsm = exp(-rem(SM49, l) * tsec);
 
-	float fr47 = 0., fr49 = 0.;
+	double fr47 = 0., fr49 = 0.;
 	for (int ifiso = 0; ifiso < NHEAVY; ++ifiso) {
 		int ihf = ISOHVY[ifiso];
 		fr47 = fr47 + fis(ihf, l) * fyld(IFP_PM47, ifiso) * atavg(ihf, l);
@@ -292,18 +306,18 @@ void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* 
 
 
 	// pm147
-	float abs47 = rem(PM47, l) - dcy(PM47);
-	float a47 = fr47 / rem(PM47, l);
+	double abs47 = rem(PM47, l) - dcy(PM47);
+	double a47 = fr47 / rem(PM47, l);
 	atd(PM47, l) = a47 * (1.0 - exp47) + ati(PM47, l) * exp47;
 
 	// pm148 and pm148m
-	float abs48s = rem(PS48, l) - dcy(PS48);
-	float abs48m = rem(PM48, l) - dcy(PM48);
+	double abs48s = rem(PS48, l) - dcy(PS48);
+	double abs48m = rem(PM48, l) - dcy(PM48);
 
-	float a48 = 0;
-	float b48 = 0;
-	float a4m = 0;
-	float b4m = 0;
+	double a48 = 0;
+	double b48 = 0;
+	double a4m = 0;
+	double b4m = 0;
 
 	if (abs47 != 0) {
 		a48 = FRAC48 * abs47 * a47 / rem(PS48, l);
@@ -316,18 +330,18 @@ void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* 
 	atd(PM48, l) = a4m * (1.0 - exp48m) + b4m * (exp47 - exp48m) + ati(PM48, l) * exp48m;
 
 	// pm149
-	float a49 = (fr49 + abs48s * a48 + abs48m * a4m) / rem(PM49, l);
-	float b49 = 0;
+	double a49 = (fr49 + abs48s * a48 + abs48m * a4m) / rem(PM49, l);
+	double b49 = 0;
 	if (abs48s != 0) {
 		b49 = abs48s * (ati(PS48, l) - a48 - b48) / (rem(PM49, l) - rem(PS48, l));
 	}
 
-	float c49 = 0;
+	double c49 = 0;
 	if (abs48m != 0) {
 		c49 = abs48m * (ati(PM48, l) - a4m - b4m) / (rem(PM49, l) - rem(PM48, l));
 	}
 
-	float d49 = 0;
+	double d49 = 0;
 	if (abs47 != 0) {
 		d49 = (abs48s * b48 + abs48m * b4m) / (rem(PM49, l) - rem(PM47, l));
 	}
@@ -335,11 +349,11 @@ void Depletion::depsm(const int& l, const float& tsec, const float* ati, float* 
 	atd(PM49,l) = a49 * (1.0 - exp49) + b49 * (exp48s - exp49) + c49 * (exp48m - exp49) + d49 * (exp47 - exp49) + ati(PM49, l) * exp49;
 
 	// sm149
-	float asm1 = dcy(PM49) * a49;
-	float csm = dcy(PM49) * b49;
-	float dsm = dcy(PM49) * c49;
-	float esm = dcy(PM49) * d49;
-	float bsm = dcy(PM49) * ati(PM49, l) - asm1 - csm - dsm - esm;
+	double asm1 = dcy(PM49) * a49;
+	double csm = dcy(PM49) * b49;
+	double dsm = dcy(PM49) * c49;
+	double esm = dcy(PM49) * d49;
+	double bsm = dcy(PM49) * ati(PM49, l) - asm1 - csm - dsm - esm;
 
 	atd(SM49, l) = asm1 / rem(SM49, l) * (1. - expsm)
 		+ bsm / (rem(SM49, l) - rem(PM49, l)) * (exp49 - expsm)
@@ -355,7 +369,7 @@ void Depletion::depp(const int& l, const float& tsec, const float* ati, float* a
 }
 
 
-void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm) {
+void Depletion::pickData(const XS_VAR* xsmica, const XS_VAR* xsmicf, const XS_VAR* xsmic2n, const SOL_VAR* flux, const float& fnorm) {
 #pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
 		if (xsmica(1,U235, l) == 0) continue;
@@ -364,7 +378,7 @@ void Depletion::pickData(const float* xsmica, const float* xsmicf, const float* 
     }
 }
 
-void Depletion::pickData(const int& l, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm)
+void Depletion::pickData(const int& l, const XS_VAR* xsmica, const XS_VAR* xsmicf, const XS_VAR* xsmic2n, const SOL_VAR* flux, const float& fnorm)
 {
     //   calculate capture, removal, decay and fission rate of nuclides
 	for (int iiso = 0; iiso < NDEP; ++iiso) {
@@ -373,8 +387,8 @@ void Depletion::pickData(const int& l, const float* xsmica, const float* xsmicf,
 		fis(iiso, l) = 0.0;
 
 		for (int ig = 0; ig < _g.ng(); ++ig) {
-            float xsa= xsmica(ig, iiso, l);
-            float xsc= xsmica(ig, iiso, l) - xsmicf(ig, iiso, l);
+            XS_VAR xsa= xsmica(ig, iiso, l);
+			XS_VAR xsc= xsmica(ig, iiso, l) - xsmicf(ig, iiso, l);
             if (iiso == U238 && ig == 0) {
                 xsa +=  2 * xsmic2n(ig, l);
                 xsc +=  xsmic2n(ig, l);

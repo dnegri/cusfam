@@ -1,4 +1,5 @@
 module CTableSet
+    use iso_c_binding
     use CIsotope
     use CReflector
     use CComposition
@@ -27,7 +28,13 @@ module CTableSet
         procedure indexOfIsotope
         procedure indexOfComposition
     end type
-
+    
+    
+    
+    type(TableSet),public   :: tset
+    
+    public :: readTableSet, calculateReflector1, calculateReference1, calculateVariation1
+    
 contains
 
     subroutine init(this, ncomp, compnames)
@@ -109,8 +116,8 @@ contains
             mxra = 2
             if (nax == 3) mxra = 3
             do i1=1,mxra
-            do ig=1,ng
-               read(ifile,FORMAT_VALUE) refl%rasigb(1:3,ig,i1),refl%rasigsb(ig,1:ig-1,i1), refl%rasigsb(ig,ig+1:ng,i1)
+            do ig=1,NUM_GRP
+               read(ifile,FORMAT_VALUE) refl%rasigb(1:3,ig,i1),refl%rasigsb(ig,1:ig-1,i1), refl%rasigsb(ig,ig+1:NUM_GRP,i1)
             enddo
             enddo
             refl%rfrppm(REFL_BOTTOM) = dum(1)
@@ -124,8 +131,8 @@ contains
             mxra = 2
             if (nax == 3) mxra = 3
             do i1=1,mxra
-            do ig=1,ng
-               read(ifile,FORMAT_VALUE) refl%rasigt(1:3,ig,i1),refl%rasigst(ig,1:ig-1,i1), refl%rasigst(ig,ig+1:ng,i1)
+            do ig=1,NUM_GRP
+               read(ifile,FORMAT_VALUE) refl%rasigt(1:3,ig,i1),refl%rasigst(ig,1:ig-1,i1), refl%rasigst(ig,ig+1:NUM_GRP,i1)
             enddo
             enddo      
             refl%rfrppm(REFL_TOP) = dum(1)
@@ -137,14 +144,14 @@ contains
             refl%b10ap(REFL_TOP) = dum(7)
         case('COR')
             do i1=1,2
-            do ig=1,ng
+            do ig=1,NUM_GRP
                read(ifile,FORMAT_VALUE)  refl%rrsig(:,ig,i1)
             enddo
             enddo
         
             do j1=1,1
-            do igs=1,ng
-               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,1), refl%rrsigs(j1,igs,igs+1:ng,1)
+            do igs=1,NUM_GRP
+               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,1), refl%rrsigs(j1,igs,igs+1:NUM_GRP,1)
             enddo
             enddo
             refl%rfrppm(REFL_CORNER) = dum(1)
@@ -156,14 +163,14 @@ contains
             refl%b10ap(REFL_CORNER) = dum(7)
         case('EDG')
             do i1=3,4
-            do ig=1,ng
+            do ig=1,NUM_GRP
                read(ifile,FORMAT_VALUE)  refl%rrsig(:,ig,i1)
             enddo
             enddo
         
             do j1=1,1
-            do igs=1,ng
-               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,2), refl%rrsigs(j1,igs,igs+1:ng,2)
+            do igs=1,NUM_GRP
+               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,2), refl%rrsigs(j1,igs,igs+1:NUM_GRP,2)
             enddo
             enddo
             refl%rfrppm(REFL_EDGE) = dum(1)
@@ -243,7 +250,7 @@ contains
         integer             :: nax, iwab, nbltab(5), nskip, lin1, lin2, ires, nvar2, nvar
         real(4)                :: ppm, tfuel, tmod, dm, pressxs, void
         integer             :: ind, i, ib, ie, j, idum, ixs, mok, idxdrv, ivar, ngnp, idf, ig, ip
-        real(4)             :: xsbu(ns), dxsbu(nv)
+        real(4)             :: xsbu(NUM_BURN), dxsbu(NUM_BUVAR)
         
         if(header(5:7) == 'N2N') n2n = .true.
         
@@ -268,7 +275,7 @@ contains
         if(iso%id == ID_DETE .or. iso%id == ID_V) then
             comp%npdet(1) = nvar
             comp%npdet(2) = nax
-            call this%readXSOne(ifile, nvar, lin1, 1, ns, comp%dpdet)
+            call this%readXSOne(ifile, nvar, lin1, 1, NUM_BURN, comp%dpdet)
             
             lin2=nvar2/6
             ires=mod(nvar2,6)
@@ -277,19 +284,19 @@ contains
             call skip(ifile, 1)
             
             do i=1,nvar
-                call this%readXSOne(ifile, nvar2, lin2, ng, nv, comp%dxsdet(:,:,i))
+                call this%readXSOne(ifile, nvar2, lin2, NUM_GRP, NUM_BUVAR, comp%dxsdet(:,:,i))
             enddo
             
             return
         endif
 
-        call this%readXSOne(ifile, nvar, lin1, 1, ns, xsbu)
+        call this%readXSOne(ifile, nvar, lin1, 1, NUM_BURN, xsbu)
         if (iwab.gt.0) then
             lin2=nvar2/6
             ires=mod(nvar2,6)
             if(ires.gt.0) lin2=lin2+1
             
-            call this%readXSOne(ifile, nvar2, lin2, 1, nv, dxsbu)
+            call this%readXSOne(ifile, nvar2, lin2, 1, NUM_BUVAR, dxsbu)
         endif
         
 
@@ -306,16 +313,16 @@ contains
         endif
 
         if(iso%id == ID_XSE) then
-            call this%readXSOne(ifile, comp%nvar, lin1, 1, ns, comp%xsend)
+            call this%readXSOne(ifile, comp%nvar, lin1, 1, NUM_BURN, comp%xsend)
         endif
         
-        if(nbltab(1)>0) read(ifile,FORMAT_VALUE) (iso%cappa(i),i=1,ng)
+        if(nbltab(1)>0) read(ifile,FORMAT_VALUE) (iso%cappa(i),i=1,NUM_GRP)
         
         if(iso%id == ID_U238 .and. n2n) then
-            call this%readXSOne(ifile, comp%nvar, lin1, 1, ns, comp%xsn2n)
+            call this%readXSOne(ifile, comp%nvar, lin1, 1, NUM_BURN, comp%xsn2n)
         endif
         if(iso%id == ID_MAC) then
-            call this%readXSOne(ifile, comp%nvar, lin1, ng, ns, comp%chi)
+            call this%readXSOne(ifile, comp%nvar, lin1, NUM_GRP, NUM_BURN, comp%chi)
         endif
         
 
@@ -328,7 +335,7 @@ contains
          do ixs=1,XSSIG_NTYPE
             if(nbltab(ixs)==0) cycle
 
-            call this%readXSOne(ifile, nvar, lin1, ng, ns, iso%xssig(:,:,ixs))
+            call this%readXSOne(ifile, nvar, lin1, NUM_GRP, NUM_BURN, iso%xssig(:,:,ixs))
 
             ! 1111 --> from right, 1st;ppm, 2nd;tf, 3rd;tm, 4th;dm
             if(nbltab(ixs)==16) cycle
@@ -338,9 +345,9 @@ contains
             do ivar=1,VAR_NTYPE
                if(mod(mok,2)==1) then
                   
-                  do ig=1,ng
+                  do ig=1,NUM_GRP
                   do ip = 0, comp%npoly(ivar)
-                    call this%readXSOne(ifile, nvar2, lin2, 1, nv, iso%dxssig(:,ig,idxdrv+ip+1,ixs))
+                    call this%readXSOne(ifile, nvar2, lin2, 1, NUM_BUVAR, iso%dxssig(:,ig,idxdrv+ip+1,ixs))
                   enddo
                   enddo
                   
@@ -359,7 +366,7 @@ contains
          ! scattering xs
          ixs=5
          if(nbltab(ixs)>0) then
-           call this%readXSOne(ifile, nvar, lin1, ngs, ns, iso%xsigs(:,:))
+           call this%readXSOne(ifile, nvar, lin1, NUM_GRPSCT, NUM_BURN, iso%xsigs(:,:))
 
             if(nbltab(ixs) /= 16) then
                mok=nbltab(ixs)
@@ -368,10 +375,10 @@ contains
                do ivar=1,VAR_NTYPE
                   if(mod(mok,2)==1) then
 
-                     do ig=1,ngs
+                     do ig=1,NUM_GRPSCT
                      do ip = 0, comp%npoly(ivar)
-                        call this%readXSOne(ifile, nvar2, lin2, 1, nv, iso%dxsigs(:,ig,idxdrv+ip+1))
-                        !temp(:) = iso%dxsigs(:,ngs,idxdrv+ip+1)
+                        call this%readXSOne(ifile, nvar2, lin2, 1, NUM_BUVAR, iso%dxsigs(:,ig,idxdrv+ip+1))
+                        !temp(:) = iso%dxsigs(:,NUM_GRPSCT,idxdrv+ip+1)
                      enddo
                      enddo
 
@@ -389,13 +396,13 @@ contains
          
         if(iso%id == ID_MAC) then
             do idf=1,3    ! adf, cdf, mdf
-                call this%readXSOne(ifile, nvar, lin1, ng, ns, comp%df(:,:,idf))
+                call this%readXSOne(ifile, nvar, lin1, NUM_GRP, NUM_BURN, comp%df(:,:,idf))
             enddo            
         endif
         
         if(iso%id == ID_DEL1 .or. iso%id == ID_DEL2 .or. iso%id == ID_DEL3 ) then
             do idf=1,3    ! adf, cdf, mdf
-                call this%readXSOne(ifile, nvar, lin1, ng, ns, comp%ddf(:,:,idf,ID_DEL1-ID_MAC))
+                call this%readXSOne(ifile, nvar, lin1, NUM_GRP, NUM_BURN, comp%ddf(:,:,idf,ID_DEL1-ID_MAC))
             enddo            
         endif
          
@@ -455,8 +462,8 @@ contains
     subroutine calculateReference(this, icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
         class(TableSet)      :: this
         integer             :: icomp
-        real(4)             :: burn
-        real(4)             :: xsmicd(ng,NISO), xsmica(ng,NISO), xsmicn(ng,NISO), xsmicf(ng,NISO), xsmick(ng,NISO), xsmics(ng,ng,NISO), xsmic2n(ng), xehfp
+        real(XS_PREC)       :: burn
+        real(XS_PREC)       :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmicn(NUM_GRP,NISO), xsmicf(NUM_GRP,NISO), xsmick(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO), xsmic2n(NUM_GRP), xehfp
 
         call this%comps(icomp)%calculateReference(burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
         
@@ -469,12 +476,12 @@ contains
                                                 xdpmics, xdfmics, xdmmics, xddmics )
         class(TableSet)      :: this
         integer             :: icomp
-        real(4)             :: burn
-        real(4)             ::  xdpmicn(ng,NISO), xdfmicn(ng,NISO), xdmmicn(ng,3,NISO), xddmicn(ng,NISO), &
-                                xdpmicf(ng,NISO), xdfmicf(ng,NISO), xdmmicf(ng,3,NISO), xddmicf(ng,NISO), &
-                                xdpmica(ng,NISO), xdfmica(ng,NISO), xdmmica(ng,3,NISO), xddmica(ng,NISO), &
-                                xdpmicd(ng,NISO), xdfmicd(ng,NISO), xdmmicd(ng,3,NISO), xddmicd(ng,NISO), &
-                                xdpmics(ng,ng,NISO), xdfmics(ng,ng,NISO), xdmmics(ng,ng,3,NISO), xddmics(ng,ng,NISO)
+        real(XS_PREC)             :: burn
+        real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
+                                xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
         
         call this%comps(icomp)%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
@@ -486,4 +493,93 @@ contains
     
     
 
+    subroutine readTableSet(lenf, file, ncomp, compnames) bind(c, name="readTableSet")
+        use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char
+        integer                         :: lenf
+        character(len=1, kind=c_char)   :: file(lenf)
+        character*(lenf)                :: file2
+        
+        integer(kind=c_int),                 intent(in) :: ncomp
+        type(c_ptr), target,                 intent(in) :: compnames
+        character(kind=c_char), dimension(:,:), pointer :: fptr
+        character(len=13), dimension(ncomp)             :: fstring
+        integer                                         :: i, slen
+        
+        fstring(:) = "            "
+        
+        call c_f_pointer(c_loc(compnames), fptr, [13, ncomp])
+        do i = 1, ncomp
+            slen = 0
+            do while(fptr(slen+1,i) /= c_null_char)
+                slen = slen + 1
+            end do
+            fstring(i) = transfer(fptr(1:slen,i), fstring(i)(1:slen))
+        enddo
+        
+        do i=1,lenf
+            file2(i:i)= file(i)
+        enddo
+        
+        call tset%init(ncomp, fstring)
+        call tset%readFile(file2)
+    end subroutine
+    
+    subroutine calculateReflector1(irefl, rb10wp, xsmica, xsmicd, xsmics,    &
+                                         xdpmica, xdmmica, xddmica, &
+                                         xdpmicd, xdmmicd, xddmicd, &
+                                         xdpmics, xdmmics, xddmics) bind(c, name="calculateReflector")
+        integer             :: irefl
+        real(XS_PREC)             :: rb10wp
+        real(XS_PREC)             :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
+        real(XS_PREC)             ::  xdpmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
+
+        call tset%refl%calculate(irefl, xsmica, xsmicd, xsmics,     &
+                                        xdpmica, xdmmica, xddmica,  &
+                                        xdpmicd, xdmmicd, xddmicd,  &
+                                        xdpmics, xdmmics, xddmics)
+        xdpmica = xdpmica*rb10wp*tset%refl%b10ap(irefl)
+        xdpmicd = xdpmicd*rb10wp*tset%refl%b10ap(irefl)
+        xdpmics = xdpmics*rb10wp*tset%refl%b10ap(irefl)
+    end subroutine
+    
+    
+    subroutine calculateReference1(icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp) bind(c, name="calculateReference")
+        integer             :: icomp
+        real(XS_PREC)             :: burn
+        real(XS_PREC)             :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmicn(NUM_GRP,NISO), xsmicf(NUM_GRP,NISO), xsmick(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO), xsmic2n(NUM_GRP), xehfp
+
+        call tset%comps(icomp)%calculateReference(burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
+        
+    end subroutine
+    
+    subroutine calculateVariation1(icomp, burn, rb10wp,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+                                                xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmica, xdfmica, xdmmica, xddmica, &
+                                                xdpmicd, xdfmicd, xdmmicd, xddmicd, &
+                                                xdpmics, xdfmics, xdmmics, xddmics )  bind(c, name="calculateVariation")
+        integer             :: icomp
+        real(XS_PREC)             :: burn, rb10wp
+        real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
+                                xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
+                                xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
+                                xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
+        type(Composition), pointer :: c
+        
+        c =>tset%comps(icomp)
+        call c%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+                                        xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                        xdpmica, xdfmica, xdmmica, xddmica, &
+                                        xdpmicd, xdfmicd, xdmmicd, xddmicd, &
+                                        xdpmics, xdfmics, xdmmics, xddmics )
+        xdpmicn = xdpmicn*rb10wp*c%b10ap
+        xdpmicf = xdpmicf*rb10wp*c%b10ap
+        xdpmica = xdpmica*rb10wp*c%b10ap
+        xdpmicd = xdpmicd*rb10wp*c%b10ap
+        xdpmics = xdpmics*rb10wp*c%b10ap
+        
+    end subroutine       
+    
 end module

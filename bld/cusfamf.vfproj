@@ -14,7 +14,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/></Configuration>
 		<Configuration Name="Debug|x64" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" RealKIND="realKIND8" LocalVariableStorage="localStorageSave" LocalSavedScalarsZero="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" PreprocessorDefinitions="XS_PREC=8" WarnInterfaces="true" RealKIND="realKIND8" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -32,7 +32,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/></Configuration>
 		<Configuration Name="Release|x64" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" RealKIND="realKIND8"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="XS_PREC=8" OpenMP="OpenMPParallelCode" RealKIND="realKIND8" RuntimeLibrary="rtMultiThreadedDLL"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -94,11 +94,11 @@
 		<File RelativePath="..\src.nist\visc.f"/>
 		<File RelativePath="..\src.nist\wtrans.f"/></Filter>
 		<File RelativePath="..\src\CComposition.f90"/>
+		<File RelativePath="..\src\CIsotope.f90"/>
 		<File RelativePath="..\src\CReflector.f90"/>
 		<File RelativePath="..\src\CSteamTable.f90"/>
 		<File RelativePath="..\src\CTableSet.f90"/>
-		<File RelativePath="..\src\cusfam.f90"/>
-		<File RelativePath="..\src\CIsotope.f90"/>
 		<File RelativePath="..\src\quad1.f90"/>
+		<File RelativePath="..\src\sfamintg.f90"/>
 		<File RelativePath="..\src\simondbreader.f90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

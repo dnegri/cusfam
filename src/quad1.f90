@@ -52,8 +52,8 @@
 !***********************************************************************
 !
       REAL(4) X(N)
-      real(4) af(3)
-      real(4) XVAL
+      real(XS_PREC) af(3)
+      real(XS_PREC) XVAL
 !
 ! --- X(N) IN ASCENDING ORDER
 !
