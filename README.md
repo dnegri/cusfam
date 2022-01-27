@@ -1,2 +1,0 @@
-# cusfam
-cuda sfam

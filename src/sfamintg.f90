@@ -49,15 +49,16 @@
       end interface
 !      
       contains     
-      subroutine initsfamgeom(  ng,     ndim,   ngeo,           &
+      subroutine initsfamgeom(  ng,     ndim,   part,           &
                                 nx,     ny,     nz,     nxy,     &
                                 kbc, kec, nxsl, nxel, nysl, nyel,  &
                                 ijtol, hxyz, vol, albedo)  bind(c, name="initsfamgeom")
         use geom, only : setgeom
         use sfam,    only : mallocsfam
 
-        integer                         :: ng, ndim, ngeo
+        integer                         :: ng, ndim
         integer                         :: nx, ny, nz, nxy
+        real                            :: part
         integer, target, intent(in)     :: nxsl(ny), nxel(ny),nysl(nx), nyel(nx)
         integer, target, intent(in)     :: ijtol(nx,ny)
         real, target, intent(in)        :: hxyz(3,nxy,nz)
@@ -85,7 +86,7 @@
         call dmalloc(nxs,ny)
         call dmalloc(nxe,ny)
         do j=1,ny
-            nxs(j) = 1
+            nxs(j) = nxsl(j)+1
             nxe(j) = nxel(j)
             do i=nxs(j), nxe(j)
                 nodel(i,j) = ijtol(i,j)+1
@@ -95,21 +96,19 @@
         call dmalloc(nys,nx)
         call dmalloc(nye,nx)
         do i=1,nx
-            nys(i) = 1
+            nys(i) = nysl(i)+1
             nye(i) = nyel(i)
         enddo
         
 ! symopt
         irot = 1
-        isymang = 360/ngeo
+        isymang = 360*part
         if(irot.eq.0) then
             symopt = 'REFL'
         elseif(irot.eq.1) then
             symopt = 'ROT'        
-            isymang = 90
         elseif(irot.eq.2) then
             symopt = 'ROT'        
-            isymang = 180
         endif
                
         isymloc = 4
@@ -119,9 +118,6 @@
         nxsf = nxs
         nxef = nxe
         
-        kbc = 2
-        kec = 25
-
         call setgeom(ng,nx,ny,nz,nxy,ndim,symopt,isymang,isymloc,   &
                      nxs,nxe,nys,nye,nxsf,nxef,                     &
                      kbc,kec,nodel, hmesh, vol, volall, volcor, albedo)

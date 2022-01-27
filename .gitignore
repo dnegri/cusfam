@@ -360,3 +360,10 @@ MigrationBackup/
 /bld/Makefile
 /bld/cmake_install.cmake
 /bld/cusfam
+/.svn
+/bld/build
+.DS_Store
+/src.python/*.bak
+/venv
+/src.python/venv
+/src.python/env

@@ -309,6 +309,9 @@ public:
 	__host__ __device__ void updateXenonXS(const int& l, const float& dppm, const float& dtf, const float& dtm);
 	__host__ void updateXenonXS(const float* dppm, const float* dtf, const float* dtm);
 
+	__host__ __device__ void updateXeSmXS(const int& l, const float& dppm, const float& dtf, const float& dtm);
+	__host__ void updateXeSmXS(const float* dppm, const float* dtf, const float* dtm);
+
 	__host__ __device__ void updateDepletionXS(const int& l, const float& dppm, const float& dtf, const float& dtm);
 	__host__ void updateDepletionXS(const float* dppm, const float* dtf, const float* dtm);
 

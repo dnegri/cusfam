@@ -1,7 +1,7 @@
     module simondbreader
 
     integer :: ifile
-    integer :: ngrp, nxyz 
+    integer, parameter :: ngrp = 2
 contains
     subroutine opendb(lenf, file) bind(c, name="opendb")
         use, intrinsic :: iso_c_binding, only: c_char
@@ -25,8 +25,6 @@ contains
         integer         :: ng_, nxy, nz, nx, ny, nsurf
         
         read(ifile) ng_, nxy, nz, nx, ny, nsurf
-        nxyz = nxy*nz
-        ngrp = ng_
     end subroutine
     
     subroutine readIndex(nx, ny, nxy, nz, nxs, nxe, nys, nye, nodel, neibr, hmesh)   bind(c, name="readIndex")
@@ -125,7 +123,7 @@ contains
         
     end subroutine
     
-    subroutine readDensity(niso, dnst)   bind(c, name="readDensity")
+    subroutine readDensity(niso, nxyz, dnst)   bind(c, name="readDensity")
         real(4)            :: dnst(niso,nxyz)
 
         do l = 1,nxyz
@@ -163,7 +161,7 @@ contains
     end subroutine        
     
     
-    subroutine readxs(niso, xs)   bind(c, name="readXS")
+    subroutine readxs(niso, nxyz, xs)   bind(c, name="readXS")
         real(4)            :: xs(ngrp,niso,nxyz)
 
         do l = 1,nxyz
@@ -172,7 +170,7 @@ contains
     
     end subroutine
     
-    subroutine readxsd(niso, xsd)  bind(c, name="readXSD")
+    subroutine readxsd(niso, nxyz, xsd)  bind(c, name="readXSD")
         real(4)            :: xsd(ngrp,niso,nxyz)
 
         do l = 1,nxyz
@@ -181,7 +179,7 @@ contains
     
     end subroutine    
     
-    subroutine readxss(niso, xss) bind(c, name="readXSS")
+    subroutine readxss(niso, nxyz, xss) bind(c, name="readXSS")
         real(4)            :: xss(ngrp,ngrp,niso,nxyz)
 
         do l = 1,nxyz
@@ -190,7 +188,7 @@ contains
     
     end subroutine    
     
-    subroutine readxssd(niso, xssd) bind(c, name="readXSSD")
+    subroutine readxssd(niso, nxyz, xssd) bind(c, name="readXSSD")
         real(4)            :: xssd(ngrp,ngrp,niso,nxyz)
 
         do l = 1,nxyz
@@ -199,7 +197,7 @@ contains
     
     end subroutine    
     
-    subroutine readxsdtm(niso, xs) bind(c, name="readXSDTM")
+    subroutine readxsdtm(niso, nxyz, xs) bind(c, name="readXSDTM")
         real(4)            :: xs(ngrp,3,niso,nxyz)
 
         do l = 1,nxyz
@@ -209,7 +207,7 @@ contains
     end subroutine
     
     
-    subroutine readxssdtm(niso, xss)  bind(c, name="readXSSDTM")
+    subroutine readxssdtm(niso, nxyz, xss)  bind(c, name="readXSSDTM")
         real(4)            :: xss(ngrp, ngrp,3,niso,nxyz)
 
         do l = 1,nxyz

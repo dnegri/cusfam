@@ -5,7 +5,7 @@ namespace myblas {
     T dot(const int &n, const T *a, const T *b) {
 
         T sum = 0.0;
-#pragma omp parallel reduction( + : sum )
+#pragma omp parallel for reduction( + : sum )
         for (int i = 0; i < n; ++i) {
             sum += a[i] * b[i];
         }

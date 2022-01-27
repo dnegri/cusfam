@@ -1,4 +1,6 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 #include <Python.h>
 
 #include <Windows.h>
@@ -9,74 +11,161 @@
 #include "plog/Log.h"
 #include "plog/Appenders/ConsoleAppender.h"
 
-extern "C" {
-	void initsfamgeom(const int& ng, const int& ndim, const int& ngeo,
-		const int& nx, const int& ny, const int& nz, const int& nxy,
-		const int& kbc, const int& kec, const int* nxs, const int* nxe, const int* nys, const int* nye,
-		const int* ijtol, const GEOM_VAR* hmesh, const GEOM_VAR* vol, const GEOM_VAR* albedo);
+namespace py = pybind11;
+PYBIND11_MAKE_OPAQUE(std::vector<float>);
 
-	void initsfamxsec(const int& ng, const int& ng2s, const int& ndim, const int& nxy, const int& nz,
-		const XS_VAR* xschif, const XS_VAR* xsdf, const XS_VAR* xstf, const XS_VAR* xsnf,
-		const XS_VAR* xskf, const XS_VAR* xssf);
-	
-}
-
-SimonCPU* simon;
-char dir_burnup[MAX_PATH];
+template <class T> class ptr_wrapper
+{
+public:
+	ptr_wrapper() : ptr(nullptr) {}
+	ptr_wrapper(T* ptr) : ptr(ptr) {}
+	ptr_wrapper(const ptr_wrapper& other) : ptr(other.ptr) {}
+	T& operator* () const { return *ptr; }
+	T* operator->() const { return  ptr; }
+	T* get() const { return ptr; }
+	void destroy() { delete ptr; }
+	T& operator[](std::size_t idx) const { return ptr[idx]; }
+private:
+	T* ptr;
+};
 
 static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
 
-void simon_init(const char* geom_file, const char* tset_file, const char* dir_burnup_) {
+unique_ptr<SimonCPU> simon_init(const char* geom_file, const char* tset_file) {
 	omp_set_num_threads(4);
+
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	
 	plog::init(plog::warning, &consoleAppender);
-	simon = new SimonCPU();
+
+	auto simon = unique_ptr<SimonCPU>(new SimonCPU());
 	simon->initialize(geom_file);
 	simon->readTableSet(tset_file);
-	strcpy_s(dir_burnup, dir_burnup_);
 
-	Geometry& g = simon->g();
-	CrossSection& x = simon->x();
-
-	initsfamgeom(g.ng(), 3, 4, g.nx(), g.ny(), g.nz(), g.nxy(),
-		2, 25, g.nxs(), g.nxe(), g.nys(), g.nye(), g.ijtol(), g.hmesh(), g.vol(), g.albedo());
-
-	initsfamxsec(g.ng(), 1, 3, g.nxy(), g.nz(), x.chif(), x.xsdf(), x.xstf(), x.xsnf(), x.xskf(), x.xssf());
+	return simon;
 }
 
-void simon_setBurnup(float burnup) {
-	simon->setBurnup(dir_burnup, burnup);
-	simon->updateBurnup();
+void simon_getGeometry(SimonCPU& simon, SimonGeometry& sg) { //, py::array_t<float> hz) {
+	Geometry& g = simon.g();
+	
+
+	sg.nxya = g.nxya();
+	sg.nz = g.nz();
+	sg.kbc = g.kbc();
+	sg.kec = g.kec();
+
+	sg.core_height = g.hzcore();
+
+	for (int k=0; k < g.nz(); k++) 
+	{
+		sg.hz.append(g.hmesh(ZDIR, k* g.nxy()));
+	}
 }
 
-void simon_calcStatic(SteadyOption& s) {
-	simon->runSteadySfam(s);
-	//simon->runSteady(s);
-	s.ppm = simon->ppm();
+void simon_setBurnupPoints(SimonCPU& simon, std::vector<double> burnups) {
 
+	simon.setBurnupPoints(burnups);
 }
 
-void simon_deplete(XEType xe_option, SMType sm_option, float del_burnup) {
+void simon_setBurnup(SimonCPU & simon, const char* dir_burnup, float burnup) {
+	simon.setBurnup(dir_burnup, burnup);
+	simon.updateBurnup();
+}
+
+void simon_calcStatic(SimonCPU& simon, SteadyOption& s) {
+	printf("begin\n");
+	simon.runSteady(s);
+	printf("end\n");
+	//simon.runSteadySfam(s);
+}
+
+void simon_getResult(SimonCPU& simon, SimonResult& result) {
+	simon.generateResults();
+	result.ppm = simon.ppm();
+	result.eigv = simon.eigv();
+	result.asi = simon.asi();
+	Geometry& g = simon.g();
+
+	for (int la = 0; la < g.nxya(); la++)
+	{
+		result.pow2d[la] = simon.pow2da(la);
+	}
+
+	for (int k = 0; k < g.nz(); k++)
+	{
+		result.pow1d[k] = simon.pow1d(k);
+	}
+}
+
+void simon_setRodPosition(SimonCPU& simon, const char* rodid, const float& position) {
+	simon.setRodPosition(rodid, position);
+}
+
+void simon_deplete(SimonCPU& simon, XEType xe_option, SMType sm_option, float del_burnup) {
 
 	DepletionOption option;
-	option.tsec = del_burnup / simon->pload() * simon->d().totmass() * 3600.0 * 24.0;
+	option.tsec = del_burnup / simon.pload() * simon.d().totmass() * 3600.0 * 24.0;
 	option.xe = xe_option;
 	option.sm = sm_option;
 
-	simon->runDepletion(option);
-	simon->updateBurnup();
+	simon.runDepletion(option);
+	simon.updateBurnup();
 }
 
+void simon_depleteByTime(SimonCPU& simon, XEType xe_option, SMType sm_option, float tsec) {
 
-void simon_shutdownmargin(SteadyOption& s) {
-	simon->runSteady(s);
+	DepletionOption option;
+	option.tsec = tsec;
+	option.xe = xe_option;
+	option.sm = sm_option;
+
+	simon.runDepletion(option);
+	simon.updateBurnup();
 }
 
+void simon_depleteXeSm(SimonCPU& simon, XEType xe_option, SMType sm_option, float tsec) {
+
+	DepletionOption option;
+	option.tsec = tsec;
+	option.xe = xe_option;
+	option.sm = sm_option;
+
+	simon.runXenonTransient(option);
+}
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(cusfam, m) {
+	py::class_<SimonCPU, unique_ptr<SimonCPU>>(m, "SimonCPU");
+
+	py::class_<ptr_wrapper<float>>(m, "pfloat");
+
+	py::class_<SimonGeometry>(m, "SimonGeometry")
+		.def(py::init())
+		.def_readwrite("nz", &SimonGeometry::nz)
+		.def_readwrite("nxya", &SimonGeometry::nxya)
+		.def_readwrite("kbc", &SimonGeometry::kbc)
+		.def_readwrite("kec", &SimonGeometry::kec)
+		.def_readwrite("core_height", &SimonGeometry::core_height)
+		.def_readwrite("hz", &SimonGeometry::hz);
+
+	py::class_<SimonResult>(m, "SimonResult")
+		.def(py::init<int, int>())
+		.def_readwrite("error", &SimonResult::error)
+		.def_readwrite("eigv", &SimonResult::eigv)
+		.def_readwrite("ppm", &SimonResult::ppm)
+		.def_readwrite("fq", &SimonResult::fq)
+		.def_readwrite("fxy", &SimonResult::fxy)
+		.def_readwrite("fr", &SimonResult::fr)
+		.def_readwrite("fz", &SimonResult::fz)
+		.def_readwrite("asi", &SimonResult::asi)
+		.def_readwrite("tf", &SimonResult::tf)
+		.def_readwrite("tm", &SimonResult::tm)
+		.def_readwrite("rod_pos", &SimonResult::rod_pos)
+		.def_readwrite("pow2d", &SimonResult::pow2d)
+		.def_readwrite("pow1d", &SimonResult::pow1d);
+
 	py::class_<SteadyOption>(m, "SteadyOption")
 		.def(py::init())
 		.def_readwrite("crit", &SteadyOption::searchOption)
@@ -86,6 +175,7 @@ PYBIND11_MODULE(cusfam, m) {
 		.def_readwrite("tin", &SteadyOption::tin)
 		.def_readwrite("eigvt", &SteadyOption::eigvt)
 		.def_readwrite("maxiter", &SteadyOption::maxiter)
+		.def_readwrite("epsiter", &SteadyOption::epsiter)
 		.def_readwrite("ppm", &SteadyOption::ppm)
 		.def_readwrite("plevel", &SteadyOption::plevel);
 
@@ -111,12 +201,26 @@ PYBIND11_MODULE(cusfam, m) {
 		.value("DEP_XE", DepletionIsotope::DEP_XE)
 		.export_values();
 
+
+
 	m.def("init", &simon_init, R"pbdoc(
-        Initialize Simon instance.
+        Initialize SimonCPU instance.
+    )pbdoc");
+
+	m.def("getGeometry", &simon_getGeometry, R"pbdoc(
+        Initialize SimonCPU instance.
+    )pbdoc");
+
+	m.def("setBurnupPoints", &simon_setBurnupPoints, R"pbdoc(
+        Set burnup points.
     )pbdoc");
 
 	m.def("setBurnup", &simon_setBurnup, R"pbdoc(
         Set a core burnup point.
+    )pbdoc");
+
+	m.def("setRodPosition", &simon_setRodPosition, R"pbdoc(
+        Set control rod position with rod id.
     )pbdoc");
 
 	m.def("calcStatic", &simon_calcStatic, R"pbdoc(
@@ -126,6 +230,19 @@ PYBIND11_MODULE(cusfam, m) {
 	m.def("deplete", &simon_deplete, R"pbdoc(
         Run Depletion calculation.
     )pbdoc");
+
+	m.def("depleteByTime", &simon_depleteByTime, R"pbdoc(
+        Run Depletion calculation.
+    )pbdoc");
+
+	m.def("depleteXeSm", &simon_depleteXeSm, R"pbdoc(
+        Run Xenon & Samarium Dynamics.
+    )pbdoc");
+
+	m.def("getResult", &simon_getResult, R"pbdoc(
+        get result.
+    )pbdoc");
+
 
 #ifdef VERSION_INFO
 	m.attr("__version__") = VERSION_INFO;

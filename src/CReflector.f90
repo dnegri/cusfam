@@ -17,6 +17,7 @@ module CReflector
         real(4)                     :: rfrppm(REFL_EDGE:REFL_BOTTOM), rfrtf(REFL_EDGE:REFL_BOTTOM), rfrtm(REFL_EDGE:REFL_BOTTOM), &
                                         rfrdm(REFL_EDGE:REFL_BOTTOM) ,rfrprs(REFL_EDGE:REFL_BOTTOM), rfratm(REFL_EDGE:REFL_BOTTOM), b10ap(REFL_EDGE:REFL_BOTTOM)
     contains
+        procedure init
         procedure calculate
         procedure calculateBottom
         procedure calculateTop
@@ -26,6 +27,22 @@ module CReflector
        
 
 contains
+    subroutine init(this)
+        class(Reflector)    :: this
+        
+        this%rasigb = 0.0
+        this%rasigsb = 0.0
+        this%rasigt = 0.0
+        this%rasigst = 0.0
+        this%rrsig = 0.0
+        this%rrsigs = 0.0
+        this%rfrppm = 0.0
+        this%rfrtf = 0.0
+        this%rfrtm = 0.0
+        this%rfrdm = 0.0
+        this%rfrprs = 0.0
+        this%rfratm = 0.0
+    end subroutine
 
     subroutine calculate(this, reflType, xsmica, xsmicd, xsmics, xdpmica, xdmmica, xddmica, &
                                                            xdpmicd, xdmmicd, xddmicd, &

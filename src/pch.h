@@ -215,5 +215,6 @@ enum PROP_TYPE {
 #define SOL_VAR     double
 #define GEOM_VAR    double
 #define XS_VAR		double
+#define PPR_VAR		double
 
 #endif /* PCH_H_ */

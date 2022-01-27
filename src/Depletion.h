@@ -96,6 +96,7 @@ public:
 	__host__ __device__ float& dnst(const int& iiso, const int& l) { return _dnst[l * NISO + iiso]; };
     __host__ __device__ float* dnst() { return _dnst; };
     __host__ __device__ float* dnst_new() { return _dnst_new; };
+	__host__ __device__ float& dnst_new(const int& iiso, const int& l) { return _dnst_new[l * NISO + iiso]; };
     __host__ __device__ float* dnst_avg() { return _dnst_avg; };
 
     __host__ __device__ float* burn() { return _burn; };
@@ -113,6 +114,7 @@ public:
     __host__ __device__ void eqxe(const int& l, const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm);
 
     __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt, const float* power);
+	__host__ void dynxesm(const float& tsec, const XEType& xeopt, const SMType& smopt, const XS_VAR* xsmica, const XS_VAR* xsmicf, const float* power, const SOL_VAR* flux, const float& fnorm);
     __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);

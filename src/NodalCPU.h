@@ -15,7 +15,7 @@ public:
     inline SOL_VAR& flux(const int& ig, const int& lk) { return _flux[lk * ng() + ig]; };
 
     void init();
-    void reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif);
+    void reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif, SOL_VAR* phis);
     void drive(SOL_VAR* jnet);
 
 };

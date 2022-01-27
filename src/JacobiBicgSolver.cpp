@@ -75,12 +75,12 @@ JacobiBicgSolver::~JacobiBicgSolver() {
     delete _vz;
 }
 
-float JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src) {
+CMFD_VAR JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src) {
 
     CMFD_VAR r = 0.0;
     for (int ig = 0; ig < _g->ng(); ig++)
     {
-        float aflux = axb(ig, l, diag, cc, flux);
+        CMFD_VAR aflux = axb(ig, l, diag, cc, flux);
         vr(ig, l) = src(ig, l) - aflux;
         vr0(ig, l) = vr(ig, l);
         vp(ig, l) = 0.0;
@@ -98,6 +98,7 @@ void JacobiBicgSolver::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_V
     _comega = 1;
 
     r20 = 0;
+	#pragma omp parallel for reduction (+ : r20)
     for (int l = 0; l < _g->nxyz(); ++l) {
         r20 += reset(l, diag, cc, flux, src);
     }
@@ -190,12 +191,13 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VA
     myblas::minus(n, _vs, _vr, _vr);
 
     if (r20 != 0.0) {
-        r2 = sqrt(myblas::dot(n, _vt, _vt)) / r20;
+        r2 = sqrt(myblas::dot(n, _vr, _vr)) / r20;
     }
 
 }
 
 void JacobiBicgSolver::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux) {
+	#pragma omp parallel for
     for (int l = 0; l < _g->nxyz(); ++l) {
         for (int ig = 0; ig < _g->ng(); ++ig) {
             aflux(ig, l) = axb(ig, l, diag, cc, flux);

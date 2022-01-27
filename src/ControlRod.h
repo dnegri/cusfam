@@ -20,9 +20,9 @@ public:
 	
 	void initialize(const int& ncea, const int* iabs, const char* idcea[], const int* ceamap);
 
-    void setPosition(const char* rodid, const int& pos);
+    void setPosition(const char* rodid, const float& pos);
 
-    void setPosition(const int& rodidx, const int& pos);
+    void setPosition(const int& rodidx, const float& pos);
 
     float& ratio(const int& l) {return _ratio[l];};
     int& cea(const int& l) {return _ceamap[l];};

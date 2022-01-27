@@ -37,18 +37,21 @@
 
 
 class Geometry : public Managed {
-protected :
+protected:
 	int _ng;
 	int _ng2;
 	int	_nxy;
 	int	_nz;
 	int	_nxyz;
-    int	_ngxy;
-    int	_ngxyz;
+	int	_ngxy;
+	int	_ngxyz;
+
+	int _kbc;
+	int _kec;
 
 	int _nx;
-	int _ny; 
-	int* _nxs; 
+	int _ny;
+	int* _nxs;
 	int* _nxe;
 	int* _nys;
 	int* _nye;
@@ -56,6 +59,17 @@ protected :
 	int* _neibr;
 	int* _ijtol;
 	int* _neib;
+	int* _ltola;
+
+	int _nxa;
+	int _nya;
+	int* _nxsa;
+	int* _nxea;
+	int* _nysa;
+	int* _nyea;
+	int _nxya;
+	int* _ijtola;
+
 
 	int* _comps;
 	int  _ncomp;
@@ -66,86 +80,114 @@ protected :
 	int* _sgnlr;
 	int* _lktosfc;
 
+	int _ncorn;
+	int* _ltolc;
+	int* _lctol;
+
 	int _symopt;
 	int _symang;
 	GEOM_VAR* _albedo;
 
 	GEOM_VAR* _hmesh;
 	GEOM_VAR* _vol;
-	
+	GEOM_VAR* _vola;
+
 	GEOM_VAR _part;
+	GEOM_VAR _hzcore;
+
 
 public:
-	__host__ Geometry();
-	__host__ virtual ~Geometry();
+	Geometry();
+	virtual ~Geometry();
 
-	__host__ __device__ void setBoundaryCondition(int* symopt, int* symang, float* albedo);
-	__host__ __device__ void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
-    __host__ __device__ void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
+	void setBoundaryCondition(int* symopt, int* symang, float* albedo);
+	void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
+	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
+	void initAssemblyIndex();
+	void initCorner();
 
-	__host__ __device__ inline int& ng() { return _ng; };
-	__host__ __device__ inline int& ng2() { return _ng2; };
-	__host__ __device__ inline int& nxy() { return _nxy; };
-	__host__ __device__ inline int& nz() { return _nz; };
-	__host__ __device__ inline int& nxyz() { return _nxyz; };
-    __host__ __device__ inline int& ngxyz() { return _ngxyz; };
-    __host__ __device__ inline int& ngxy() { return _ngxy; };
-	__host__ __device__ inline int& nsurf() { return _nsurf; };
-	__host__ __device__ inline int& nx() { return _nx; };
-	__host__ __device__ inline int& ny() { return _ny; };
-	__host__ __device__ inline int& symopt() { return _symopt; };
-	__host__ __device__ inline int& symang() { return _symang; };
-	__host__ __device__ inline GEOM_VAR& part() { return _part; };
 
-	__host__ __device__ inline const int& ng() const { return _ng; };
-	__host__ __device__ inline const int& ng2() const { return _ng2; };
-	__host__ __device__ inline const int& nxy() const { return _nxy; };
-	__host__ __device__ inline const int& nz() const { return _nz; };
-	__host__ __device__ inline const int& nxyz() const { return _nxyz; };
-	__host__ __device__ inline const int& ngxyz() const { return _ngxyz; };
-	__host__ __device__ inline const int& ngxy() const { return _ngxy; };
-	__host__ __device__ inline const int& nsurf() const { return _nsurf; };
-	__host__ __device__ inline const int& nx() const { return _nx; };
-	__host__ __device__ inline const int& ny() const { return _ny; };
-	__host__ __device__ inline const int& symopt() const { return _symopt; };
-	__host__ __device__ inline const int& symang() const { return _symang; };
+	inline int& ng() { return _ng; };
+	inline int& ng2() { return _ng2; };
+	inline int& nxy() { return _nxy; };
+	inline int& nz() { return _nz; };
+	inline int& nxyz() { return _nxyz; };
+	inline int& ngxyz() { return _ngxyz; };
+	inline int& ngxy() { return _ngxy; };
+	inline int& nsurf() { return _nsurf; };
+	inline int& nx() { return _nx; };
+	inline int& ny() { return _ny; };
+	inline int& symopt() { return _symopt; };
+	inline int& symang() { return _symang; };
+	inline int& kbc() { return _kbc; };
+	inline int& kec() { return _kec; };
+	inline GEOM_VAR& part() { return _part; };
 
-	__host__ __device__ const GEOM_VAR* albedo() const { return _albedo; }
-	__host__ __device__ const int* neibr() const { return _neibr; }
-	__host__ __device__ const int* ijtol() const { return _ijtol; }
-	__host__ __device__ const int* nxs() const { return _nxs; }
-	__host__ __device__ const int* nxe() const { return _nxe; }
-	__host__ __device__ const int* nys() const { return _nys; }
-	__host__ __device__ const int* nye() const { return _nye; }
-	__host__ __device__ const int* neib() const { return _neib; }
-	__host__ __device__ const GEOM_VAR* hmesh() const { return _hmesh; }
-	__host__ __device__ const int* lktosfc() const { return _lktosfc; }
-	__host__ __device__ const GEOM_VAR* vol() const { return _vol; }
-	__host__ __device__ const int* idirlr() const { return _idirlr; }
-	__host__ __device__ const int* sgnlr() const { return _sgnlr; }
-	__host__ __device__ const int* lklr() const { return _lklr; }
+	inline const int& ng() const { return _ng; };
+	inline const int& ng2() const { return _ng2; };
+	inline const int& nxy() const { return _nxy; };
+	inline const int& nz() const { return _nz; };
+	inline const int& nxyz() const { return _nxyz; };
+	inline const int& ngxyz() const { return _ngxyz; };
+	inline const int& ngxy() const { return _ngxy; };
+	inline const int& nsurf() const { return _nsurf; };
+	inline const int& nx() const { return _nx; };
+	inline const int& ny() const { return _ny; };
+	inline const int& symopt() const { return _symopt; };
+	inline const int& symang() const { return _symang; };
 
-	__host__ __device__ inline int& nxs(const int& j) { return _nxs[j]; };
-	__host__ __device__ inline int& nxe(const int& j) { return _nxe[j]; };
-	__host__ __device__ inline int& nys(const int& i) { return _nys[i]; };
-	__host__ __device__ inline int& nye(const int& i) { return _nye[i]; };
-	__host__ __device__ inline int& neibr(const int& news, const int& l) { return _neibr[l*NEWS + news]; };
-	__host__ __device__ inline int& ijtol(const int& i, const int& j) { return _ijtol[j*_nx + i]; };
-	__host__ __device__ inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
-    __host__ __device__ inline int& neib(const int& lr, const int& idir, const int& lk) { return _neib[lk * NEWSBT + idir*LR + lr]; };
-	__host__ __device__ inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };
-	__host__ __device__ inline int& idirlr(const int& lr, const int& ls) { return _idirlr[ls * LR + lr]; };
-	__host__ __device__ inline int& sgnlr(const int& lr, const int& ls) { return _sgnlr[ls * LR + lr]; };
-	__host__ __device__ inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir)*LR + lr]; };
+	inline const int& ncorn() const { return _ncorn; };
+	inline int* ltolc() const { return _ltolc; }
+	inline int* lctol() const { return _lctol; }
+	inline int& ltolc(const int& news, const int& l) const { return _ltolc[l*NEWS+ news]; }
+	inline int& lctol(const int& news, const int& lc) const { return _ltolc[lc * NEWS + news]; }
 
-	__host__ __device__ inline int& comp(const int& l) { return _comps[l]; };
-	__host__ __device__ inline int* comp() { return _comps; };
-	__host__ __device__ inline int& ncomp() { return _ncomp; };
-	__host__ __device__ char** compnames() { return (char**)_compnames; };
+	const GEOM_VAR* albedo() const { return _albedo; }
+	const int* neibr() const { return _neibr; }
+	const int* ijtol() const { return _ijtol; }
+	const int* nxs() const { return _nxs; }
+	const int* nxe() const { return _nxe; }
+	const int* nys() const { return _nys; }
+	const int* nye() const { return _nye; }
+	const int* neib() const { return _neib; }
+	const GEOM_VAR* hmesh() const { return _hmesh; }
+	const int* lktosfc() const { return _lktosfc; }
+	const GEOM_VAR* vol() const { return _vol; }
+	const int* idirlr() const { return _idirlr; }
+	const int* sgnlr() const { return _sgnlr; }
+	const int* lklr() const { return _lklr; }
 
-	__host__ __device__ inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
-    __host__ __device__ inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };
-	__host__ __device__ inline GEOM_VAR& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+	inline int& nxs(const int& j) { return _nxs[j]; };
+	inline int& nxe(const int& j) { return _nxe[j]; };
+	inline int& nys(const int& i) { return _nys[i]; };
+	inline int& nye(const int& i) { return _nye[i]; };
+	inline int& neibr(const int& news, const int& l) { return _neibr[l * NEWS + news]; };
+	inline int& ijtol(const int& i, const int& j) { return _ijtol[j * _nx + i]; };
+	inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
+	inline int& neib(const int& lr, const int& idir, const int& lk) { return _neib[lk * NEWSBT + idir * LR + lr]; };
+	inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };
+	inline int& idirlr(const int& lr, const int& ls) { return _idirlr[ls * LR + lr]; };
+	inline int& sgnlr(const int& lr, const int& ls) { return _sgnlr[ls * LR + lr]; };
+	inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir) * LR + lr]; };
+
+	inline const int& nxya() const { return _nxya; };
+	inline int& nxsa(const int& ja) { return _nxsa[ja]; };
+	inline int& nxea(const int& ja) { return _nxea[ja]; };
+	inline int& nysa(const int& ia) { return _nysa[ia]; };
+	inline int& nyea(const int& ia) { return _nyea[ia]; };
+	inline int& ijtola(const int& ia, const int& ja) { return _ijtola[ja * _nxa + ia]; };
+	inline int& ltola(const int& l) { return _ltola[l]; };
+
+	inline int& comp(const int& l) { return _comps[l]; };
+	inline int* comp() { return _comps; };
+	inline int& ncomp() { return _ncomp; };
+	char** compnames() { return (char**)_compnames; };
+
+	inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+	inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };
+	inline GEOM_VAR& vola(const int& lka) { return _vola[lka]; };
+	inline GEOM_VAR& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+	inline GEOM_VAR& hzcore() { return _hzcore; };
 
 };
 

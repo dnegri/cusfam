@@ -168,11 +168,11 @@ void Feedback::updateTin(const float& tin)
 {
     _tin = tin;
     _steam.getEnthalpy(tin, _hin);
-    _steam.getDensity(tin, _din);
+    _steam.getDensity(_hin, _din);
 
 	for (int l = 0; l < _g.nxyz(); l++)
 	{
-		_tf[l] = _tin;
+		_tf[l] = _tin + KELVIN;
 		_tm[l] = _tin;
 		_dm[l] = _din;
 	}

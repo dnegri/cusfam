@@ -21,6 +21,11 @@ private:
     float _crit_nodal = 1.E-1;
     float _crit_flux = 1.E-5;
 	float _crit_eigv = 1.E-6;
+	float _crit_tm = 1.E-3;
+	float _crit_tf = 1.E-3;
+	float _crit_ppm = 1.E-1;
+
+	bool _iter_new = true;
 
 public:
     SimonCPU();
@@ -28,11 +33,12 @@ public:
 
     inline BICGCMFD& cmfd() { return *_cmfd; }
     
-    void initialize(const char* dbfile) override;
+	void setBurnup(const char* dir_burn, const float& burnup) override;    
+	void initialize(const char* dbfile) override;
     void runKeff(const int& nmaxout) override;
     void runECP(const int& nmaxout, const double& eigvt) override;
     void runDepletion(const DepletionOption& option) override;
-    void runXenonTransient() override;
+    void runXenonTransient(const DepletionOption& option) override;
     void normalize() override;
 
     void runSteady(const SteadyOption& condition) override;

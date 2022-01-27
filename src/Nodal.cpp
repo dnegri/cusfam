@@ -50,253 +50,253 @@ Nodal::~Nodal()
 {
 }
 
-__host__ __device__ void Nodal::updateConstant(const int& lk)
+void Nodal::updateConstant(const int& lk)
 {
-    int lkd0 = lk * NDIRMAX;
-    int lkg0 = lk * ng();
-   
-    for (int idir = 0; idir < NDIRMAX; idir++) {
-        int lkd = lkd0 + idir;
+	int lkd0 = lk * NDIRMAX;
+	int lkg0 = lk * ng();
 
-        for (int ig = 0; ig < ng(); ig++) {
-            NODAL_VAR kp2 = xstf(ig,lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
-            NODAL_VAR kp = sqrt(kp2);
-            NODAL_VAR kp3 = kp2 * kp;
-            NODAL_VAR kp4 = kp2 * kp2;
-            NODAL_VAR kp5 = kp2 * kp3;
-            NODAL_VAR rkp = 1 / kp;
-            NODAL_VAR rkp2 = rkp * rkp;
-            NODAL_VAR rkp3 = rkp2 * rkp;
-            NODAL_VAR rkp4 = rkp2 * rkp2;
-            NODAL_VAR rkp5 = rkp2 * rkp3;
-            NODAL_VAR sinhkp = sinh(kp);
-            NODAL_VAR coshkp = cosh(kp);
+	for (int idir = 0; idir < NDIRMAX; idir++) {
+		int lkd = lkd0 + idir;
 
-            //calculate coefficient of basic functions P5and P6
+		for (int ig = 0; ig < ng(); ig++) {
+			NODAL_VAR kp2 = xstf(ig, lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
+			NODAL_VAR kp = sqrt(kp2);
+			NODAL_VAR kp3 = kp2 * kp;
+			NODAL_VAR kp4 = kp2 * kp2;
+			NODAL_VAR kp5 = kp2 * kp3;
+			NODAL_VAR rkp = 1 / kp;
+			NODAL_VAR rkp2 = rkp * rkp;
+			NODAL_VAR rkp3 = rkp2 * rkp;
+			NODAL_VAR rkp4 = rkp2 * rkp2;
+			NODAL_VAR rkp5 = rkp2 * rkp3;
+			NODAL_VAR sinhkp = sinh(kp);
+			NODAL_VAR coshkp = cosh(kp);
+
+			//calculate coefficient of basic functions P5and P6
 			NODAL_VAR  bfcff0 = -sinhkp * rkp;
 			NODAL_VAR  bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
 			NODAL_VAR  bfcff4 =
-                -9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
-                rkp5;
+				-9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
+				rkp5;
 			NODAL_VAR  bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
 			NODAL_VAR  bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
 
 			NODAL_VAR  oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
 			NODAL_VAR  eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
 
-            //eta1, eta2
-            eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
-            eta2(ig, lkd) = (kp * sinhkp + 3 * bfcff2 + 10 * bfcff4) * eventemp;
+			//eta1, eta2
+			eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
+			eta2(ig, lkd) = (kp * sinhkp + 3 * bfcff2 + 10 * bfcff4) * eventemp;
 
-            //set to variables that depends on node properties by integrating of Pi* pj over - 1 ~1
-            m260(ig, lkd) = 2 * eta2(ig, lkd);
-            m251(ig, lkd) = 2 * (kp * coshkp - sinhkp + 5 * bfcff3) * oddtemp;
-            m253(ig, lkd) = 2 * (kp * (15 + kp2) * coshkp - 3 * (5 + 2 * kp2) * sinhkp) * oddtemp * rkp2;
-            m262(ig, lkd) = 2 * (-3 * kp * coshkp + (3 + kp2) * sinhkp + 7 * kp * bfcff4) * eventemp * rkp;
-            m264(ig, lkd) = 2 * (-5 * kp * (21 + 2 * kp2) * coshkp + (105 + 45 * kp2 + kp4) * sinhkp) * eventemp * rkp3;
+			//set to variables that depends on node properties by integrating of Pi* pj over - 1 ~1
+			m260(ig, lkd) = 2 * eta2(ig, lkd);
+			m251(ig, lkd) = 2 * (kp * coshkp - sinhkp + 5 * bfcff3) * oddtemp;
+			m253(ig, lkd) = 2 * (kp * (15 + kp2) * coshkp - 3 * (5 + 2 * kp2) * sinhkp) * oddtemp * rkp2;
+			m262(ig, lkd) = 2 * (-3 * kp * coshkp + (3 + kp2) * sinhkp + 7 * kp * bfcff4) * eventemp * rkp;
+			m264(ig, lkd) = 2 * (-5 * kp * (21 + 2 * kp2) * coshkp + (105 + 45 * kp2 + kp4) * sinhkp) * eventemp * rkp3;
 			//if (m264(ig, lkd) == 0.0) {
 			//	m264(ig, lkd) = 1.e-10;
 			//}
 
-            diagD(ig, lkd) = 4 * xsdf(ig,lk) / (hmesh(idir, lk) * hmesh(idir, lk));
-            diagDI(ig, lkd) = 1.0 / diagD(ig, lkd);
-        }
-    }
+			diagD(ig, lkd) = 4 * xsdf(ig, lk) / (hmesh(idir, lk) * hmesh(idir, lk));
+			diagDI(ig, lkd) = 1.0 / diagD(ig, lkd);
+		}
+	}
 }
 
-__host__ __device__ void Nodal::updateMatrix(const int& lk)
+void Nodal::updateMatrix(const int& lk)
 {
-    int lkd0 = lk * NDIRMAX;
+	int lkd0 = lk * NDIRMAX;
 
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            matMs(igs, ige, lk) = -xssf(igs, ige, lk);
-            matMf(igs, ige, lk) = chif(ige, lk) * xsnf(igs, lk);
-        }
-        matMs(ige, ige, lk) += xstf(ige, lk);
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			matMs(igs, ige, lk) = -xssf(igs, ige, lk);
+			matMf(igs, ige, lk) = chif(ige, lk) * xsnf(igs, lk);
+		}
+		matMs(ige, ige, lk) += xstf(ige, lk);
 
-        for (int igs = 0; igs < ng(); igs++) {
-            matM(igs, ige, lk) = matMs(igs, ige, lk) - _reigv * matMf(igs, ige, lk);
-        }
-    }
+		for (int igs = 0; igs < ng(); igs++) {
+			matM(igs, ige, lk) = matMs(igs, ige, lk) - _reigv * matMf(igs, ige, lk);
+		}
+	}
 
-    double det = matM(0, 0, lk) * matM(1, 1, lk) - matM(1, 0, lk) * matM(0, 1, lk);
+	double det = matM(0, 0, lk) * matM(1, 1, lk) - matM(1, 0, lk) * matM(0, 1, lk);
 
-    if (abs(det) > 1.E-10) {
+	if (abs(det) > 1.E-10) {
 		NODAL_VAR rdet = 1 / det;
-        matMI(0, 0, lk) = rdet * matM(1, 1, lk);
-        matMI(1, 0, lk) = -rdet * matM(1, 0, lk);
-        matMI(0, 1, lk) = -rdet * matM(0, 1, lk);
-        matMI(1, 1, lk) = rdet * matM(0, 0, lk);
-    }
-    else {
-        matMI(0, 0, lk) = 0;
-        matMI(1, 0, lk) = 0;
-        matMI(0, 1, lk) = 0;
-        matMI(1, 1, lk) = 0;
-    }
+		matMI(0, 0, lk) = rdet * matM(1, 1, lk);
+		matMI(1, 0, lk) = -rdet * matM(1, 0, lk);
+		matMI(0, 1, lk) = -rdet * matM(0, 1, lk);
+		matMI(1, 1, lk) = rdet * matM(0, 0, lk);
+	}
+	else {
+		matMI(0, 0, lk) = 0;
+		matMI(1, 0, lk) = 0;
+		matMI(0, 1, lk) = 0;
+		matMI(1, 1, lk) = 0;
+	}
 
 	NODAL_VAR  rm011 = 1. / m011;
 
-    for (int idir = 0; idir < NDIRMAX; idir++) {
-        int lkd = lkd0 + idir;
+	for (int idir = 0; idir < NDIRMAX; idir++) {
+		int lkd = lkd0 + idir;
 
-        NODAL_VAR tempz[2][2] = {};
+		NODAL_VAR tempz[2][2] = {};
 
-        for (int igd = 0; igd < ng(); igd++) {
-            NODAL_VAR tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
+		for (int igd = 0; igd < ng(); igd++) {
+			NODAL_VAR tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
 
-            tempz[igd][igd] = tempz[igd][igd] + m231;
+			tempz[igd][igd] = tempz[igd][igd] + m231;
 
-            for (int igs = 0; igs < ng(); igs++) {
-                tau(igs, igd, lkd) = tau1 * matM(igs, igd, lk);
+			for (int igs = 0; igs < ng(); igs++) {
+				tau(igs, igd, lkd) = tau1 * matM(igs, igd, lk);
 
-                // mu=m011_inv*M_inv*D*(m231*I+m251*tau)
-                tempz[igs][igd] += m251(igd, lkd) * tau(igs, igd, lkd);
+				// mu=m011_inv*M_inv*D*(m231*I+m251*tau)
+				tempz[igs][igd] += m251(igd, lkd) * tau(igs, igd, lkd);
 
-                // mu=m011_inv*M_inv*D*(m231*I+m251*tau)
-                tempz[igs][igd] *= diagD(igd, lkd);
-            }
-        }
+				// mu=m011_inv*M_inv*D*(m231*I+m251*tau)
+				tempz[igs][igd] *= diagD(igd, lkd);
+			}
+		}
 
-        // mu=m011_inv*M_inv*D*(m231*I+m251*tau)
-        mu(0, 0, lkd) = rm011 * (matMI(0, 0, lk) * tempz[0][0] + matMI(1, 0, lk) * tempz[0][1]);
-        mu(1, 0, lkd) = rm011 * (matMI(0, 0, lk) * tempz[1][0] + matMI(1, 0, lk) * tempz[1][1]);
-        mu(0, 1, lkd) = rm011 * (matMI(0, 1, lk) * tempz[0][0] + matMI(1, 1, lk) * tempz[0][1]);
-        mu(1, 1, lkd) = rm011 * (matMI(0, 1, lk) * tempz[1][0] + matMI(1, 1, lk) * tempz[1][1]);
+		// mu=m011_inv*M_inv*D*(m231*I+m251*tau)
+		mu(0, 0, lkd) = rm011 * (matMI(0, 0, lk) * tempz[0][0] + matMI(1, 0, lk) * tempz[0][1]);
+		mu(1, 0, lkd) = rm011 * (matMI(0, 0, lk) * tempz[1][0] + matMI(1, 0, lk) * tempz[1][1]);
+		mu(0, 1, lkd) = rm011 * (matMI(0, 1, lk) * tempz[0][0] + matMI(1, 1, lk) * tempz[0][1]);
+		mu(1, 1, lkd) = rm011 * (matMI(0, 1, lk) * tempz[1][0] + matMI(1, 1, lk) * tempz[1][1]);
 
-    }
+	}
 }
 
-__host__ __device__ void Nodal::trlcffbyintg(NODAL_VAR* avgtrl3, NODAL_VAR* hmesh3, NODAL_VAR& trlcff1, NODAL_VAR& trlcff2)
+void Nodal::trlcffbyintg(NODAL_VAR* avgtrl3, NODAL_VAR* hmesh3, NODAL_VAR& trlcff1, NODAL_VAR& trlcff2)
 {
-    NODAL_VAR sh[4];
+	NODAL_VAR sh[4];
 
-    NODAL_VAR rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
-                         (hmesh3[CENTER] + hmesh3[RIGHT])));
-    sh[0] = (2 * hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[LEFT] + hmesh3[CENTER]);
-    sh[1] = hmesh3[LEFT] + hmesh3[CENTER];
-    sh[2] = (hmesh3[CENTER] + 2 * hmesh3[RIGHT]) * (hmesh3[CENTER] + hmesh3[RIGHT]);
-    sh[3] = hmesh3[CENTER] + hmesh3[RIGHT];
+	NODAL_VAR rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
+		(hmesh3[CENTER] + hmesh3[RIGHT])));
+	sh[0] = (2 * hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[LEFT] + hmesh3[CENTER]);
+	sh[1] = hmesh3[LEFT] + hmesh3[CENTER];
+	sh[2] = (hmesh3[CENTER] + 2 * hmesh3[RIGHT]) * (hmesh3[CENTER] + hmesh3[RIGHT]);
+	sh[3] = hmesh3[CENTER] + hmesh3[RIGHT];
 
-    if (hmesh3[LEFT] == 0.0) {
-        trlcff1 = 0.125 * (5. * avgtrl3[CENTER] + avgtrl3[RIGHT]);
-        trlcff2 = 0.125 * (-3. * avgtrl3[CENTER] + avgtrl3[RIGHT]);
-    }
-    else if (hmesh3[RIGHT] == 0.0) {
-        trlcff1 = -0.125 * (5. * avgtrl3[CENTER] + avgtrl3[LEFT]);
-        trlcff2 = 0.125 * (-3. * avgtrl3[CENTER] + avgtrl3[LEFT]);
-    }
-    else {
-        trlcff1 = 0.5 * rh * hmesh3[CENTER] *
-            ((avgtrl3[CENTER] - avgtrl3[LEFT]) * sh[2] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[0]);
-        trlcff2 = 0.5 * rh * (hmesh3[CENTER] * hmesh3[CENTER]) *
-            ((avgtrl3[LEFT] - avgtrl3[CENTER]) * sh[3] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[1]);
-    }
+	if (hmesh3[LEFT] == 0.0) {
+		trlcff1 = 0.125 * (5. * avgtrl3[CENTER] + avgtrl3[RIGHT]);
+		trlcff2 = 0.125 * (-3. * avgtrl3[CENTER] + avgtrl3[RIGHT]);
+	}
+	else if (hmesh3[RIGHT] == 0.0) {
+		trlcff1 = -0.125 * (5. * avgtrl3[CENTER] + avgtrl3[LEFT]);
+		trlcff2 = 0.125 * (-3. * avgtrl3[CENTER] + avgtrl3[LEFT]);
+	}
+	else {
+		trlcff1 = 0.5 * rh * hmesh3[CENTER] *
+			((avgtrl3[CENTER] - avgtrl3[LEFT]) * sh[2] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[0]);
+		trlcff2 = 0.5 * rh * (hmesh3[CENTER] * hmesh3[CENTER]) *
+			((avgtrl3[LEFT] - avgtrl3[CENTER]) * sh[3] + (avgtrl3[RIGHT] - avgtrl3[CENTER]) * sh[1]);
+	}
 }
 
-__host__ __device__ void Nodal::caltrlcff0(const int& lk)
+void Nodal::caltrlcff0(const int& lk)
 {
-    int lkd0 = lk * NDIRMAX;
+	int lkd0 = lk * NDIRMAX;
 
-    NODAL_VAR avgjnet[NDIRMAX];
+	NODAL_VAR avgjnet[NDIRMAX];
 
-    for (int ig = 0; ig < ng(); ig++) {
-        for (int idir = 0; idir < NDIRMAX; idir++) {
-            int lsl = lktosfc(LEFT, idir, lk);
-            int lsr = lktosfc(RIGHT, idir, lk);
+	for (int ig = 0; ig < ng(); ig++) {
+		for (int idir = 0; idir < NDIRMAX; idir++) {
+			int lsl = lktosfc(LEFT, idir, lk);
+			int lsr = lktosfc(RIGHT, idir, lk);
 
-            avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) / hmesh(idir, lk);
-        }
+			avgjnet[idir] = (jnet(ig, lsr) - jnet(ig, lsl)) / hmesh(idir, lk);
+		}
 
-        trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
-        trlcff0(ig, lkd0 + YDIR) = avgjnet[XDIR] + avgjnet[ZDIR];
-        trlcff0(ig, lkd0 + ZDIR) = avgjnet[XDIR] + avgjnet[YDIR];
+		trlcff0(ig, lkd0 + XDIR) = avgjnet[YDIR] + avgjnet[ZDIR];
+		trlcff0(ig, lkd0 + YDIR) = avgjnet[XDIR] + avgjnet[ZDIR];
+		trlcff0(ig, lkd0 + ZDIR) = avgjnet[XDIR] + avgjnet[YDIR];
 
-    }
+	}
 }
-__host__ __device__ void Nodal::caltrlcff12(const int& lk) {
-    int lkd0 = lk * NDIRMAX;
+void Nodal::caltrlcff12(const int& lk) {
+	int lkd0 = lk * NDIRMAX;
 
-    for (int idir = 0; idir < NDIRMAX; idir++) {
-        int lkd = lkd0 + idir;
+	for (int idir = 0; idir < NDIRMAX; idir++) {
+		int lkd = lkd0 + idir;
 
-        int lkl = neib(LEFT, idir, lk);
-        int lkr = neib(RIGHT, idir, lk);
+		int lkl = neib(LEFT, idir, lk);
+		int lkr = neib(RIGHT, idir, lk);
 
-        for (int ig = 0; ig < ng(); ig++) {
-            NODAL_VAR avgtrl3[LRC]{};
-            NODAL_VAR hmesh3[LRC]{};
-            hmesh3[CENTER] = hmesh(idir, lk);
-            avgtrl3[CENTER] = trlcff0(ig, lkd);
+		for (int ig = 0; ig < ng(); ig++) {
+			NODAL_VAR avgtrl3[LRC]{};
+			NODAL_VAR hmesh3[LRC]{};
+			hmesh3[CENTER] = hmesh(idir, lk);
+			avgtrl3[CENTER] = trlcff0(ig, lkd);
 
-            if (lkl > -1) {
-                int lsl = lktosfc(LEFT, idir, lk);
-                int idirl = idirlr(LEFT, lsl);
-                hmesh3[LEFT] = hmesh(idirl, lkl);
-                avgtrl3[LEFT] = trlcff0(ig, lkl * NDIRMAX + idirl);
-            }
-            else if (albedo(LEFT, idir) == 0) {
-                hmesh3[LEFT] = hmesh3[CENTER];
-                avgtrl3[LEFT] = avgtrl3[CENTER];
-            }
-
-
-            if (lkr > -1) {
-                int lsr = lktosfc(RIGHT, idir, lk);
-                int idirr = idirlr(RIGHT, lsr);
-                hmesh3[RIGHT] = hmesh(idirr, lkr);
-                avgtrl3[RIGHT] = trlcff0(ig, lkr*NDIRMAX + idirr);
-            }
-            else if (albedo(RIGHT, idir) == 0) {
-                hmesh3[RIGHT] = hmesh3[CENTER];
-                avgtrl3[RIGHT] = avgtrl3[CENTER];
-            }
+			if (lkl > -1) {
+				int lsl = lktosfc(LEFT, idir, lk);
+				int idirl = idirlr(LEFT, lsl);
+				hmesh3[LEFT] = hmesh(idirl, lkl);
+				avgtrl3[LEFT] = trlcff0(ig, lkl * NDIRMAX + idirl);
+			}
+			else if (albedo(LEFT, idir) == 0) {
+				hmesh3[LEFT] = hmesh3[CENTER];
+				avgtrl3[LEFT] = avgtrl3[CENTER];
+			}
 
 
-            trlcffbyintg(avgtrl3, hmesh3, trlcff1(ig, lkd), trlcff2(ig, lkd));
-            //printf("trlcff12: %e %e \n", trlcff1(ig, lkd), trlcff2(ig, lkd));
-        }
+			if (lkr > -1) {
+				int lsr = lktosfc(RIGHT, idir, lk);
+				int idirr = idirlr(RIGHT, lsr);
+				hmesh3[RIGHT] = hmesh(idirr, lkr);
+				avgtrl3[RIGHT] = trlcff0(ig, lkr * NDIRMAX + idirr);
+			}
+			else if (albedo(RIGHT, idir) == 0) {
+				hmesh3[RIGHT] = hmesh3[CENTER];
+				avgtrl3[RIGHT] = avgtrl3[CENTER];
+			}
 
-    }
+
+			trlcffbyintg(avgtrl3, hmesh3, trlcff1(ig, lkd), trlcff2(ig, lkd));
+			//printf("trlcff12: %e %e \n", trlcff1(ig, lkd), trlcff2(ig, lkd));
+		}
+
+	}
 }
 
-__host__ __device__ void Nodal::calculateEven(const int& lk)
+void Nodal::calculateEven(const int& lk)
 {
-    int lkd0 = lk * NDIRMAX;
+	int lkd0 = lk * NDIRMAX;
 
-    for (int idir = 0; idir < NDIRMAX; idir++) {
-        int lkd = lkd0 + idir;
-        NODAL_VAR at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
+	for (int idir = 0; idir < NDIRMAX; idir++) {
+		int lkd = lkd0 + idir;
+		NODAL_VAR at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
-        for (int igd = 0; igd < ng(); igd++) {
+		for (int igd = 0; igd < ng(); igd++) {
 			rm4464[igd] = 0.0;
-			
-			if(m264(igd, lkd) > 1.0E-6 && m264(igd, lkd) < -1.0E-6) rm4464[igd] = m044 / m264(igd, lkd);
+
+			if (m264(igd, lkd) > 1.0E-6 && m264(igd, lkd) < -1.0E-6) rm4464[igd] = m044 / m264(igd, lkd);
 			//printf("m264(igd, lkd) : %12.5e\n", m264(igd, lkd));
 
 			NODAL_VAR mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
 
-            for (int igs = 0; igs < ng(); igs++) {
-                at2[igs][igd] = m022 * rm220 * mu2 * matM(igs, igd, lk);
-            }
-            at2[igd][igd] += m022 * rm220 * m240;
-        }
+			for (int igs = 0; igs < ng(); igs++) {
+				at2[igs][igd] = m022 * rm220 * mu2 * matM(igs, igd, lk);
+			}
+			at2[igd][igd] += m022 * rm220 * m240;
+		}
 
-        for (int igd = 0; igd < ng(); igd++) {
+		for (int igd = 0; igd < ng(); igd++) {
 			NODAL_VAR mu1 = rm4464[igd] * m262(igd, lkd);
-            for (int igs = 0; igs < ng(); igs++) {
-                a[igs][igd] =
-                    mu1 * matM(igs, igd, lk) + matM(0, igd, lk) * at2[igs][0] + matM(1, igd, lk) * at2[igs][1];
-            }
-            a[igd][igd] += diagD(igd, lkd) * m242;
-            bt2[igd] = 2 * (matM(0, igd, lk) * flux(0, lk) + matM(1, igd, lk) * flux(1, lk) + trlcff0(igd, lkd));
-            bt1[igd] = m022 * rm220 * diagDI(igd, lkd) * bt2[igd];
-        }
+			for (int igs = 0; igs < ng(); igs++) {
+				a[igs][igd] =
+					mu1 * matM(igs, igd, lk) + matM(0, igd, lk) * at2[igs][0] + matM(1, igd, lk) * at2[igs][1];
+			}
+			a[igd][igd] += diagD(igd, lkd) * m242;
+			bt2[igd] = 2 * (matM(0, igd, lk) * flux(0, lk) + matM(1, igd, lk) * flux(1, lk) + trlcff0(igd, lkd));
+			bt1[igd] = m022 * rm220 * diagDI(igd, lkd) * bt2[igd];
+		}
 
-        for (int ig = 0; ig < ng(); ig++) {
-            b[ig] = m022 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
-        }
+		for (int ig = 0; ig < ng(); ig++) {
+			b[ig] = m022 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
+		}
 
 		NODAL_VAR rdet = (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
 		//printf("rdet : %12.5e\n", rdet);
@@ -311,280 +311,288 @@ __host__ __device__ void Nodal::calculateEven(const int& lk)
 			dsncff4(1, lkd) = 0.0;
 		}
 
-        for (int ig = 0; ig < ng(); ig++) {
-            dsncff6(ig, lkd) = diagDI(ig, lkd) * rm4464[ig] *
-                (matM(0, ig, lk) * dsncff4(0, lkd) + matM(1, ig, lk) * dsncff4(1, lkd));
-            dsncff2(ig, lkd) =
-                rm220 * (diagDI(ig, lkd) * bt2[ig] - m240 * dsncff4(ig, lkd) - m260(ig, lkd) * dsncff6(ig, lkd));
-        }
-    }
+		for (int ig = 0; ig < ng(); ig++) {
+			dsncff6(ig, lkd) = diagDI(ig, lkd) * rm4464[ig] *
+				(matM(0, ig, lk) * dsncff4(0, lkd) + matM(1, ig, lk) * dsncff4(1, lkd));
+			dsncff2(ig, lkd) =
+				rm220 * (diagDI(ig, lkd) * bt2[ig] - m240 * dsncff4(ig, lkd) - m260(ig, lkd) * dsncff6(ig, lkd));
+		}
+	}
 }
 
-__host__ __device__ void Nodal::calculateJnet(const int& ls)
+void Nodal::calculateJnet(const int& ls)
 {
-    int lkl = lklr(LEFT, ls);
-    int lkr = lklr(RIGHT, ls);
+	int lkl = lklr(LEFT, ls);
+	int lkr = lklr(RIGHT, ls);
 
-    if (lkl < 0) {
-        int idirr = idirlr(RIGHT, ls);
-        calculateJnet1n(ls, RIGHT, albedo(0, idirr));
-    }
-    else if (lkr < 0) {
-        int idirl = idirlr(LEFT, ls);
-        calculateJnet1n(ls, LEFT, albedo(1, idirl));
-    }
-    else {
-        calculateJnet2n(ls);
-    }
+	if (lkl < 0) {
+		int idirr = idirlr(RIGHT, ls);
+		calculateJnet1n(ls, RIGHT, albedo(0, idirr));
+	}
+	else if (lkr < 0) {
+		int idirl = idirlr(LEFT, ls);
+		calculateJnet1n(ls, LEFT, albedo(1, idirl));
+	}
+	else {
+		calculateJnet2n(ls);
+	}
 }
 
-__host__ __device__ void Nodal::calculateJnet1n(const int& ls, const int& lr, const float& alb)
+void Nodal::calculateJnet1n(const int& ls, const int& lr, const float& alb)
 {
-    int lk = lklr(lr, ls);
-    int idir = idirlr(lr, ls);
-    //    int sgn = sgnlr[lsfclr + lr];
-    int lkd = lk * NDIRMAX + idir;
-    int sgn = 1;
-    if (lr == RIGHT) sgn = -1;
+	int lk = lklr(lr, ls);
+	int idir = idirlr(lr, ls);
+	//    int sgn = sgnlr[lsfclr + lr];
+	int lkd = lk * NDIRMAX + idir;
+	int sgn = 1;
+	if (lr == RIGHT) sgn = -1;
 
-    NODAL_VAR diagDj[2]{};
+	NODAL_VAR diagDj[2]{};
 
-    NODAL_VAR a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
-    NODAL_VAR b1[2], b2[2];
+	NODAL_VAR a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
+	NODAL_VAR b1[2], b2[2];
 
-    //1, 1
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            a11[igs][ige] = matM(igs, ige, lk) * m011;
-        }
-    }
+	//1, 1
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			a11[igs][ige] = matM(igs, ige, lk) * m011;
+		}
+	}
 
-    //1, 2
-    for (int ig = 0; ig < ng(); ig++) {
-        a12[ig] = -diagD(ig, lkd) * m231;
-    }
+	//1, 2
+	for (int ig = 0; ig < ng(); ig++) {
+		a12[ig] = -diagD(ig, lkd) * m231;
+	}
 
-    //1, 3
-    for (int ig = 0; ig < ng(); ig++) {
-        a13[ig] = -diagD(ig, lkd) * m251(ig, lkd);
-    }
+	//1, 3
+	for (int ig = 0; ig < ng(); ig++) {
+		a13[ig] = -diagD(ig, lkd) * m251(ig, lkd);
+	}
 
-    //2,2
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            a22[igs][ige] = matM(igs, ige, lk) * m033;
-        }
-    }
+	//2,2
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			a22[igs][ige] = matM(igs, ige, lk) * m033;
+		}
+	}
 
-    //2, 3
-    for (int ig = 0; ig < ng(); ig++) {
-        a23[ig] = -diagD(ig, lkd) * m253(ig, lkd);
-    }
+	//2, 3
+	for (int ig = 0; ig < ng(); ig++) {
+		a23[ig] = -diagD(ig, lkd) * m253(ig, lkd);
+	}
 
-    for (int ig = 0; ig < ng(); ig++) {
-        diagDj[ig] = 0.5 * hmesh(idir, lk) * diagD(ig, lkd);
-    }
+	for (int ig = 0; ig < ng(); ig++) {
+		diagDj[ig] = 0.5 * hmesh(idir, lk) * diagD(ig, lkd);
+	}
 
-    //3,1
-    for (int ig = 0; ig < ng(); ig++) {
-        a31[ig] = diagDj[ig] + alb;
-    }
+	//3,1
+	for (int ig = 0; ig < ng(); ig++) {
+		a31[ig] = diagDj[ig] + alb;
+	}
 
-    //3,2
-    for (int ig = 0; ig < ng(); ig++) {
-        a32[ig] = 6 * diagDj[ig] + alb;
-    }
-
-
-    //3,3
-    for (int ig = 0; ig < ng(); ig++) {
-        a33[ig] = diagDj[ig] * eta1(ig, lkd) + alb;
-    }
+	//3,2
+	for (int ig = 0; ig < ng(); ig++) {
+		a32[ig] = 6 * diagDj[ig] + alb;
+	}
 
 
-    //make right vector
-    for (int ig = 0; ig < ng(); ig++) {
-        b1[ig] = -m011 * trlcff1(ig, lkd);
-    }
-    for (int ig = 0; ig < ng(); ig++) {
-        b2[ig] = -sgn *
-            (diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) +
-                alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
-    }
+	//3,3
+	for (int ig = 0; ig < ng(); ig++) {
+		a33[ig] = diagDj[ig] * eta1(ig, lkd) + alb;
+	}
 
 
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            a22[igs][ige] = -a22[igs][ige] / a23[ige];
-            a11[igs][ige] = a11[igs][ige] / a31[igs];
-        }
-    }
-
-    NODAL_VAR a[2][2] = {0.0 };
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            a[igs][ige] = a13[ige] * a22[igs][ige] - a11[igs][ige] * a32[igs];
-        }
-    }
-
-    for (int ige = 0; ige < ng(); ige++) {
-        a[ige][ige] = a[ige][ige] + a12[ige];
-    }
-
-    for (int ige = 0; ige < ng(); ige++) {
-        for (int igs = 0; igs < ng(); igs++) {
-            a[igs][ige] = a[igs][ige] - (a11[0][ige] * a33[0] * a22[igs][0] + a11[1][ige] * a33[1] * a22[igs][1]);
-        }
-
-        b1[ige] = b1[ige] - (a11[0][ige] * b2[0] + a11[1][ige] * b2[1]);
-    }
-
-    NODAL_VAR oddcff[3][2];
-
-    NODAL_VAR rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
-    a11[0][0] = rdet * a[1][1];
-    a11[1][0] = -rdet * a[1][0];
-    a11[0][1] = -rdet * a[0][1];
-    a11[1][1] = rdet * a[0][0];
+	//make right vector
+	for (int ig = 0; ig < ng(); ig++) {
+		b1[ig] = -m011 * trlcff1(ig, lkd);
+	}
+	for (int ig = 0; ig < ng(); ig++) {
+		b2[ig] = -sgn *
+			(diagDj[ig] * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)) +
+				alb * (flux(ig, lk) + dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd)));
+	}
 
 
-    for (int ig = 0; ig < ng(); ig++) {
-        oddcff[1][ig] = a11[0][ig] * b1[0] + a11[1][ig] * b1[1];
-    }
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			a22[igs][ige] = -a22[igs][ige] / a23[ige];
+			a11[igs][ige] = a11[igs][ige] / a31[igs];
+		}
+	}
 
-    for (int ig = 0; ig < ng(); ig++) {
-        oddcff[2][ig] = a22[0][ig] * oddcff[1][0] + a22[1][ig] * oddcff[1][1];
-    }
+	NODAL_VAR a[2][2] = { 0.0 };
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			a[igs][ige] = a13[ige] * a22[igs][ige] - a11[igs][ige] * a32[igs];
+		}
+	}
 
-    for (int ig = 0; ig < ng(); ig++) {
-        oddcff[0][ig] = (b2[ig] - a32[ig] * oddcff[1][ig] - a33[ig] * oddcff[2][ig]) / a31[ig];
-    }
+	for (int ige = 0; ige < ng(); ige++) {
+		a[ige][ige] = a[ige][ige] + a12[ige];
+	}
 
-    for (int ig = 0; ig < ng(); ig++) {
-        jnet(ig, ls) = -hmesh(idir, lk) * 0.5 * diagD(ig, lkd) * (
-            oddcff[0][ig] + 6 * oddcff[1][ig] + eta1(ig, lkd) * oddcff[2][ig]
-            + sgn * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)));
-    }
+	for (int ige = 0; ige < ng(); ige++) {
+		for (int igs = 0; igs < ng(); igs++) {
+			a[igs][ige] = a[igs][ige] - (a11[0][ige] * a33[0] * a22[igs][0] + a11[1][ige] * a33[1] * a22[igs][1]);
+		}
+
+		b1[ige] = b1[ige] - (a11[0][ige] * b2[0] + a11[1][ige] * b2[1]);
+	}
+
+	NODAL_VAR oddcff[3][2];
+
+	NODAL_VAR rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+	a11[0][0] = rdet * a[1][1];
+	a11[1][0] = -rdet * a[1][0];
+	a11[0][1] = -rdet * a[0][1];
+	a11[1][1] = rdet * a[0][0];
+
+
+	for (int ig = 0; ig < ng(); ig++) {
+		oddcff[1][ig] = a11[0][ig] * b1[0] + a11[1][ig] * b1[1];
+	}
+
+	for (int ig = 0; ig < ng(); ig++) {
+		oddcff[2][ig] = a22[0][ig] * oddcff[1][0] + a22[1][ig] * oddcff[1][1];
+	}
+
+	for (int ig = 0; ig < ng(); ig++) {
+		oddcff[0][ig] = (b2[ig] - a32[ig] * oddcff[1][ig] - a33[ig] * oddcff[2][ig]) / a31[ig];
+	}
+
+	for (int ig = 0; ig < ng(); ig++) {
+		jnet(ig, ls) = -hmesh(idir, lk) * 0.5 * diagD(ig, lkd) * (
+			oddcff[0][ig] + 6 * oddcff[1][ig] + eta1(ig, lkd) * oddcff[2][ig]
+			+ sgn * (3 * dsncff2(ig, lkd) + 10 * dsncff4(ig, lkd) + eta2(ig, lkd) * dsncff6(ig, lkd)));
+
+		phis(ig, ls) = flux(ig, lk) +
+			sgn * (oddcff[0][ig] + oddcff[1][ig] + oddcff[2][ig]) +
+			dsncff2(ig, lkd) + dsncff4(ig, lkd) + dsncff6(ig, lkd);
+	}
 }
 
-__host__ __device__ void Nodal::calculateJnet2n(const int& ls)
+void Nodal::calculateJnet2n(const int& ls)
 {
-    int lkl = lklr(LEFT, ls);
-    int lkr = lklr(RIGHT, ls);
+	int lkl = lklr(LEFT, ls);
+	int lkr = lklr(RIGHT, ls);
 
-    int idirl = idirlr(LEFT, ls);
-    int idirr = idirlr(RIGHT, ls);
-    int sgnl = sgnlr(LEFT, ls);
-    int sgnr = sgnlr(RIGHT, ls);
-    int lkdl = lkl * NDIRMAX + idirl;
-    int lkdr = lkr * NDIRMAX + idirr;
+	int idirl = idirlr(LEFT, ls);
+	int idirr = idirlr(RIGHT, ls);
+	int sgnl = sgnlr(LEFT, ls);
+	int sgnr = sgnlr(RIGHT, ls);
+	int lkdl = lkl * NDIRMAX + idirl;
+	int lkdr = lkr * NDIRMAX + idirr;
 
-    NODAL_VAR adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
+	NODAL_VAR adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
 
-    for (int ig = 0; ig < ng(); ig++) {
-        adf[ig][LEFT] = xsadf(ig, lkl);
-        adf[ig][RIGHT] = xsadf(ig, lkr);
-        diagDj[ig][LEFT] = 0.5 * hmesh(idirl, lkl) * diagD(ig, lkdl);
-        diagDj[ig][RIGHT] = 0.5 * hmesh(idirr, lkr) * diagD(ig, lkdr);
-    }
+	for (int ig = 0; ig < ng(); ig++) {
+		adf[ig][LEFT] = xsadf(ig, lkl);
+		adf[ig][RIGHT] = xsadf(ig, lkr);
+		diagDj[ig][LEFT] = 0.5 * hmesh(idirl, lkl) * diagD(ig, lkdl);
+		diagDj[ig][RIGHT] = 0.5 * hmesh(idirr, lkr) * diagD(ig, lkdr);
+	}
 
-    //zeta1 = (mur + I + taur)_inv * (mul + I + taul)
-    tempz[0][0] = (mu(0, 0, lkdr) + tau(0, 0, lkdr) + 1) * adf[0][RIGHT];
-    tempz[1][0] = (mu(1, 0, lkdr) + tau(1, 0, lkdr)) * adf[0][RIGHT];
-    tempz[0][1] = (mu(0, 1, lkdr) + tau(0, 1, lkdr)) * adf[1][RIGHT];
-    tempz[1][1] = (mu(1, 1, lkdr) + tau(1, 1, lkdr) + 1) * adf[1][RIGHT];
+	//zeta1 = (mur + I + taur)_inv * (mul + I + taul)
+	tempz[0][0] = (mu(0, 0, lkdr) + tau(0, 0, lkdr) + 1) * adf[0][RIGHT];
+	tempz[1][0] = (mu(1, 0, lkdr) + tau(1, 0, lkdr)) * adf[0][RIGHT];
+	tempz[0][1] = (mu(0, 1, lkdr) + tau(0, 1, lkdr)) * adf[1][RIGHT];
+	tempz[1][1] = (mu(1, 1, lkdr) + tau(1, 1, lkdr) + 1) * adf[1][RIGHT];
 
 	NODAL_VAR rdet = 1 / (tempz[0][0] * tempz[1][1] - tempz[1][0] * tempz[0][1]);
-    tempzI[0][0] = rdet * tempz[1][1];
-    tempzI[1][0] = -rdet * tempz[1][0];
-    tempzI[0][1] = -rdet * tempz[0][1];
-    tempzI[1][1] = rdet * tempz[0][0];
+	tempzI[0][0] = rdet * tempz[1][1];
+	tempzI[1][0] = -rdet * tempz[1][0];
+	tempzI[0][1] = -rdet * tempz[0][1];
+	tempzI[1][1] = rdet * tempz[0][0];
 
-    tempz[0][0] = (mu(0, 0, lkdl) + tau(0, 0, lkdl) + 1) * adf[0][LEFT];
-    tempz[1][0] = (mu(1, 0, lkdl) + tau(1, 0, lkdl)) * adf[0][LEFT];
-    tempz[0][1] = (mu(0, 1, lkdl) + tau(0, 1, lkdl)) * adf[1][LEFT];
-    tempz[1][1] = (mu(1, 1, lkdl) + tau(1, 1, lkdl) + 1) * adf[1][LEFT];
+	tempz[0][0] = (mu(0, 0, lkdl) + tau(0, 0, lkdl) + 1) * adf[0][LEFT];
+	tempz[1][0] = (mu(1, 0, lkdl) + tau(1, 0, lkdl)) * adf[0][LEFT];
+	tempz[0][1] = (mu(0, 1, lkdl) + tau(0, 1, lkdl)) * adf[1][LEFT];
+	tempz[1][1] = (mu(1, 1, lkdl) + tau(1, 1, lkdl) + 1) * adf[1][LEFT];
 
-    zeta1[0][0] = tempzI[0][0] * tempz[0][0] + tempzI[1][0] * tempz[0][1];
-    zeta1[1][0] = tempzI[0][0] * tempz[1][0] + tempzI[1][0] * tempz[1][1];
-    zeta1[0][1] = tempzI[0][1] * tempz[0][0] + tempzI[1][1] * tempz[0][1];
-    zeta1[1][1] = tempzI[0][1] * tempz[1][0] + tempzI[1][1] * tempz[1][1];
+	zeta1[0][0] = tempzI[0][0] * tempz[0][0] + tempzI[1][0] * tempz[0][1];
+	zeta1[1][0] = tempzI[0][0] * tempz[1][0] + tempzI[1][0] * tempz[1][1];
+	zeta1[0][1] = tempzI[0][1] * tempz[0][0] + tempzI[1][1] * tempz[0][1];
+	zeta1[1][1] = tempzI[0][1] * tempz[1][0] + tempzI[1][1] * tempz[1][1];
 
-    for (int ig = 0; ig < ng(); ig++) {
-        bfc[ig] = adf[ig][RIGHT] * (dsncff2(ig, lkdr) + dsncff4(ig, lkdr) + dsncff6(ig, lkdr)
-            + flux(ig, lkr) + matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr)
-            + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
-            + adf[ig][LEFT] * (-dsncff2(ig, lkdl) - dsncff4(ig, lkdl) - dsncff6(ig, lkdl)
-                - flux(ig, lkl) + matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl)
-                + matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl));
-    }
+	for (int ig = 0; ig < ng(); ig++) {
+		bfc[ig] = adf[ig][RIGHT] * (dsncff2(ig, lkdr) + dsncff4(ig, lkdr) + dsncff6(ig, lkdr)
+			+ flux(ig, lkr) + matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr)
+			+ matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
+			+ adf[ig][LEFT] * (-dsncff2(ig, lkdl) - dsncff4(ig, lkdl) - dsncff6(ig, lkdl)
+				- flux(ig, lkl) + matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl)
+				+ matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl));
+	}
 
-    for (int ig = 0; ig < ng(); ig++) {
-        zeta2[ig] = tempzI[0][ig] * bfc[0] + tempzI[1][ig] * bfc[1];
-    }
+	for (int ig = 0; ig < ng(); ig++) {
+		zeta2[ig] = tempzI[0][ig] * bfc[0] + tempzI[1][ig] * bfc[1];
+	}
 
-    //tempz = mur + 6 * I + eta1 * taur
-    tempz[0][0] = diagDj[0][RIGHT] * (mu(0, 0, lkdr) + 6 + eta1(0, lkdr) * tau(0, 0, lkdr));
-    tempz[1][0] = diagDj[0][RIGHT] * (mu(1, 0, lkdr) + eta1(0, lkdr) * tau(1, 0, lkdr));
-    tempz[0][1] = diagDj[1][RIGHT] * (mu(0, 1, lkdr) + eta1(1, lkdr) * tau(0, 1, lkdr));
-    tempz[1][1] = diagDj[1][RIGHT] * (mu(1, 1, lkdr) + 6 + eta1(1, lkdr) * tau(1, 1, lkdr));
-
-
-    //mat1g = mul + 6 * I + eta1 * taul - tempzI
-    mat1g[0][0] =
-        -diagDj[0][LEFT] * (mu(0, 0, lkdl) + 6 + eta1(0, lkdl) * tau(0, 0, lkdl)) - tempz[0][0] * zeta1[0][0] -
-        tempz[1][0] * zeta1[0][1];
-    mat1g[1][0] = -diagDj[0][LEFT] * (mu(1, 0, lkdl) + eta1(0, lkdl) * tau(1, 0, lkdl)) - tempz[0][0] * zeta1[1][0] -
-        tempz[1][0] * zeta1[1][1];
-    mat1g[0][1] = -diagDj[1][LEFT] * (mu(0, 1, lkdl) + eta1(1, lkdl) * tau(0, 1, lkdl)) - tempz[0][1] * zeta1[0][0] -
-        tempz[1][1] * zeta1[0][1];
-    mat1g[1][1] =
-        -diagDj[1][LEFT] * (mu(1, 1, lkdl) + 6 + eta1(1, lkdl) * tau(1, 1, lkdl)) - tempz[0][1] * zeta1[1][0] -
-        tempz[1][1] * zeta1[1][1];
+	//tempz = mur + 6 * I + eta1 * taur
+	tempz[0][0] = diagDj[0][RIGHT] * (mu(0, 0, lkdr) + 6 + eta1(0, lkdr) * tau(0, 0, lkdr));
+	tempz[1][0] = diagDj[0][RIGHT] * (mu(1, 0, lkdr) + eta1(0, lkdr) * tau(1, 0, lkdr));
+	tempz[0][1] = diagDj[1][RIGHT] * (mu(0, 1, lkdr) + eta1(1, lkdr) * tau(0, 1, lkdr));
+	tempz[1][1] = diagDj[1][RIGHT] * (mu(1, 1, lkdr) + 6 + eta1(1, lkdr) * tau(1, 1, lkdr));
 
 
-    NODAL_VAR bcc[2], vec1g[2];
+	//mat1g = mul + 6 * I + eta1 * taul - tempzI
+	mat1g[0][0] =
+		-diagDj[0][LEFT] * (mu(0, 0, lkdl) + 6 + eta1(0, lkdl) * tau(0, 0, lkdl)) - tempz[0][0] * zeta1[0][0] -
+		tempz[1][0] * zeta1[0][1];
+	mat1g[1][0] = -diagDj[0][LEFT] * (mu(1, 0, lkdl) + eta1(0, lkdl) * tau(1, 0, lkdl)) - tempz[0][0] * zeta1[1][0] -
+		tempz[1][0] * zeta1[1][1];
+	mat1g[0][1] = -diagDj[1][LEFT] * (mu(0, 1, lkdl) + eta1(1, lkdl) * tau(0, 1, lkdl)) - tempz[0][1] * zeta1[0][0] -
+		tempz[1][1] * zeta1[0][1];
+	mat1g[1][1] =
+		-diagDj[1][LEFT] * (mu(1, 1, lkdl) + 6 + eta1(1, lkdl) * tau(1, 1, lkdl)) - tempz[0][1] * zeta1[1][0] -
+		tempz[1][1] * zeta1[1][1];
 
-    for (int ig = 0; ig < ng(); ig++) {
-        bcc[ig] =
-            diagDj[ig][LEFT] * (3 * dsncff2(ig, lkdl) + 10 * dsncff4(ig, lkdl) + eta2(ig, lkdl) * dsncff6(ig, lkdl))
-            + diagDj[ig][RIGHT] *
-            (3 * dsncff2(ig, lkdr) + 10 * dsncff4(ig, lkdr) + eta2(ig, lkdr) * dsncff6(ig, lkdr));
-        vec1g[ig] = bcc[ig]
-            - diagDj[ig][LEFT] *
-            (matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl) + matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl))
-            + diagDj[ig][RIGHT] *
-            (matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr) + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
-            - (tempz[0][ig] * zeta2[0] + tempz[1][ig] * zeta2[1]);
 
-    }
+	NODAL_VAR bcc[2], vec1g[2];
 
-    rdet = 1 / (mat1g[0][0] * mat1g[1][1] - mat1g[1][0] * mat1g[0][1]);
+	for (int ig = 0; ig < ng(); ig++) {
+		bcc[ig] =
+			diagDj[ig][LEFT] * (3 * dsncff2(ig, lkdl) + 10 * dsncff4(ig, lkdl) + eta2(ig, lkdl) * dsncff6(ig, lkdl))
+			+ diagDj[ig][RIGHT] *
+			(3 * dsncff2(ig, lkdr) + 10 * dsncff4(ig, lkdr) + eta2(ig, lkdr) * dsncff6(ig, lkdr));
+		vec1g[ig] = bcc[ig]
+			- diagDj[ig][LEFT] *
+			(matMI(0, ig, lkl) * sgnl * trlcff1(0, lkdl) + matMI(1, ig, lkl) * sgnl * trlcff1(1, lkdl))
+			+ diagDj[ig][RIGHT] *
+			(matMI(0, ig, lkr) * sgnr * trlcff1(0, lkdr) + matMI(1, ig, lkr) * sgnr * trlcff1(1, lkdr))
+			- (tempz[0][ig] * zeta2[0] + tempz[1][ig] * zeta2[1]);
+
+	}
+
+	rdet = 1 / (mat1g[0][0] * mat1g[1][1] - mat1g[1][0] * mat1g[0][1]);
 	NODAL_VAR tmp = mat1g[0][0];
-    mat1g[0][0] = rdet * mat1g[1][1];
-    mat1g[1][0] = -rdet * mat1g[1][0];
-    mat1g[0][1] = -rdet * mat1g[0][1];
-    mat1g[1][1] = rdet * tmp;
+	mat1g[0][0] = rdet * mat1g[1][1];
+	mat1g[1][0] = -rdet * mat1g[1][0];
+	mat1g[0][1] = -rdet * mat1g[0][1];
+	mat1g[1][1] = rdet * tmp;
 
-    NODAL_VAR oddcff[3][2];
+	NODAL_VAR oddcff[3][2];
 
-    oddcff[1][0] = zeta2[0] - (zeta1[0][0] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
-        + zeta1[1][0] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));
-    oddcff[1][1] = zeta2[1] - (zeta1[0][1] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
-        + zeta1[1][1] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));
+	oddcff[1][0] = zeta2[0] - (zeta1[0][0] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
+		+ zeta1[1][0] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));
+	oddcff[1][1] = zeta2[1] - (zeta1[0][1] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
+		+ zeta1[1][1] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));
 
-    oddcff[2][0] = tau(0, 0, lkdr) * oddcff[1][0] + tau(1, 0, lkdr) * oddcff[1][1];
-    oddcff[2][1] = tau(0, 1, lkdr) * oddcff[1][0] + tau(1, 1, lkdr) * oddcff[1][1];
+	oddcff[2][0] = tau(0, 0, lkdr) * oddcff[1][0] + tau(1, 0, lkdr) * oddcff[1][1];
+	oddcff[2][1] = tau(0, 1, lkdr) * oddcff[1][0] + tau(1, 1, lkdr) * oddcff[1][1];
 
-    oddcff[0][0] = mu(0, 0, lkdr) * oddcff[1][0] - matMI(0, 0, lkr) * sgnr * trlcff1(0, lkdr)
-        + mu(1, 0, lkdr) * oddcff[1][1] - matMI(1, 0, lkr) * sgnr * trlcff1(1, lkdr);
-    oddcff[0][1] = mu(0, 1, lkdr) * oddcff[1][0] - matMI(0, 1, lkr) * sgnr * trlcff1(0, lkdr)
-        + mu(1, 1, lkdr) * oddcff[1][1] - matMI(1, 1, lkr) * sgnr * trlcff1(1, lkdr);
+	oddcff[0][0] = mu(0, 0, lkdr) * oddcff[1][0] - matMI(0, 0, lkr) * sgnr * trlcff1(0, lkdr)
+		+ mu(1, 0, lkdr) * oddcff[1][1] - matMI(1, 0, lkr) * sgnr * trlcff1(1, lkdr);
+	oddcff[0][1] = mu(0, 1, lkdr) * oddcff[1][0] - matMI(0, 1, lkr) * sgnr * trlcff1(0, lkdr)
+		+ mu(1, 1, lkdr) * oddcff[1][1] - matMI(1, 1, lkr) * sgnr * trlcff1(1, lkdr);
 
-    for (int ig = 0; ig < ng(); ig++) {
-        jnet(ig, ls) = sgnr * hmesh(idirr, lkr) * 0.5 * diagD(ig, lkdr) * (
-            -1.0 * oddcff[0][ig] + 3 * dsncff2(ig, lkdr) - 6 * oddcff[1][ig] + 10 * dsncff4(ig, lkdr)
-            - eta1(ig, lkdr) * oddcff[2][ig] + eta2(ig, lkdr) * dsncff6(ig, lkdr));
-    }
+	for (int ig = 0; ig < ng(); ig++) {
+		jnet(ig, ls) = sgnr * hmesh(idirr, lkr) * 0.5 * diagD(ig, lkdr) * (
+			-1.0 * oddcff[0][ig] + 3 * dsncff2(ig, lkdr) - 6 * oddcff[1][ig] + 10 * dsncff4(ig, lkdr)
+			- eta1(ig, lkdr) * oddcff[2][ig] + eta2(ig, lkdr) * dsncff6(ig, lkdr));
+
+		phis(ig, ls) = flux(ig, lkr) 
+			- (oddcff[0][ig] + oddcff[1][ig] + oddcff[2][ig])
+			+ dsncff2(ig, lkdr) + dsncff4(ig, lkdr) + dsncff6(ig, lkdr);
+	}
 }
 

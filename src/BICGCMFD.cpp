@@ -17,9 +17,9 @@ void BICGCMFD::init()
     _nodal = new NodalCPU(_g, _x);
     _nodal->init();
 
-    _epsbicg = 1.E-4;
+    _epsbicg = 1.E-3;
     _nmaxbicg = 10;
-    _eshift = 0.01;
+    _eshift = 0.04;
     iter = 0;
 
     _unshifted_diag = new CMFD_VAR[_g.ng2() * _g.nxyz()];
@@ -34,19 +34,19 @@ void BICGCMFD::setEshift(float eshift) {
     _eshift = eshift;
 }
 
-void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
+void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, double& errl2) {
 
     double gamman = 0;
     double gammad = 0;
-    float  err = 0;
+    double  err = 0;
 
-#pragma omp parallel for reduction(+ : gammad, gamman, err)
+	#pragma omp parallel for reduction(+ : gammad, gamman, err)
     for (int l = 0; l < _g.nxyz(); l++) {
         CMFD_VAR psid = psi(l);
         psi(l) = _x.xsnf(0, l) * flux(0, l) + _x.xsnf(1, l) * flux(1, l);
         psi(l) = psi(l) * _g.vol(l);
 
-        float err1 = psi(l) - psid;
+        double err1 = psi(l) - psid;
         err = err + err1 * err1;
         gammad += psid * psi(l);
         gamman += psi(l) * psi(l);
@@ -80,12 +80,13 @@ void BICGCMFD::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double&
     double erreig = abs(eigv - eigvd);;
 
     double eigvs = eigv;
-    if (icy >= 0) {
-        eigvs += _eshift;
-    }
+	reigvs = 0;
 
-    reigvs = 0;
-    if (_eshift != 0.0) reigvs = 1 / eigvs;
+	if (icy >= 0) {
+        eigvs += _eshift;
+		if (_eshift != 0.0) reigvs = 1. / eigvs;
+	}
+
 
 }
 
@@ -135,7 +136,8 @@ void BICGCMFD::setls(const double& eigv) {
     double reigvs = 0.0;
     if(_eshift != 0.0) reigvs = 1. / (eigv + _eshift);
 
-    for (int l = 0; l < _g.nxyz(); ++l) {
+	#pragma omp parallel for 
+	for (int l = 0; l < _g.nxyz(); ++l) {
         setls(l);
         updls(l, reigvs);
     }
@@ -152,7 +154,8 @@ void BICGCMFD::setls(const int &l) {
 }
 
 void BICGCMFD::updls(const double& reigvs) {
-    for (int l = 0; l < _g.nxyz(); ++l) {
+	#pragma omp parallel for 
+	for (int l = 0; l < _g.nxyz(); ++l) {
         updls(l, reigvs);
     }
 }
@@ -191,7 +194,7 @@ void BICGCMFD::axb(SOL_VAR* flux, SOL_VAR* aflux) {
 }
 
 
-void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
+void BICGCMFD::drive(double &eigv, SOL_VAR* flux, double &errl2) {
 
     int icmfd = 0;
     double reigv = 1. / eigv;
@@ -226,9 +229,9 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
         }
 
         //wielandt shift
-        wiel(iter, flux, reigvs, eigv, reigv, errl2);
+        wiel(iter-5, flux, reigvs, eigv, reigv, errl2);
 
-        if(reigvs != 0.0) updls(reigvs);
+        updls(reigvs);
 
         negative = 0;
 #pragma omp parallel for reduction(+ : negative)
@@ -245,7 +248,6 @@ void BICGCMFD::drive(double &eigv, SOL_VAR* flux, float &errl2) {
 
         if(negative != 0 && icmfd < 20*_ncmfd) iout--;
 
-		printf("IOUT : %d, EIGV : %9.7f , ERRL2 : %12.5E, NEGATIVE : %d\n", iter, eigv, errl2, negative);
 		PLOG(plog::debug) << "IOUT : " << iter << ", EIGV : " << eigv << ", ERRL2 : " << errl2 << ", NEGATIVE : " << negative;
 
         if (errl2 < _epsl2) break;
@@ -260,9 +262,9 @@ void BICGCMFD::resetIteration() {
     iter = 0;
 }
 
-void BICGCMFD::updnodal(double& eigv, SOL_VAR* flux, SOL_VAR* jnet) {
+void BICGCMFD::updnodal(double& eigv, SOL_VAR* flux, SOL_VAR* jnet, SOL_VAR* phis) {
     updjnet(flux, jnet);
-    _nodal->reset(_x, 1./eigv, jnet, flux);
+    _nodal->reset(_x, 1./eigv, jnet, flux, phis);
     _nodal->drive(jnet);
     upddhat(flux, jnet);
 }

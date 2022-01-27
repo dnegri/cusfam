@@ -34,7 +34,7 @@ public:
     __host__ virtual void setls(const double& eigv)=0;
     __host__ virtual void updjnet(SOL_VAR* flux, SOL_VAR* jnet)=0;
     __host__ virtual void updpsi(const SOL_VAR* flux)=0;
-    __host__ virtual void drive(double& eigv, SOL_VAR* flux, float& errl2)=0;
+    __host__ virtual void drive(double& eigv, SOL_VAR* flux, double& errl2)=0;
 
     __host__ virtual void init();
 

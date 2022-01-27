@@ -14,7 +14,7 @@ ControlRod::~ControlRod() {
 
 }
 
-void ControlRod::setPosition(const char* rodid, const int& pos) {
+void ControlRod::setPosition(const char* rodid, const float& pos) {
 
 
 	for (int l2d = 0; l2d < _g->nxy(); l2d++)
@@ -25,34 +25,39 @@ void ControlRod::setPosition(const char* rodid, const int& pos) {
 		if (!found) continue;
 
 		int l = l2d;
-		float zpos = 0.0;
 
-		int k = 0;
-		for (; k < _g->nz(); k++)
+		float zpos = 0.0;
+		//for (int k = 0; k < _g->kbc(); k++) {
+		//	zpos += _g->hmesh(ZDIR, l);
+		//}
+
+		int k = _g->kbc();
+		l += k * _g->nxy();
+
+		for (; k < _g->kec(); k++)
 		{
 			float hz = _g->hmesh(ZDIR, l);
 			zpos += hz;
 
-			if (zpos + EPS_ROD_IN >= pos) {
+			if (zpos - EPS_ROD_IN >= pos) {
 				_ratio[l] = (zpos - pos) / hz;
+				l += _g->nxy();
 				break;
 			}
 			else {
 				_ratio[l] = 0.0;
+				l += _g->nxy();
 			}
-
-
-			l += _g->nxy();
 		}
 
-		for (; k < _g->nz(); k++) {
-			l += _g->nxy();
+		for (; k < _g->kec(); k++) {
 			_ratio[l] = 1.0;
+			l += _g->nxy();
 		}
 
 	}
 }
 
-void ControlRod::setPosition(const int& rodidx, const int& pos) {
+void ControlRod::setPosition(const int& rodidx, const float& pos) {
 
 }

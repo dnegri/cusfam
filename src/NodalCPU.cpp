@@ -59,38 +59,45 @@ void NodalCPU::init() {
 
 }
 
-void NodalCPU::reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif) {
+void NodalCPU::reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif, SOL_VAR* phis) {
 	_flux = phif;
 	_jnet = jnet;
+	_phis = phis;
 	_reigv = reigv;
 }
 
 void NodalCPU::drive(SOL_VAR* jnet) {
 
-	printf("updateConstant\n");
+	//printf("updateConstant\n");
+#pragma omp parallel for
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateConstant(lk);
 	}
-	printf("caltrlcff0\n");
+	//printf("caltrlcff0\n");
+#pragma omp parallel for
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		caltrlcff0(lk);
 	}
 
-	printf("caltrlcff12\n");
+	//printf("caltrlcff12\n");
+#pragma omp parallel for
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		caltrlcff12(lk);
 	}
-	printf("updateMatrix\n");
+	//printf("updateMatrix\n");
+#pragma omp parallel for
 	for (int lk = 0; lk < nxyz(); ++lk) {
 		updateMatrix(lk);
 	}
-	printf("calculateEven\n");
+	//printf("calculateEven\n");
+#pragma omp parallel for
 	for (int lk = 0; lk < nxyz(); ++lk) {
 
 		calculateEven(lk);
 	}
 
-	printf("calculateJnet\n");
+	//printf("calculateJnet\n");
+#pragma omp parallel for
 	for (int ls = 0; ls < nsurf(); ++ls) {
         calculateJnet(ls);
 	}

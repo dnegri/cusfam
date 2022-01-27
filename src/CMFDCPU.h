@@ -26,7 +26,7 @@ public:
     __host__ void updls(const double& reigvs);
     __host__ __device__ void updls(const int& l, const double& reigvs);
 
-    __host__ void drive(double& eigv, SOL_VAR* flux, float& errl2) override;
+    __host__ void drive(double& eigv, SOL_VAR* flux, double& errl2) override;
     __host__ double residual(const double& reigv, const double& reigvs, SOL_VAR* flux);
     __host__ void axb(SOL_VAR* flux, SOL_VAR* aflux);
     __host__ double wiel(const int& icy, SOL_VAR* flux, double& eigv, double& reigv, double& reigvs);

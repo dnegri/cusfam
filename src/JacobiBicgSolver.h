@@ -35,7 +35,7 @@ public:
     virtual void axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux);
     virtual void solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* flux, CMFD_VAR& r2);
 
-    __host__ __device__ float reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src);
+    __host__ __device__ CMFD_VAR reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src);
     __host__ __device__ void minv(const int& l, CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x);
     __host__ __device__ void facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc);
     __host__ __device__ CMFD_VAR axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux);

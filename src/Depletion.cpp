@@ -85,7 +85,7 @@ void Depletion::updateB10Abundance(const float& b10ap)
 
 void Depletion::dep(const float& tsec, const XEType& xeopt , const SMType& smopt, const float* power)
 {
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int l = 0; l < _g.nxyz(); ++l) {
 		if (power[l] == 0) continue;
         dep(l, tsec, xeopt, smopt, power[l], _dnst, _dnst_new, _dnst_avg);
@@ -209,25 +209,85 @@ void Depletion::deph(const int& l, const float& tsec, const float* ati, float* a
 			double dnew = 0.0;
 			double ditg = 0.0;
 			for (int j = 0; j <= i; ++j) {
+				dnew = dnew + a[i][j] * exg[j];
 				if (r[j] > 1.E-12) {
-					dnew = dnew + a[i][j] * exg[j];
 					ditg = ditg + a[i][j] * (1. - exg[j]) / r[j];
+				}
+				else {
+					ditg = ditg + a[i][j]*tsec;
 				}
 			}
 
-			if (idpct(i,ic) != ChainAction::HOLD) {
+			if (idpct(i,ic) != ChainAction::HOLD && dnew > 0.0) {
 				atd(ihchn(i, ic), l) = atd(ihchn(i, ic), l) + dnew;
 				atavg(ihchn(i, ic), l) = atavg(ihchn(i, ic), l) + ditg / tsec;
 			}
 		}
 	}
 }
+
+void Depletion::dynxesm(const float& tsec, const XEType& xeopt, const SMType& smopt, const XS_VAR* xsmica, const XS_VAR* xsmicf, const float* power, const SOL_VAR* flux, const float& fnorm)
+{
+#pragma omp parallel for
+	for (int l = 0; l < _g.nxyz(); ++l) {
+		if (power[l] == 0) continue;
+
+		for (int ih = 0; ih < NHEAVY; ++ih) {
+			int ihf = ISOHVY[ih];
+			fis(ihf, l) = 0.0;
+			for (int ig = 0; ig < _g.ng(); ++ig) {
+				fis(ihf, l) = fis(ihf, l) + xsmicf(ig, ihf, l) * flux(ig, l);
+			}
+			fis(ihf, l) *= 1.0E-24 * fnorm;
+		}
+
+		if (smopt == SMType::SM_TR) {
+
+			for (int iiso = PM47; iiso <= SM49; iiso++)
+			{
+				rem(iiso, l) = 0.0;
+				for (int ig = 0; ig < _g.ng(); ++ig) {
+					rem(iiso, l) += xsmica(ig, iiso, l) * flux(ig, l);
+				}
+				rem(iiso, l) = rem(iiso, l) * 1.0E-24 * fnorm + dcy(iiso);
+			}
+
+			depsm(l, tsec, _dnst, _dnst_new, _dnst);
+
+			for (int iiso = PM47; iiso <= SM49; iiso++)
+			{
+				dnst(iiso, l) = dnst_new(iiso, l);
+			}
+		}
+
+		if (xeopt == XEType::XE_TR) {
+			rem(I135, l) = 0.0;
+			rem(XE45, l) = 0.0;
+			for (int ig = 0; ig < _g.ng(); ++ig) {
+				rem(I135, l) += xsmica(ig, I135, l) * flux(ig, l);
+				rem(XE45, l) += xsmica(ig, XE45, l) * flux(ig, l);
+			}
+			rem(I135, l) = rem(I135, l) * 1.0E-24 * fnorm + dcy(I135);
+			rem(XE45, l) = rem(XE45, l) * 1.0E-24 * fnorm + dcy(XE45);
+
+			depxe(l, tsec, _dnst, _dnst_new, _dnst);
+
+			dnst(I135, l) = dnst_new(I135, l);
+			dnst(XE45, l) = dnst_new(XE45, l);
+		}
+
+	}
+
+
+}
+
+
 void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg)
 {
 	int ipp = I135;
 	int idd = XE45;
-	float remd = rem(I135, l);
-	float dcp = dcy(XE45);
+	float dcp = dcy(I135);
+	float remd = rem(XE45, l);
 
 	float fyp = 0., fyd = 0.;
 	for (int ih = 0; ih < NHEAVY; ++ih) {
@@ -239,7 +299,8 @@ void Depletion::depxe(const int& l, const float& tsec, const float* ati, float* 
 	float exgd = exp(-remd * tsec);
 
 	atd(ipp, l) = ati(ipp, l) * exgp + fyp / dcp * (1. - exgp);
-	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) + (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
+	atd(idd, l) = ati(idd, l) * exgd + (fyp + fyd) / remd * (1. - exgd) 
+				+ (ati(ipp, l) * dcp - fyp) / (remd - dcp) * (exgp - exgd);
 }
 
 void Depletion::eqxe(const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm)

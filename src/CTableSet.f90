@@ -16,7 +16,7 @@ module CTableSet
         integer             :: ncomp
         character(len=LEN_COMPNAME), pointer    :: compnames(:)
         type(Composition), pointer  :: comps(:)
-        type(Reflector)             :: refl
+        type(Reflector), pointer    :: refl
     contains
         procedure init
         procedure readFile
@@ -29,9 +29,6 @@ module CTableSet
         procedure indexOfComposition
     end type
     
-    
-    
-    type(TableSet),public   :: tset
     
     public :: readTableSet, calculateReflector1, calculateReference1, calculateVariation1
     
@@ -48,11 +45,14 @@ contains
         
         allocate(this%compnames(ncomp))
         allocate(this%comps(ncomp))
+        allocate(this%refl)
         
         do i = 1, ncomp
             this%compnames(i) = compnames(i)
             this%comps(i)%name = compnames(i)
         enddo
+        
+        call    this%refl%init()
         
     end subroutine
 
@@ -91,8 +91,10 @@ contains
                 call this%readReflComp(ifile, this%refl, header)
             end select
         enddo
+        
 1       continue
 2       continue
+        close(ifile)
     end subroutine
 
     subroutine readReflComp(this, ifile, refl, header)
@@ -168,11 +170,16 @@ contains
             enddo
             enddo
         
+            
             do j1=1,1
-            do igs=1,NUM_GRP
-               read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,2), refl%rrsigs(j1,igs,igs+1:NUM_GRP,2)
+                refl%rrsigs(j1,:,:,2) = 0.0
+                do igs=1,NUM_GRP
+                   read(ifile,FORMAT_VALUE) refl%rrsigs(j1,igs,1:igs-1,2), refl%rrsigs(j1,igs,igs+1:NUM_GRP,2)
+                enddo
             enddo
-            enddo
+            
+            !print *, refl%rrsigs(1,:,:,2)
+            
             refl%rfrppm(REFL_EDGE) = dum(1)
             refl%rfrtf(REFL_EDGE) = dum(2)
             refl%rfrtm(REFL_EDGE) = dum(3)
@@ -493,7 +500,7 @@ contains
     
     
 
-    subroutine readTableSet(lenf, file, ncomp, compnames) bind(c, name="readTableSet")
+    function readTableSet(lenf, file, ncomp, compnames) result(tset_ptr) bind(c, name="readTableSet")
         use iso_c_binding, only: c_ptr, c_int, c_f_pointer, c_loc, c_null_char
         integer                         :: lenf
         character(len=1, kind=c_char)   :: file(lenf)
@@ -501,9 +508,12 @@ contains
         
         integer(kind=c_int),                 intent(in) :: ncomp
         type(c_ptr), target,                 intent(in) :: compnames
+        type(c_ptr)                                     :: tset_ptr
         character(kind=c_char), dimension(:,:), pointer :: fptr
         character(len=13), dimension(ncomp)             :: fstring
         integer                                         :: i, slen
+        
+        type(TableSet), pointer :: tset
         
         fstring(:) = "            "
         
@@ -520,20 +530,28 @@ contains
             file2(i:i)= file(i)
         enddo
         
+        allocate(tset)
+        
         call tset%init(ncomp, fstring)
         call tset%readFile(file2)
-    end subroutine
+        
+        tset_ptr = c_loc(tset)
+    end function
     
-    subroutine calculateReflector1(irefl, rb10wp, xsmica, xsmicd, xsmics,    &
+    subroutine calculateReflector1(tsetptr, irefl, rb10wp, xsmica, xsmicd, xsmics,    &
                                          xdpmica, xdmmica, xddmica, &
                                          xdpmicd, xdmmicd, xddmicd, &
                                          xdpmics, xdmmics, xddmics) bind(c, name="calculateReflector")
-        integer             :: irefl
+        type(c_ptr), INTENT(IN), value :: tsetptr
+        integer                   :: irefl
         real(XS_PREC)             :: rb10wp
         real(XS_PREC)             :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO)
         real(XS_PREC)             ::  xdpmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
                                 xdpmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
                                 xdpmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
+        type(TableSet), pointer  :: tset
+
+        call c_f_pointer(tsetptr, tset)
 
         call tset%refl%calculate(irefl, xsmica, xsmicd, xsmics,     &
                                         xdpmica, xdmmica, xddmica,  &
@@ -542,31 +560,37 @@ contains
         xdpmica = xdpmica*rb10wp*tset%refl%b10ap(irefl)
         xdpmicd = xdpmicd*rb10wp*tset%refl%b10ap(irefl)
         xdpmics = xdpmics*rb10wp*tset%refl%b10ap(irefl)
-    end subroutine
+    end subroutine    
     
-    
-    subroutine calculateReference1(icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp) bind(c, name="calculateReference")
-        integer             :: icomp
+    subroutine calculateReference1(tsetptr, icomp, burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp) bind(c, name="calculateReference")
+        type(c_ptr), intent(in), value  :: tsetptr
+        integer                     :: icomp
         real(XS_PREC)             :: burn
         real(XS_PREC)             :: xsmicd(NUM_GRP,NISO), xsmica(NUM_GRP,NISO), xsmicn(NUM_GRP,NISO), xsmicf(NUM_GRP,NISO), xsmick(NUM_GRP,NISO), xsmics(NUM_GRP,NUM_GRP,NISO), xsmic2n(NUM_GRP), xehfp
+        type(TableSet), pointer  :: tset
 
+        call c_f_pointer(tsetptr, tset)
         call tset%comps(icomp)%calculateReference(burn, xsmicd, xsmica, xsmicn, xsmicf, xsmick, xsmics, xsmic2n, xehfp)
         
     end subroutine
     
-    subroutine calculateVariation1(icomp, burn, rb10wp,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
+    subroutine calculateVariation1(tsetptr, icomp, burn, rb10wp,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )  bind(c, name="calculateVariation")
-        integer             :: icomp
+        type(c_ptr), INTENT(IN), value:: tsetptr
+        integer                   :: icomp
         real(XS_PREC)             :: burn, rb10wp
         real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
                                 xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
                                 xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
                                 xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
                                 xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
-        type(Composition), pointer :: c
+        type(TableSet), pointer   :: tset
+        type(Composition), pointer:: c
+
+        call c_f_pointer(tsetptr, tset)
         
         c =>tset%comps(icomp)
         call c%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &

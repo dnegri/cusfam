@@ -1,0 +1,1 @@
+#define XS_PREC 4
