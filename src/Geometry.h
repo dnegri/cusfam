@@ -38,6 +38,8 @@
 
 class Geometry : public Managed {
 protected:
+    int _ndivxy = 2;
+    int _npinxy = 16;
 	int _ng;
 	int _ng2;
 	int	_nxy;
@@ -58,8 +60,11 @@ protected:
 	int	 _nsurf;
 	int* _neibr;
 	int* _ijtol;
+    int* _rotflg;
 	int* _neib;
 	int* _ltola;
+    int* _latol;
+    int* _larot;
 
 	int _nxa;
 	int _nya;
@@ -102,10 +107,12 @@ public:
 
 	void setBoundaryCondition(int* symopt, int* symang, float* albedo);
 	void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
-	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr, float* hmesh);
+	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* rotflg, int* neibr, float* hmesh);
 	void initAssemblyIndex();
 	void initCorner();
 
+    inline int& ndivxy() { return _ndivxy; };
+    inline int& npinxy() { return _npinxy; };
 
 	inline int& ng() { return _ng; };
 	inline int& ng2() { return _ng2; };
@@ -140,11 +147,12 @@ public:
 	inline int* ltolc() const { return _ltolc; }
 	inline int* lctol() const { return _lctol; }
 	inline int& ltolc(const int& news, const int& l) const { return _ltolc[l*NEWS+ news]; }
-	inline int& lctol(const int& news, const int& lc) const { return _ltolc[lc * NEWS + news]; }
+	inline int& lctol(const int& news, const int& lc) const { return _lctol[lc * NEWS + news]; }
 
 	const GEOM_VAR* albedo() const { return _albedo; }
 	const int* neibr() const { return _neibr; }
 	const int* ijtol() const { return _ijtol; }
+    const int* rotflg() const { return _rotflg; }
 	const int* nxs() const { return _nxs; }
 	const int* nxe() const { return _nxe; }
 	const int* nys() const { return _nys; }
@@ -163,6 +171,7 @@ public:
 	inline int& nye(const int& i) { return _nye[i]; };
 	inline int& neibr(const int& news, const int& l) { return _neibr[l * NEWS + news]; };
 	inline int& ijtol(const int& i, const int& j) { return _ijtol[j * _nx + i]; };
+    inline int& rotflg(const int& i, const int& j) { return _rotflg[j * _nx + i]; };
 	inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
 	inline int& neib(const int& lr, const int& idir, const int& lk) { return _neib[lk * NEWSBT + idir * LR + lr]; };
 	inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };
@@ -177,6 +186,9 @@ public:
 	inline int& nyea(const int& ia) { return _nyea[ia]; };
 	inline int& ijtola(const int& ia, const int& ja) { return _ijtola[ja * _nxa + ia]; };
 	inline int& ltola(const int& l) { return _ltola[l]; };
+    inline int& latol(const int& li, const int& la) { return _latol[la*NEWS+li]; };
+    inline int& larot(const int& li, const int& la) { return _larot[la*NEWS+li]; };
+    inline int* larot(const int& la) { return &_larot[la*NEWS]; };
 
 	inline int& comp(const int& l) { return _comps[l]; };
 	inline int* comp() { return _comps; };

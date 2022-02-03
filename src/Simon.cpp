@@ -86,6 +86,7 @@ void Simon::initialize(const char* dbfile) {
 	int* nys = new int[nx];
 	int* nye = new int[nx];
 	int* ijtol = new int[nx * ny];
+    int* rotflg = new int[nx * ny];
 	int* neibr = new int[NEWS * nxy];
 	float* hmesh = new float[NDIRMAX * nxyz];
 
@@ -93,13 +94,13 @@ void Simon::initialize(const char* dbfile) {
 	int symang;
 	float albedo[6];
 
-	readIndex(&nx, &ny, &nxy, &nz, nxs, nxe, nys, nye, ijtol, neibr, hmesh);
+	readIndex(&nx, &ny, &nxy, &nz, nxs, nxe, nys, nye, ijtol, rotflg, neibr, hmesh);
 	readBoundary(&symopt, &symang, albedo);
 
 
 	_g->setBoundaryCondition(&symopt, &symang, albedo);
 	_g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
-	_g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
+	_g->initIndex(nxs, nxe, nys, nye, ijtol, rotflg, neibr, hmesh);
 
 	int ncomp = 0;
 
@@ -233,7 +234,7 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 		if (burnup - 10.0 < _bucyc[i]) break;
 	}
 
-	char dbfile[_MAX_PATH];
+	char dbfile[512];
 
 	int intbu = round(_bucyc[i]);
 	sprintf(dbfile, "%s.%05d.SMR", dir_burn, intbu);

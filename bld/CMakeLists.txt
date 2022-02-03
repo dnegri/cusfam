@@ -34,6 +34,7 @@ file(GLOB SOURCES
         ../src/JacobiBicgSolver.*
         ../src/Simon.*
         ../src/SimonCPU.*
+        ../src/PinPower.*
         )
 
 file(GLOB FortranSources
@@ -49,14 +50,15 @@ file(GLOB FortranSources
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_Fortran_FLAGS "-ffree-line-length-none -finit-local-zero -fno-automatic -fdefault-real-8")
+set(CMAKE_Fortran_FLAGS "-ffree-line-length-none -finit-local-zero -fno-automatic -fdefault-real-8 -cpp -DXS_PREC=8")
 set(CMAKE_CXX_FLAGS "-ffpe-trap=invalid,zero,overflow")
 
-include_directories(/usr/local/include /opt/homebrew/include)
+include_directories(/usr/local/include /opt/homebrew/include ../include ../include/python)
 link_directories(/usr/local/lib /opt/homebrew/lib)
 
 SET_SOURCE_FILES_PROPERTIES(${SOURCES} PROPERTIES LANGUAGE CXX )
 SET_SOURCE_FILES_PROPERTIES(${FortranSources} PROPERTIES LANGUAGE Fortran )
+
 
 add_executable(${PROJECT_NAME} ${FortranSources} ${SOURCES} )
 target_link_libraries(${PROJECT_NAME} Ginkgo::ginkgo OpenMP::OpenMP_CXX)

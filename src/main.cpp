@@ -32,9 +32,9 @@ dim3 THREADS_SURFACE;
 
 
 int main() {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+//	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
-	//omp_set_num_threads(8);
+	omp_set_num_threads(8);
 
 	SimonCPU simon;
 	simon.initialize("D:/work/corefollow/ygn3/c01/depl/rst/Y301ASBDEP.SMG");
