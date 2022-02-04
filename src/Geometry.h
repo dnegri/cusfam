@@ -60,7 +60,6 @@ protected:
 	int	 _nsurf;
 	int* _neibr;
 	int* _ijtol;
-    int* _rotflg;
 	int* _neib;
 	int* _ltola;
     int* _latol;
@@ -107,8 +106,8 @@ public:
 
 	void setBoundaryCondition(int* symopt, int* symang, float* albedo);
 	void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
-	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* rotflg, int* neibr, float* hmesh);
-	void initAssemblyIndex();
+	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int * latol_, int * larot_, int * ijtol_, int* neibr_, float* hmesh_);
+	void initAssemblyIndex(int * latol_, int * larot_);
 	void initCorner();
 
     inline int& ndivxy() { return _ndivxy; };
@@ -152,7 +151,6 @@ public:
 	const GEOM_VAR* albedo() const { return _albedo; }
 	const int* neibr() const { return _neibr; }
 	const int* ijtol() const { return _ijtol; }
-    const int* rotflg() const { return _rotflg; }
 	const int* nxs() const { return _nxs; }
 	const int* nxe() const { return _nxe; }
 	const int* nys() const { return _nys; }
@@ -171,7 +169,6 @@ public:
 	inline int& nye(const int& i) { return _nye[i]; };
 	inline int& neibr(const int& news, const int& l) { return _neibr[l * NEWS + news]; };
 	inline int& ijtol(const int& i, const int& j) { return _ijtol[j * _nx + i]; };
-    inline int& rotflg(const int& i, const int& j) { return _rotflg[j * _nx + i]; };
 	inline int& neib(const int& newsbt, const int& lk) { return _neib[lk * NEWSBT + newsbt]; };
 	inline int& neib(const int& lr, const int& idir, const int& lk) { return _neib[lk * NEWSBT + idir * LR + lr]; };
 	inline int& lklr(const int& lr, const int& ls) { return _lklr[ls * LR + lr]; };

@@ -27,13 +27,13 @@ contains
         read(ifile) ng_, nxy, nz, nx, ny, nsurf
     end subroutine
     
-    subroutine readIndex(nx, ny, nxy, nz, nxs, nxe, nys, nye, nodel, neibr, hmesh)   bind(c, name="readIndex")
+    subroutine readIndex(nx, ny, nxy, nz, nxs, nxe, nys, nye, nodel, rotflg, neibr, hmesh)   bind(c, name="readIndex")
         integer         :: nxy, nx, ny, nz
-        integer         :: nxs(ny), nxe(ny), nys(nx), nye(nx), nodel(nx,ny), neibr(4,nxy)
+        integer         :: nxs(ny), nxe(ny), nys(nx), nye(nx), nodel(nx,ny), rotflg(nx,ny),neibr(4,nxy)
         real(4)         :: hmesh(3,nxy,nz)
         
         
-        read(ifile) nxs, nxe, nys, nye, nodel, neibr, hmesh
+        read(ifile) nxs, nxe, nys, nye, nodel, rotflg, neibr, hmesh
         
     end subroutine
     
@@ -118,8 +118,12 @@ contains
         real(4)         :: power, bucyc, buavg, efpd
         real(8)         :: eigv, fnorm
         
-        read(ifile) power, bucyc, buavg, efpd
-        read(ifile) eigv, fnorm
+        read(ifile) power
+        read(ifile) bucyc
+        read(ifile) buavg
+        read(ifile) efpd
+        read(ifile) eigv
+        read(ifile) fnorm
         
     end subroutine
     

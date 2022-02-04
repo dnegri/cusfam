@@ -206,14 +206,15 @@ public:
         return _pinphia[((k*_g.nxy()+la)*_g.npinxy()*_g.npinxy()+jpa*_g.npinxy()+ipa)*_g.ng()+ig];
     }
 
-    void calphicorn(SOL_VAR* flux, SOL_VAR* phis);
 	void calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
+	void calpinpower();
+
+	void calphicorn(SOL_VAR* flux, SOL_VAR* phis);
 	void caltrlz(int l, int k, SOL_VAR* jnet);
     void calcff(int l, int k);
     void calsol(int l, int k, SOL_VAR* jnet);
     void calsol2drhs(int l, int k, const double & reigv );
-    void calpinpower();
-    void calpinpower(const int& la, const int& k, const int* larot1a);
+	void calpinpower(const int& la, const int& k, const int* larot1a);
 
 
     void expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);

@@ -239,8 +239,10 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 
 void PinPower::calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet) {
 
+	#pragma omp parallel for
     for (int k = 0; k < _g.nz(); ++k) {
         for (int l = 0; l < _g.nxy(); ++l) {
+			caltrlz(l, k, jnet);
             calcff(l,k);
             expflux13(l,k,flux,phis,jnet);
             calsol2drhs(l, k, eigv);
@@ -250,12 +252,6 @@ void PinPower::calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR
 }
 
 void PinPower::caltrlz(int l, int k, SOL_VAR* jnet) {
-    const static auto r4=0.25;
-    const static auto r12=1./12.0;
-    const static auto r16=0.25*0.25;
-    const static auto r48=1./48.0;
-    const static auto r144=1./144.0;
-
     auto lk = k*_g.nxy()+l;
     auto rhz = 1/_g.hmesh(ZDIR,lk);
 
@@ -265,6 +261,14 @@ void PinPower::caltrlz(int l, int k, SOL_VAR* jnet) {
 
         auto ajnetz =(jnet(ig,lksr)-jnet(ig,lksl))*rhz;
         trlzcff(0,0,ig,lk)  =ajnetz;
+		trlzcff(0, 1, ig, lk) = 0.0;
+		trlzcff(0, 2, ig, lk) = 0.0;
+		trlzcff(1, 0, ig, lk) = 0.0;
+		trlzcff(2, 0, ig, lk) = 0.0;
+		trlzcff(1, 1, ig, lk) = 0.0;
+		trlzcff(1, 2, ig, lk) = 0.0;
+		trlzcff(2, 1, ig, lk) = 0.0;
+		trlzcff(2, 2, ig, lk) = 0.0;
     }
 
 }
@@ -288,11 +292,11 @@ void PinPower::expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jn
             jd[idir] = alpha * (jnet(ig, lksr) - jnet(ig, lksl));
         }
 
-        auto val1=phicorn(ig,_g.ltolc(NW,lk),k);          //  1(nw)-----2(ne)
-        auto val2=phicorn(ig,_g.ltolc(NE,lk),k);          //    |         |
-        auto val3=phicorn(ig,_g.ltolc(SW,lk),k);          //    |   node  |
-        auto val4=phicorn(ig,_g.ltolc(SE,lk),k);          //    |         |
-        auto p1=0.25*(val4-val3+val2-val1);                           //  3(sw)-----4(se)
+        auto val1=phicorn(ig,_g.ltolc(NW,l),k);          //  1(nw)-----2(ne)
+        auto val2=phicorn(ig,_g.ltolc(NE,l),k);          //    |         |
+        auto val3=phicorn(ig,_g.ltolc(SW,l),k);          //    |   node  |
+        auto val4=phicorn(ig,_g.ltolc(SE,l),k);          //    |         |
+        auto p1=0.25*(val4-val3+val2-val1);              //  3(sw)-----4(se)
         auto p2=0.25*(val4-val3-val2+val1);
         auto p3=0.25*(val4+val3-val2-val1);
         auto p4=0.25*(val4+val3+val2+val1);
@@ -337,12 +341,12 @@ void PinPower::calsol2drhs(int l, int k, const double & reigv ) {
     // 5-(1,0), 6-(2,0), 7-(3,0), 8-(4,0)
     // 9-(1,1), 10-(1,2),11-(2,1),12-(2,2)
     for (int ig = 0; ig < _g.ng(); ++ig) {
-        qc2d(0,ig,lk)=qc2d(0,ig,lk)-trlzcff(0,0,ig,lk);
-        qc2d(1,ig,lk)=qc2d(1,ig,lk)-trlzcff(0,1,ig,lk);
-        qc2d(2,ig,lk)=qc2d(2,ig,lk)-trlzcff(0,2,ig,lk);
-        qc2d(5,ig,lk)=qc2d(5,ig,lk)-trlzcff(1,0,ig,lk);
-        qc2d(6,ig,lk)=qc2d(6,ig,lk)-trlzcff(2,0,ig,lk);
-        qc2d(9,ig,lk)=qc2d(9,ig,lk)-trlzcff(1,1,ig,lk);
+        qc2d(0,ig,lk)=qc2d(0,ig,lk)  -trlzcff(0,0,ig,lk);
+        qc2d(1,ig,lk)=qc2d(1,ig,lk)  -trlzcff(0,1,ig,lk);
+        qc2d(2,ig,lk)=qc2d(2,ig,lk)  -trlzcff(0,2,ig,lk);
+        qc2d(5,ig,lk)=qc2d(5,ig,lk)  -trlzcff(1,0,ig,lk);
+        qc2d(6,ig,lk)=qc2d(6,ig,lk)  -trlzcff(2,0,ig,lk);
+        qc2d(9,ig,lk)=qc2d(9,ig,lk)  -trlzcff(1,1,ig,lk);
         qc2d(10,ig,lk)=qc2d(10,ig,lk)-trlzcff(1,2,ig,lk);
         qc2d(11,ig,lk)=qc2d(11,ig,lk)-trlzcff(2,1,ig,lk);
         qc2d(12,ig,lk)=qc2d(12,ig,lk)-trlzcff(2,2,ig,lk);
@@ -467,15 +471,15 @@ void PinPower::calsol(int l, int k, SOL_VAR * jnet) {
         }
 
         // coefficients of homogeneous solutions
-        hc2d(6, ig, lk) = chc6(ig, lk) * p2;
-        hc2d(1, ig, lk) = chc13j(ig, lk) * jhs[XDIR] + chc13p(ig, lk) * p1;
-        hc2d(3, ig, lk) = chc13j(ig, lk) * jhs[YDIR] + chc13p(ig, lk) * p3;
-        hc2d(5, ig, lk) = chc57j(ig, lk) * jhs[XDIR] + chc57p(ig, lk) * p1;
-        hc2d(7, ig, lk) = chc57j(ig, lk) * jhs[YDIR] + chc57p(ig, lk) * p3;
-        hc2d(8, ig, lk) = chc8j(ig, lk) * (jhd[XDIR] + jhd[YDIR]) + chc8p(ig, lk) * p4;
-        auto chc24hc2d8 = chc24a(ig, lk) * hc2d(8, ig, lk);
-        hc2d(2, ig, lk) = chc24j(ig, lk) * jhd[XDIR] + chc24hc2d8;
-        hc2d(4, ig, lk) = chc24j(ig, lk) * jhd[YDIR] + chc24hc2d8;
+        hc2d(5, ig, lk) = chc6(ig, lk) * p2;
+        hc2d(0, ig, lk) = chc13j(ig, lk) * jhs[XDIR] + chc13p(ig, lk) * p1;
+        hc2d(2, ig, lk) = chc13j(ig, lk) * jhs[YDIR] + chc13p(ig, lk) * p3;
+        hc2d(4, ig, lk) = chc57j(ig, lk) * jhs[XDIR] + chc57p(ig, lk) * p1;
+        hc2d(6, ig, lk) = chc57j(ig, lk) * jhs[YDIR] + chc57p(ig, lk) * p3;
+        hc2d(7, ig, lk) = chc8j(ig, lk) * (jhd[XDIR] + jhd[YDIR]) + chc8p(ig, lk) * p4;
+        auto chc24hc2d8 = chc24a(ig, lk) * hc2d(7, ig, lk);
+        hc2d(1, ig, lk) = chc24j(ig, lk) * jhd[XDIR] + chc24hc2d8;
+        hc2d(3, ig, lk) = chc24j(ig, lk) * jhd[YDIR] + chc24hc2d8;
     }
 }
 
@@ -667,7 +671,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 for (int jp = 0; jp < _npinxy; ++jp) {
                     for (int ip = 0; ip < _npinxy; ++ip) {
                         for (int ig = 0; ig < _g.ng(); ++ig) {
-                            pinphisym(ig, jp, _npinxy - ip + 1) = pinphili(ig, ip, jp, li);
+                            pinphisym(ig, jp, _npinxy - ip - 1) = pinphili(ig, ip, jp, li);
                         }
                     }
                 }
@@ -676,7 +680,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 for (int jp = 0; jp < _npinxy; ++jp) {
                     for (int ip = 0; ip < _npinxy; ++ip) {
                         for (int ig = 0; ig < _g.ng(); ++ig) {
-                            pinphisym(ig, _npinxy - ip + 1, _npinxy - jp + 1) = pinphili(ig, ip, jp, li);
+                            pinphisym(ig, _npinxy - ip - 1, _npinxy - jp - 1) = pinphili(ig, ip, jp, li);
                         }
                     }
                 }
@@ -685,7 +689,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 for (int jp = 0; jp < _npinxy; ++jp) {
                     for (int ip = 0; ip < _npinxy; ++ip) {
                         for (int ig = 0; ig < _g.ng(); ++ig) {
-                            pinphisym(ig, _npinxy - jp + 1, ip) = pinphili(ig, ip, jp, li);
+                            pinphisym(ig, _npinxy - jp - 1, ip) = pinphili(ig, ip, jp, li);
                         }
                     }
                 }
@@ -695,7 +699,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 for (int jp = 0; jp < _npinxy; ++jp) {
                     for (int ip = 0; ip < _npinxy; ++ip) {
                         for (int ig = 0; ig < _g.ng(); ++ig) {
-                            pinphisym(ig, _npinxy - ip + 1, jp) = pinphili(ig, ip, jp, li);
+                            pinphisym(ig, _npinxy - ip - 1, jp) = pinphili(ig, ip, jp, li);
                         }
                     }
                 }
@@ -705,7 +709,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 for (int jp = 0; jp < _npinxy; ++jp) {
                     for (int ip = 0; ip < _npinxy; ++ip) {
                         for (int ig = 0; ig < _g.ng(); ++ig) {
-                            pinphisym(ig, ip, _npinxy - jp + 1) = pinphili(ig, ip, jp, li);
+                            pinphisym(ig, ip, _npinxy - jp - 1) = pinphili(ig, ip, jp, li);
                         }
                     }
                 }
@@ -723,8 +727,8 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
     }
 
     // calculate assemblywise pin flux
-//    pinpowa(:,:,:) = 0
-//    pinphia(:,:,:) = 0
+	fill(&pinpowa(0, 0, 0, la, k), &pinpowa(0, 0, 0, la, k) + _g.ng()*_g.npinxy()*_g.npinxy(), 0.0);
+	fill(&pinphia(0, 0, 0, la, k), &pinphia(0, 0, 0, la, k) + _g.ng()*_g.npinxy()*_g.npinxy(), 0.0);
     for (int j = 0; j < _g.ndivxy(); ++j) {
         auto jps = j*_npinxy-j*_nrest;
         for (int i = 0; i < _g.ndivxy(); ++i) {
@@ -766,6 +770,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
 }
 
 void PinPower::calpinpower() {
+	#pragma omp parallel for
     for (int k = 0; k < _g.nz(); ++k) {
         for (int la = 0; la < _g.nxya(); ++la) {
             calpinpower(la,k,_g.larot(la));

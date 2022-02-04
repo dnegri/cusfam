@@ -6,8 +6,6 @@ module cusfam
     implicit none
     
     type(SteamTable), pointer :: stable
-    type(TableSet)            :: tset
-    integer                   :: NUM_GRP =2, NISO = 40
 contains
 
 

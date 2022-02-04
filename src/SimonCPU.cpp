@@ -29,6 +29,8 @@ void SimonCPU::initialize(const char* dbfile)
 	cmfd().setNcmfd(5);
 	cmfd().setEshift(0.04);
 	updateCriteria(1.E-5);
+
+	_ppr = new PinPower(g(), x());
 }
 
 void SimonCPU::updateCriteria(const float& crit_flux) {
@@ -265,6 +267,9 @@ void SimonCPU::runSteady(const SteadyOption& condition) {
 	}
 	//myblas::multi(_g->ngxyz(), _fnorm, _flux, _flux);
 	//_fnorm = 1.0;
+	_ppr->calphicorn(_flux, _phis);
+	_ppr->calhomo(_eigv, _flux, _phis, _jnet);
+	_ppr->calpinpower();
 
 }
 

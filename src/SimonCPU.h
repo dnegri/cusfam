@@ -12,11 +12,13 @@
 #include "CrossSection.h"
 #include "Feedback.h"
 #include "Simon.h"
+#include "PinPower.h"
 
 
 class SimonCPU : public Simon {
 private:
     BICGCMFD* _cmfd;
+	PinPower* _ppr;
     float _crit_xenon = 1.E-4;
     float _crit_nodal = 1.E-1;
     float _crit_flux = 1.E-5;

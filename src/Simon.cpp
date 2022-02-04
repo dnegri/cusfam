@@ -3,32 +3,36 @@
 #include "myblas.h"
 
 extern "C" {
-	void opendb(int* length, const char* file);
-	void* readTableSet(int* length, const char* file, const int* ncomp, char** compnames);
-	void closedb();
-	void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
-	void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* neibr,
-		float* hmesh);
-	void readComposition(const int* nxy, const int*nz, int* ncomp, char** names, int* comps);
 
-	void readBoundary(int* symopt, int* symang, float* albedo);
-	void readNXNY(const int* nx, const int* ny, float* val);
-	void readNXYZ(const int* nxyz, float* val);
-	void readNXYZ8(const int* nxyz, double* val);
-	void readNXYZI(const int* nxyz, int* val);
-
-	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
 	void readConstantF(const int& n, float* data);
 	void readConstantD(const int& n, double* data);
 	void readConstantI(const int& n, int* data);
 	void readString(const int& n, const int& length, char** strings);
-	void readXS(const int* niso, const int* nxyz, float* xs);
-	void readXSS(const int* niso, const int* nxyz, float* xs);
-	void readXSD(const int* niso, const int* nxyz, float* xs);
-	void readXSSD(const int* niso, const int* nxyz, float* xs);
-	void readXSDTM(const int* niso, const int* nxyz, float* xs);
-	void readXSSDTM(const int* niso, const int* nxyz, float* xs);
+
+	void opendb(int* length, const char* file);
+	void closedb();
+
+	//void readDimension(int* ng, int* nxy, int* nz, int* nx, int* ny, int* nsurf);
+	//void readIndex(int* nx, int* ny, int* nxy, int* nz, int* nxs, int* nxe, int* nys, int* nye, int* ijtol, int* rotflg, int* neibr,
+	//	float* hmesh);
+
+	void* readTableSet(int* length, const char* file, const int* ncomp, char** compnames);
+	void readComposition(const int* nxy, const int*nz, int* ncomp, char** names, int* comps);
 	void readDensity(const int& niso, const int& nxyz, float* dnst);
+	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
+
+	//void readBoundary(int* symopt, int* symang, float* albedo);
+	//void readNXNY(const int* nx, const int* ny, float* val);
+	//void readNXYZ(const int* nxyz, float* val);
+	//void readNXYZ8(const int* nxyz, double* val);
+	//void readNXYZI(const int* nxyz, int* val);
+
+	//void readXS(const int* niso, const int* nxyz, float* xs);
+	//void readXSS(const int* niso, const int* nxyz, float* xs);
+	//void readXSD(const int* niso, const int* nxyz, float* xs);
+	//void readXSSD(const int* niso, const int* nxyz, float* xs);
+	//void readXSDTM(const int* niso, const int* nxyz, float* xs);
+	//void readXSSDTM(const int* niso, const int* nxyz, float* xs);
 
 
 	void calculateReference(void* tset_ptr, const int& icomp, const XS_VAR& burn, const XS_VAR* xsmicd, const XS_VAR* xsmica, const XS_VAR* xsmicn,
@@ -64,43 +68,78 @@ void Simon::initialize(const char* dbfile) {
 	int length = strlen(dbfile);
 	opendb(&length, dbfile);
 
-	int one = 1;
+	
+	int symopt;
+	int symang;
+	float albedo[6];
+
+	readConstantI(1, &symopt);
+	readConstantI(1, &symang);
+	readConstantF(6, albedo);
 
 	int ng;
+	int nz;
+	int nxa;
+	int nya;
+	int nxya;
+	int nxyz;
+	int ndivxy;
+	int nsubx;
+	int nsuby;
+
+	readConstantI(1, &ng);
+	readConstantI(1, &nz);
+	readConstantI(1, &nxa);
+	readConstantI(1, &nya);
+	readConstantI(1, &nxya);
+	readConstantI(1, &ndivxy);
+	readConstantI(1, &nsubx);
+	readConstantI(1, &nsuby);
+
 	int nx;
 	int ny;
-	int nz;
 	int nxy;
-	int nxyz;
-	int nsurf;
 
-	readDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
+	readConstantI(1, &nx);
+	readConstantI(1, &ny);
+	readConstantI(1, &nxy);
 	nxyz = nxy * nz;
-	nsurf = nsurf * nz + (nz + 1) * nxy;
 
-
-	_g = new Geometry();
 
 	int* nxs = new int[ny];
 	int* nxe = new int[ny];
 	int* nys = new int[nx];
 	int* nye = new int[nx];
+
+	readConstantI(ny, nxs);
+	readConstantI(ny, nxe);
+	readConstantI(nx, nys);
+	readConstantI(nx, nye);
+
+	int nsurf;
+	readConstantI(1, &nsurf);
+	nsurf = nsurf * nz + (nz + 1) * nxy;
+
+
+	_g = new Geometry();
+
 	int* ijtol = new int[nx * ny];
-    int* rotflg = new int[nx * ny];
 	int* neibr = new int[NEWS * nxy];
 	float* hmesh = new float[NDIRMAX * nxyz];
+	int* latol = new int[NEWS*nxya];
+	int* larot = new int[NEWS*nxya];
 
-	int symopt;
-	int symang;
-	float albedo[6];
+	readConstantI(nx*ny, ijtol);
+	readConstantI(NEWS * nxy, neibr);
+	readConstantF(NDIRMAX * nxyz, hmesh);
 
-	readIndex(&nx, &ny, &nxy, &nz, nxs, nxe, nys, nye, ijtol, rotflg, neibr, hmesh);
-	readBoundary(&symopt, &symang, albedo);
+	readConstantI(NEWS*nxya, latol);
+	readConstantI(NEWS*nxya, larot);
 
 
 	_g->setBoundaryCondition(&symopt, &symang, albedo);
 	_g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
-	_g->initIndex(nxs, nxe, nys, nye, ijtol, rotflg, neibr, hmesh);
+	_g->initIndex(nxs, nxe, nys, nye, latol, larot, ijtol, neibr, hmesh);
 
 	int ncomp = 0;
 
@@ -129,7 +168,7 @@ void Simon::initialize(const char* dbfile) {
 
 
 	readConstantF(1, &_d->totmass());
-	readNXYZ(&nxyz, _d->buconf());
+	readConstantF(nxyz, _d->buconf());
 
 	_steam = new SteamTable();
 	_steam->setPressure(155.13);
@@ -137,25 +176,27 @@ void Simon::initialize(const char* dbfile) {
 	_f = new Feedback(*_g, *_steam);
 	_f->allocate();
 
-	readNXYZ(&nxy, &(_f->chflow(0)));
-	readNXYZ(&(_g->nxyz()), &(_f->ppm0(0)));
-	readNXYZ(&(_g->nxyz()), &(_f->stf0(0)));
-	readNXYZ(&(_g->nxyz()), &(_f->tm0(0)));
-	readNXYZ(&(_g->nxyz()), &(_f->dm0(0)));
-	readNXYZ(&(_g->nxyz()), &(_d->h2on(0)));
+	readConstantF(nxy, &(_f->chflow(0)));
+	readConstantF(_g->nxyz(), &(_f->ppm0(0)));
+	readConstantF(_g->nxyz(), &(_f->stf0(0)));
+	readConstantF(_g->nxyz(), &(_f->tm0(0)));
+	readConstantF(_g->nxyz(), &(_f->dm0(0)));
+	readConstantF(_g->nxyz(), &(_d->h2on(0)));
 
-	readNXYZI(&nxyz, &(_f->fueltype(0)));
-	readNXYZ(&nxy, &(_f->frodn(0)));
-	readNXYZI(&one, &(_f->nft()));
+	readConstantI(nxyz, &(_f->fueltype(0)));
+	readConstantF(nxy, &(_f->frodn(0)));
+	readConstantI(1, &(_f->nft()));
 
 	_f->initTFTable(_f->nft());
-	readNXYZI(&(_f->nft()), &(_f->ntfbu(0)));
-	readNXYZI(&(_f->nft()), &(_f->ntfpow(0)));
+	readConstantI(_f->nft(), &(_f->ntfbu(0)));
+	readConstantI(_f->nft(), &(_f->ntfpow(0)));
+
 	int size = TF_POINT * _f->nft();
-	readNXYZ(&size, &(_f->tfbu(0, 0)));
-	readNXYZ(&size, &(_f->tfpow(0, 0)));
+	readConstantF(size, &(_f->tfbu(0, 0)));
+	readConstantF(size, &(_f->tfpow(0, 0)));
+
 	size = size * TF_POINT;
-	readNXYZ(&size, &(_f->tftable(0, 0, 0)));
+	readConstantF(size, &(_f->tftable(0, 0, 0)));
 
 
 	_power = new float[_g->nxyz()]{};

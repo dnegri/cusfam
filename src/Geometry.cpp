@@ -39,11 +39,10 @@ void Geometry::initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, 
 	_kec = _nz - 1;
 }
 
-void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol_, int * rotflg_,int* neibr_, float* hmesh_)
+void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * latol_, int * larot_, int * ijtol_, int* neibr_, float* hmesh_)
 {
 	_neibr = new int[_nxy*NEWS];
 	_ijtol = new int[_nx*_ny];
-    _rotflg = new int[_nx*_ny];
 	_nxs = new int[_ny];
 	_nxe = new int[_ny];
 	_nys = new int[_nx];
@@ -77,7 +76,6 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 		for (int i = 0; i < _nx; i++)
 		{
 			ijtol(i,j) = ijtol_[ij0 + i] - 1;
-            rotflg(i,j) = rotflg_[ij0 + i];
 		}
 	}
 	int nxyz6 = NEWSBT * _nxyz;
@@ -230,11 +228,11 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	}
 	_nsurf = ls+1;
 
-	initAssemblyIndex();
+	initAssemblyIndex(latol_, larot_);
 	initCorner();
 }
 
-void Geometry::initAssemblyIndex()
+void Geometry::initAssemblyIndex(int * latol_, int * larot_)
 {
 	int nsub = (_part == 1 ? 0 : 1);
 
@@ -274,8 +272,8 @@ void Geometry::initAssemblyIndex()
     _latol = new int[_nxya*NEWS] {};
     _larot = new int[_nxya*NEWS] {};
 	fill(_ltola, _ltola + _nxy, -1);
-    fill(_latol, _latol + _nxya*NEWS, -1);
-    fill(_larot, _latol + _nxya*NEWS, -1);
+    copy(latol_, latol_ + _nxya*NEWS, _latol);
+    copy(larot_, larot_ + _nxya*NEWS, _larot);
 
 	_vola = new GEOM_VAR[_nxya*_nz]{};
 
@@ -290,9 +288,6 @@ void Geometry::initAssemblyIndex()
 			int l = ijtol(i, j);
 			int la = ijtola(ia, ja);
 			ltola(l) = la;
-            int li = ji*2+ii;
-            latol(li, la) = l;
-            larot(li,la) = rotflg(i,j);
 			for (int k = 0; k < _nz; k++)
 			{
 				vola(la + _nxya * k) += vol(l + _nxy * k);
