@@ -14,9 +14,11 @@
 PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
 {
 	int ng = g.ng();
-	int ncorn = 0;
+	int ncorn = g.ncorn();
 	int nz = g.nz();
 	int nxy = g.nxy();
+
+	_ncell_plane = _g.ncellxy()*_g.ncellxy()*_g.nxya();
 
 	_phicorn0 = new PPR_VAR[ng* ncorn* nz];
 	_phicorn = new PPR_VAR[ng* ncorn* nz];
@@ -88,12 +90,12 @@ PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
 	_cpjyp13 = new PPR_VAR[4* g.ngxyz()];
 	_cpjyp14 = new PPR_VAR[4* g.ngxyz()];
 
-    _pinpowa = new PPR_VAR[g.ngxyz()*_g.npinxy()*_g.npinxy()]{};
-    _pinphia = new PPR_VAR[g.ngxyz()*_g.npinxy()*_g.npinxy()]{};
+    _pinpowa = new PPR_VAR[g.nz()*g.nxya()*_g.ncellxy()*_g.ncellxy()]{};
+    _pinphia = new PPR_VAR[g.ngxyz()*_g.ncellxy()*_g.ncellxy()]{};
 
 
-    _nrest = _g.npinxy() % _g.ndivxy();
-    _npex = _g.npinxy() / _g.ndivxy();
+    _nrest = _g.ncellxy() % _g.ndivxy();
+    _npex = _g.ncellxy() / _g.ndivxy();
     _npinxy = _npex+_nrest;
 
     _hpini = new PPR_VAR[_npinxy*_g.ndivxy()*_g.ndivxy()];
@@ -102,7 +104,7 @@ PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
 
     double ml = 1/sqrt2;
     double vl[2], vl2[2], vr[2], vr2[2];
-    double hpin0 = 2.*_g.ndivxy() / _g.npinxy();
+    double hpin0 = 2.*_g.ndivxy() / _g.ncellxy();
 
     for (int j = 0; j < _g.ndivxy(); ++j) {
         for (int i = 0; i < _g.ndivxy(); ++i) {
@@ -133,7 +135,8 @@ PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
                     vr[XDIR]=vl[XDIR]+hpin;
                     vr2[XDIR]=vr[XDIR]*vr[XDIR];
 
-                    int icf = -1;
+                    int icf = 0;
+					pcoeff(0, ip, jp, li) = 1.0;
                     for (int idir = YDIR; idir > -1; --idir) {
                         pcoeff(icf+1,ip,jp,li)=0.5*(vl[idir]+vr[idir]);
                         pcoeff(icf+2,ip,jp,li)=0.5*(-1.+vl2[idir]+vl[idir]*vr[idir]+vr2[idir]);
@@ -168,6 +171,7 @@ PinPower::~PinPower()
 
 void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 {
+#pragma omp parallel for
 	for (int k = 0; k < _g.nz(); k++)
 	{
 		for (int lc = 0; lc < _g.ncorn(); lc++)
@@ -178,9 +182,8 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 				int nodecnt = 0;
 
 				int l = _g.lctol(NW, lc);
-				int lk = k * _g.nxy() + l;
-
 				if (l != -1) {
+					int lk = k * _g.nxy() + l;
 					int lk_x = _g.lktosfc(RIGHT, XDIR, lk);
 					int lk_y = _g.lktosfc(RIGHT, YDIR, lk);
 
@@ -191,8 +194,8 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 				}
 
 				l = _g.lctol(NE, lc);
-				lk = k * _g.nxy() + l;
 				if (l != -1) {
+					int lk = k * _g.nxy() + l;
 					int lk_x = _g.lktosfc(LEFT, XDIR, lk);
 					int lk_y = _g.lktosfc(RIGHT, YDIR, lk);
 
@@ -203,8 +206,8 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 				}
 
 				l = _g.lctol(SE, lc);
-				lk = k * _g.nxy() + l;
 				if (l != -1) {
+					int lk = k * _g.nxy() + l;
 					int lk_x = _g.lktosfc(LEFT, XDIR, lk);
 					int lk_y = _g.lktosfc(LEFT, YDIR, lk);
 
@@ -215,8 +218,8 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 				}
 
 				l = _g.lctol(SW, lc);
-				lk = k * _g.nxy() + l;
 				if (l != -1) {
+					int lk = k * _g.nxy() + l;
 					int lk_x = _g.lktosfc(RIGHT, XDIR, lk);
 					int lk_y = _g.lktosfc(LEFT, YDIR, lk);
 
@@ -227,9 +230,60 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 
 				phicorn(ig, lc, k) /= nodecnt;
 
+
 				if (phicorn(ig, lc, k)<0.0) {
-					PLOG(plog::error) << "There is negative corner flux.";
-					exit(-1);
+
+					phicorn(ig, lc, k) = 0;
+					nodecnt = 0;
+
+					int l = _g.lctol(NW, lc);
+					if (l != -1) {
+						int lk = k * _g.nxy() + l;
+						int lk_x = _g.lktosfc(RIGHT, XDIR, lk);
+						int lk_y = _g.lktosfc(RIGHT, YDIR, lk);
+
+						nodecnt = nodecnt + 1;
+						phicorn(ig, lc, k) +=
+							phis(ig, lk_x) * phis(ig, lk_y) / flux(ig, lk);
+
+					}
+
+					l = _g.lctol(NE, lc);
+					if (l != -1) {
+						int lk = k * _g.nxy() + l;
+						int lk_x = _g.lktosfc(LEFT, XDIR, lk);
+						int lk_y = _g.lktosfc(RIGHT, YDIR, lk);
+
+						nodecnt = nodecnt + 1;
+						phicorn(ig, lc, k) +=
+							phis(ig, lk_x) * phis(ig, lk_y) / flux(ig, lk);
+
+					}
+
+					l = _g.lctol(SE, lc);
+					if (l != -1) {
+						int lk = k * _g.nxy() + l;
+						int lk_x = _g.lktosfc(LEFT, XDIR, lk);
+						int lk_y = _g.lktosfc(LEFT, YDIR, lk);
+
+						nodecnt = nodecnt + 1;
+						phicorn(ig, lc, k) +=
+							phis(ig, lk_x) * phis(ig, lk_y) / flux(ig, lk);
+
+					}
+
+					l = _g.lctol(SW, lc);
+					if (l != -1) {
+						int lk = k * _g.nxy() + l;
+						int lk_x = _g.lktosfc(RIGHT, XDIR, lk);
+						int lk_y = _g.lktosfc(LEFT, YDIR, lk);
+
+						nodecnt = nodecnt + 1;
+						phicorn(ig, lc, k) +=
+							phis(ig, lk_x) * phis(ig, lk_y) / flux(ig, lk);
+					}
+
+					phicorn(ig, lc, k) = phicorn(ig, lc, k) / nodecnt;
 				}
 
 			}
@@ -316,7 +370,9 @@ void PinPower::expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jn
         qf2d(10,ig,lk)=p1-0.5*pd[0];                       //10- x^1 * y^2
         qf2d(11,ig,lk)=p3-0.5*pd[1];                       //11- x^2 * y^1
         qf2d(12,ig,lk)=flux(ig,lk)+p4-0.5*(ps[0]+ps[1]);  //2- x^2 * y^2
-    }
+		qf2d(13, ig, lk) = 0.0;
+		qf2d(14, ig, lk) = 0.0;
+	}
 }
 
 void PinPower::calsol2drhs(int l, int k, const double & reigv ) {
@@ -349,6 +405,7 @@ void PinPower::calsol2drhs(int l, int k, const double & reigv ) {
         qc2d(9,ig,lk)=qc2d(9,ig,lk)  -trlzcff(1,1,ig,lk);
         qc2d(10,ig,lk)=qc2d(10,ig,lk)-trlzcff(1,2,ig,lk);
         qc2d(11,ig,lk)=qc2d(11,ig,lk)-trlzcff(2,1,ig,lk);
+        qc2d(12,ig,lk)=qc2d(12,ig,lk)-trlzcff(2,2,ig,lk);
         qc2d(12,ig,lk)=qc2d(12,ig,lk)-trlzcff(2,2,ig,lk);
     }
 }
@@ -410,7 +467,10 @@ void PinPower::calsol(int l, int k, SOL_VAR * jnet) {
         if (term15) {
             pc2d(13, ig, lk) = rxstf * qc2d(13, ig, lk);
             pc2d(14, ig, lk) = rxstf * qc2d(14, ig, lk);
-        }
+		} else {
+			pc2d(13, ig, lk) = 0.0;
+			pc2d(14, ig, lk) = 0.0;
+		}
 
         // obtain corner points for homogenous boundary conditions
         auto p0yp1p1 = +pc2d(1, ig, lk) + pc2d(2, ig, lk) + pc2d(3, ig, lk) + pc2d(4, ig, lk);
@@ -553,11 +613,11 @@ void PinPower::calcff(int l, int k) {
 void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
 
     const static int lindx[4]{0,1,3,2};
-    const static int lirot[6]{2,4,3,1,2,4};
+    const static int lirot[6]{1,3,2,0,1,3};
 
     double ml = 1/sqrt2;
     double vl[2], vl2[2], vr[2], vr2[2];
-    double hpin0 = 2.*_g.ndivxy() / _g.npinxy();
+    double hpin0 = 2.*_g.ndivxy() / _g.ncellxy();
 
 
     double * pinphili = new PPR_VAR[_g.ng()*_npinxy*_npinxy*_g.ndivxy()*_g.ndivxy()];
@@ -569,7 +629,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
             case 1:
             case 2:
             case 3:
-                liorg = lirot[lindx[li]+larot1a[li]];
+                liorg = lirot[lindx[li]+larot1a[li]-1];
                 break;
             case 11:
                 liorg = li -1;
@@ -638,9 +698,8 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                     hcoeff[6]=denom*sinhm[XDIR]*coshm[YDIR];
                     hcoeff[7]=denom*sinhm[XDIR]*sinhm[YDIR];
 
-                    auto phi1=pc2d(0,ig,lk);
-
-                    for (int icf = 0; icf < nterm-1; ++icf) {
+                    auto phi1=0.0;
+                    for (int icf = 0; icf < nterm; ++icf) {
                         phi1=phi1+pcoeff(icf,ip,jp,liorg) *pc2d(icf,ig,lk);
                     }
 
@@ -727,8 +786,8 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
     }
 
     // calculate assemblywise pin flux
-	fill(&pinpowa(0, 0, 0, la, k), &pinpowa(0, 0, 0, la, k) + _g.ng()*_g.npinxy()*_g.npinxy(), 0.0);
-	fill(&pinphia(0, 0, 0, la, k), &pinphia(0, 0, 0, la, k) + _g.ng()*_g.npinxy()*_g.npinxy(), 0.0);
+	fill(&pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k) + _g.ncellxy()*_g.ncellxy(), 0.0);
+	fill(&pinphia(0, 0, 0, la, k), &pinphia(0, 0, 0, la, k) + _g.ng()*_g.ncellxy()*_g.ncellxy(), 0.0);
     for (int j = 0; j < _g.ndivxy(); ++j) {
         auto jps = j*_npinxy-j*_nrest;
         for (int i = 0; i < _g.ndivxy(); ++i) {
@@ -742,7 +801,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                     auto ipa=ips+ip;
 
                     for (int ig = 0; ig < _g.ng(); ++ig) {
-                        pinpowa(ig,ipa,jpa,la,k)=pinpowa(ig,ipa,jpa,la,k)+pinphili(ig,ip,jp,li)*_x.xskf(ig,lk);
+                        pinpowa(ipa,jpa,la,k)=pinpowa(ipa,jpa,la,k)+pinphili(ig,ip,jp,li)*_x.xskf(ig,lk);
                         pinphia(ig,ipa,jpa,la,k)=pinphia(ig,ipa,jpa,la,k)+pinphili(ig,ip,jp,li);
                     }
                 }
@@ -752,10 +811,10 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
 
     //if pin flux and power on the center line have to be averaged.
     if(_nrest != 0) {
-        for (int ip = 0; ip < _g.npinxy(); ++ip) {
-            for (int ig = 0; ig < _g.ng(); ++ig) {
-                pinpowa(ig,ip,_npinxy,la,k)=pinpowa(ig,ip,_npinxy,la,k)*0.5;
-                pinpowa(ig,_npinxy,ip,la,k)=pinpowa(ig,_npinxy,ip,la,k)*0.5;
+        for (int ip = 0; ip < _g.ncellxy(); ++ip) {
+			pinpowa(ip, _npinxy, la, k) = pinpowa(ip, _npinxy, la, k)*0.5;
+			pinpowa(_npinxy, ip, la, k) = pinpowa(_npinxy, ip, la, k)*0.5;
+			for (int ig = 0; ig < _g.ng(); ++ig) {
 
                 pinphia(ig,ip,_npinxy,la,k)=pinphia(ig,ip,_npinxy,la,k)*0.5;
                 pinphia(ig,_npinxy,ip,la,k)=pinphia(ig,_npinxy,ip,la,k)*0.5;
@@ -777,3 +836,132 @@ void PinPower::calpinpower() {
         }
     }
 }
+
+extern "C" {
+	void getFormFunction(void* ff_ptr, const XS_VAR& burn, const int& ihff, XS_VAR* hff);
+}
+
+void PinPower::applyFF(void* ff_ptr, float* burn) {
+	
+#pragma omp parallel for
+	for (int k = _g.kbc(); k < _g.kec(); ++k) {
+		for (int la = 0; la < _g.nxya(); ++la) {
+			if (_x.xskf(0, k*_g.nxy() + _g.latol(0, la)) == 0.0) continue;
+
+			XS_VAR* hffa = new XS_VAR[_g.ncellxy()*_g.ncellxy()]{};
+			XS_VAR* hff = new XS_VAR[_g.ncellxy()*_g.ncellxy()]{};
+			for (int j = 0; j < _g.ndivxy(); ++j) {
+				auto jps = j * _npinxy - j * _nrest;
+				for (int i = 0; i < _g.ndivxy(); ++i) {
+					auto li = j * _g.ndivxy() + i;
+					auto l = _g.latol(li, la);
+					auto lk = k * _g.nxy() + l;
+					getFormFunction(ff_ptr, burn[lk], _g.hff(lk), hff);
+					
+					auto jps = j * _npinxy - j * _nrest;
+					auto ips = i * _npinxy - i * _nrest;
+
+					for (int jp = 0; jp < _npinxy; ++jp) {
+						auto jpa = jps + jp;
+						for (int ip = 0; ip < _npinxy; ++ip) {
+							auto ipa = ips + ip;
+							for (int ig = 0; ig < _g.ng(); ig++)
+							{
+								hffa[jpa*_g.ncellxy() + ipa] = hff[jpa*_g.ncellxy() + ipa];
+							}
+						}
+					}
+				}
+			}
+
+			for (int jp = 0; jp < _g.ncellxy(); jp++)
+			{
+				for (int ip = 0; ip < _g.ncellxy(); ip++)
+				{
+					pinpowa(ip, jp, la, k) *= hffa[jp*_g.ncellxy() + ip];
+				}
+			}
+
+			delete[] hffa;
+			delete[] hff;
+		}
+	}
+}
+
+double PinPower::getFxy()
+{
+	double * fxy_plane = new double[_g.nz()]{};
+
+#pragma omp parallel for
+	for (int k =_g.kbc(); k < _g.kec(); k++)
+	{
+		fxy_plane[k] = *max_element(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k)+_ncell_plane);
+		double psum = accumulate(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k) + _ncell_plane, 0.0);
+		fxy_plane[k] = fxy_plane[k] / psum * _g.ncellfa() * _g.nxyfa();
+	}
+
+	
+	auto fxy = *max_element(fxy_plane, fxy_plane + _g.nz());
+
+	delete[] fxy_plane;
+
+	return fxy;
+	
+}
+
+double PinPower::getFq()
+{
+	double * fq_plane = new double[_g.nz()]{};
+	double * psum_plane = new double[_g.nz()]{};
+
+#pragma omp parallel for
+	for (int k = _g.kbc(); k < _g.kec(); k++)
+	{
+		auto hz = _g.hmesh(ZDIR, k*_g.nxy());
+		fq_plane[k] = *max_element(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k) + _ncell_plane);
+		psum_plane[k] = accumulate(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k) + _ncell_plane, 0.0) * hz;
+	}
+
+	auto fq = *max_element(fq_plane, fq_plane + _g.nz());
+	auto psum = accumulate(psum_plane, psum_plane + _g.nz(), 0.0);
+
+	fq = fq * _g.ncellxy() * _g.ncellxy() *_g.nxyfa() * _g.hzcore() / psum;
+
+	delete[] fq_plane;
+	delete[] psum_plane;
+
+	return fq;
+
+}
+
+double PinPower::getFr()
+{
+	double * fr_fa = new double[_g.nxya()];
+	double * p2dfa = new double[_g.ncellxy()*_g.ncellxy()*_g.nxya()];
+	#pragma omp parallel for
+	for (int la = 1; la < _g.nxya(); la++)
+	{
+		for (int k = _g.kbc(); k < _g.kec(); k++)
+		{
+			auto hz = _g.hmesh(ZDIR, k*_g.nxy());
+			for (int jp = 0; jp < _g.ncellxy(); jp++)
+			{
+				for (int ip = 0; ip < _g.ncellxy(); ip++)
+				{
+					p2dfa[la*_g.ncellxy()*_g.ncellxy()+jp*_g.ncellxy() + ip] += pinpowa(ip, jp, la, k)*hz;
+				}
+
+			}
+		}
+
+		fr_fa[la] = *max_element(&p2dfa[la*_g.ncellxy()*_g.ncellxy()], &p2dfa[la*_g.ncellxy()*_g.ncellxy()] + _g.ncellxy()*_g.ncellxy());
+	}
+
+	auto fr = *max_element(fr_fa, fr_fa + _g.nxya()) / _g.hzcore();
+
+	delete[] fr_fa;
+	delete[] p2dfa;
+
+}
+
+

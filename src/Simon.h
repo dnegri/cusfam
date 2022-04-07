@@ -88,6 +88,7 @@ protected:
 	ControlRod* _r;
 
 	void* _tset_ptr;
+	void* _ff_ptr;
 
     int _nstep;
     float _epsbu;
@@ -113,6 +114,7 @@ protected:
     float _press;
     float _tin;
 	float _asi;
+	float _fxy;
 
     bool _feed_tf;
     bool _feed_tm;
@@ -139,6 +141,7 @@ public:
 	__host__ virtual void setBurnupPoints(const std::vector<double> & burnups);
 	__host__ virtual void initialize(const char* dbfile);
 	__host__ virtual void readTableSet(const char* tsetfile);
+	__host__ virtual void readFormFunction(const char* fffile);
 	__host__ virtual void updateBurnup();
 
     __host__ virtual void runSteady(const SteadyOption& condition) = 0;
@@ -164,6 +167,7 @@ public:
 	__host__ inline float& ppm() { return _ppm; };
 	__host__ inline double& eigv() { return _eigv; };
 	__host__ inline double& fnorm() { return _fnorm; };
+	__host__ inline float fxy() { return _fxy; };
 	__host__ inline float& pload() { return _pload; };
 	__host__ inline const int& nburn() { return _nstep; };
 

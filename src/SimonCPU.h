@@ -45,6 +45,7 @@ public:
 
     void runSteady(const SteadyOption& condition) override;
 	void runSteadySfam(const SteadyOption& condition) ;
+	void runPinPower();
 
     float updatePPM(const bool& first, const double& eigvt, const float& ppm, const float& ppmd, const double& eigv, const double& eigvd);
 

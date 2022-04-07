@@ -37,9 +37,14 @@ void Geometry::initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, 
 	_ngxy = _nxy * _ng;
 	_kbc = 1;
 	_kec = _nz - 1;
+
+	_ndivxy = 2;
+	_ncellxy = 16;
+	_ncellfa = 236;
+
 }
 
-void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * latol_, int * larot_, int * ijtol_, int* neibr_, float* hmesh_)
+void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol_, int* neibr_, float* hmesh_)
 {
 	_neibr = new int[_nxy*NEWS];
 	_ijtol = new int[_nx*_ny];
@@ -49,6 +54,7 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * latol
 	_nye = new int[_nx];
 
 	_comps = new int[_nxyz];
+	_hffs = new int[_nxyz];
 
 	for (int j = 0; j < _ny; j++)
 	{
@@ -227,13 +233,13 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * latol
 		lklr(RIGHT, ls) = -1;
 	}
 	_nsurf = ls+1;
-
-	initAssemblyIndex(latol_, larot_);
-	initCorner();
 }
 
-void Geometry::initAssemblyIndex(int * latol_, int * larot_)
+void Geometry::initAssemblyIndex(int nxyfa_, int ncellfa_, int * latol_, int * larot_)
 {
+	_nxyfa = nxyfa_;
+	_ncellfa = ncellfa_;
+
 	int nsub = (_part == 1 ? 0 : 1);
 
 	_nya = (_ny + nsub) / 2;
@@ -275,8 +281,16 @@ void Geometry::initAssemblyIndex(int * latol_, int * larot_)
     copy(latol_, latol_ + _nxya*NEWS, _latol);
     copy(larot_, larot_ + _nxya*NEWS, _larot);
 
-	_vola = new GEOM_VAR[_nxya*_nz]{};
+	for (int la = 0; la < _nxya; la++)
+	{
+		for (int li = 0; li < NEWS; li++)
+		{
+			latol(li, la)--;
+		}
+	}
 
+
+	_vola = new GEOM_VAR[_nxya*_nz]{};
 
 	for (int j = 0; j < _ny; j++) {
 		int ja = (j + nsub) / 2;
@@ -297,135 +311,24 @@ void Geometry::initAssemblyIndex(int * latol_, int * larot_)
 
 }
 
-void Geometry::initCorner()
+void Geometry::initCorner(const int& ncorn_, const int* lctol_, const int* ltolc_)
 {
-	_ncorn = nxe(0) - nxs(0) + 2;
-	int ndown = _ncorn;
-	for (int j = 1; j < ny(); j++) {
-		int nupper = ndown;
-		ndown = nxe(j) - nxs(j) + 2;
-		_ncorn = _ncorn + max(nupper, ndown);
-	}
-	_ncorn = _ncorn + ndown;
+	_ncorn = ncorn_;
 
-	_ltolc = new int[4 * nxy()];
-	_lctol = new int[4 * _ncorn];
-	fill(_ltolc, _ltolc + 4 * nxy(), -1);
-	fill(_lctol, _lctol + 4 * _ncorn, -1);
+	_lctol = new int[NEWS * ncorn()];
+	_ltolc = new int[NEWS * nxy()];
 
+	copy(lctol_, lctol_ + NEWS * ncorn(), _lctol);
+	copy(ltolc_, ltolc_ + NEWS * nxy(), _ltolc);
 
-	int lc = 0;
-
-	// the northest corner points
-	ltolc(NW, ijtol(0, 0)) = lc;
-	for (int i = nxs(0)+1; i < nxe(0); i++)
+	for (int i = 0; i < NEWS*ncorn(); i++)
 	{
-		lc = lc + 1;
-		ltolc(NE, ijtol(i - 1, 0)) = lc;
-		ltolc(NW, ijtol(i, 0)) = lc;
+		--_lctol[i];
 	}
-	lc = lc + 1;
-	ltolc(NE, ijtol(nxe(0) - 1, 0)) = lc;
 
-	for (int j = 1; j < ny(); j++)
+	for (int i = 0; i < NEWS*nxy(); i++)
 	{
-		if (nxs(j) > nxs(j - 1)) {
-			for (int i = nxs(j-1); i < nxs(j); i++)
-			{
-				lc = lc + 1;
-				if (i == nxs(j - 1)) {
-					ltolc(SW, ijtol(i, j - 1)) = lc;
-				}
-				else {
-					ltolc(SE, ijtol(i - 1, j - 1)) = lc;
-					ltolc(SW, ijtol(i, j - 1)) = lc;
-				}
-			}
-			ltolc(SE, ijtol(nxs(j) - 1, j - 1)) = lc + 1;
-		}
-		lc = lc + 1;
-		ltolc(NW, ijtol(nxs(j), j)) = lc;
-
-		for (int i = nxs(j)+1; i < nxe(j); i++)
-		{
-			lc = lc + 1;
-			ltolc(NE, ijtol(i - 1, j)) = lc;
-			ltolc(NW, ijtol(i, j)) = lc;
-
-		}
-		lc = lc + 1;
-		ltolc(NE, ijtol(nxe(j)-1, j)) = lc;
-
-		//adjusting orphaned corner point
-		if (nxe(j) < nxe(j - 1)) {
-			//when there are less nodes on the lower row.
-			for (int i = nxe(j); i < nxe(j - 1); i++)
-			{
-				if (i == nxe(j)) {
-					ltolc(SW, ijtol(i, j - 1)) = lc;
-				}
-				else {
-					lc = lc + 1;
-					ltolc(SE, ijtol(i - 1, j - 1)) = lc;
-					ltolc(SW, ijtol(i, j - 1)) = lc;
-				}
-			}
-
-			lc = lc + 1;
-			ltolc(SE, ijtol(nxe(j - 1), j - 1)) = lc;
-		}
+		--_ltolc[i];
 	}
-
-	//corners of the lowest row
-	int je = ny() - 1;
-	for (int i = nxs(je); i < nxe(je); i++)
-	{
-		lc = lc + 1;
-		if (i == nxs(je)) {
-			ltolc(SW, ijtol(i, je)) = lc;
-		} 
-		else {
-			ltolc(SE, ijtol(i - 1, je)) = lc;
-			ltolc(SW, ijtol(i, je)) = lc;
-		}
-	}
-	lc = lc + 1;
-	ltolc(SE, ijtol(nxe(je)-1, je)) = lc;
-
-	for (int j = 0; j < ny()-1; j++)
-	{
-		int jp1 = j + 1;
-		int ib = max(nxs(j), nxs(jp1));
-		int ie = max(nxe(j), nxe(jp1));
-		for (int i = ib; i < ie; i++)
-		{
-			ltolc(SW, ijtol(i, j)) = ltolc(NW, ijtol(i, jp1));
-			ltolc(SE, ijtol(i, j)) = ltolc(NE, ijtol(i, jp1));
-		}
-	}
-	if (_symang == 90) {
-		int j = 0;
-		int i = 0;
-		for (int inews = 0; inews < NEWS; inews++)
-		{
-			ltolc(inews, ijtol(i, j)) = ltolc(SE, ijtol(i, j));
-		}
-		for (int i = nxs(j)+1; i < nxe(j); i++)
-		{
-			ltolc(NW, ijtol(i, j)) = ltolc(NE, ijtol(j, i));
-			ltolc(NE, ijtol(i, j)) = ltolc(SE, ijtol(j, i));
-			ltolc(NW, ijtol(j, i)) = ltolc(SW, ijtol(i, j));
-			ltolc(SW, ijtol(j, i)) = ltolc(SE, ijtol(i, j));
-		}
-	}
-
-	//for (int l = 0; l < nxy(); l++)
-	//{
-	//	lctol(NW, ltolc(SE, l)) = l;
-	//	lctol(NE, ltolc(SW, l)) = l;
-	//	lctol(SE, ltolc(NW, l)) = l;
-	//	lctol(SW, ltolc(NE, l)) = l;
-	//}
-	
 
 }

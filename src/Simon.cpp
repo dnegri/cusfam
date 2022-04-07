@@ -17,6 +17,7 @@ extern "C" {
 	//	float* hmesh);
 
 	void* readTableSet(int* length, const char* file, const int* ncomp, char** compnames);
+	void* readFormFunction(int* length, const char* file, const int* nhff, char** hffnames);
 	void readComposition(const int* nxy, const int*nz, int* ncomp, char** names, int* comps);
 	void readDensity(const int& niso, const int& nxyz, float* dnst);
 	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
@@ -56,6 +57,8 @@ extern "C" {
 Simon::Simon() {
 	_epsbu = 5.0;
 	_tset_ptr = NULL;
+	_ff_ptr = NULL;
+	_fxy = 0.0;
 }
 
 Simon::~Simon() {
@@ -82,6 +85,8 @@ void Simon::initialize(const char* dbfile) {
 	int nxa;
 	int nya;
 	int nxya;
+	int nxyfa;
+	int ncellfa;
 	int nxyz;
 	int ndivxy;
 	int nsubx;
@@ -92,6 +97,8 @@ void Simon::initialize(const char* dbfile) {
 	readConstantI(1, &nxa);
 	readConstantI(1, &nya);
 	readConstantI(1, &nxya);
+	readConstantI(1, &nxyfa);
+	readConstantI(1, &ncellfa);
 	readConstantI(1, &ndivxy);
 	readConstantI(1, &nsubx);
 	readConstantI(1, &nsuby);
@@ -120,6 +127,8 @@ void Simon::initialize(const char* dbfile) {
 	readConstantI(1, &nsurf);
 	nsurf = nsurf * nz + (nz + 1) * nxy;
 
+	int ncorn;
+	readConstantI(1, &ncorn);
 
 	_g = new Geometry();
 
@@ -136,14 +145,19 @@ void Simon::initialize(const char* dbfile) {
 	readConstantI(NEWS*nxya, latol);
 	readConstantI(NEWS*nxya, larot);
 
+	int* lctol = new int[NEWS * ncorn];
+	int* ltolc = new int[NEWS * nxy];
+	readConstantI(NEWS*ncorn, lctol);
+	readConstantI(NEWS*nxy, ltolc);
 
 	_g->setBoundaryCondition(&symopt, &symang, albedo);
 	_g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
-	_g->initIndex(nxs, nxe, nys, nye, latol, larot, ijtol, neibr, hmesh);
+	_g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
+	_g->initAssemblyIndex(nxyfa, ncellfa, latol, larot);
+	_g->initCorner(ncorn, lctol, ltolc);
 
-	int ncomp = 0;
-
-	readComposition(&nxy, &nz, &_g->ncomp(), _g->compnames(), _g->comp());
+	readComposition(&nxy, &nz, &_g->ncomp(), _g->compnames(), _g->comps());
+	readComposition(&nxy, &nz, &_g->nhff(), _g->hffnames(), _g->hffs());
 
 	_r = new ControlRod(*_g);
 
@@ -224,6 +238,13 @@ void Simon::readTableSet(const char * tsetfile)
 	int length = strlen(tsetfile);
 	_tset_ptr = ::readTableSet(&length, tsetfile, &_g->ncomp(), _g->compnames());
 }
+
+void Simon::readFormFunction(const char * fffile)
+{
+	int length = strlen(fffile);
+	_ff_ptr = ::readFormFunction(&length, fffile, &_g->nhff(), _g->hffnames());
+}
+
 
 void Simon::updateBurnup()
 {
@@ -428,6 +449,8 @@ void Simon::generateResults()
 
 	_asi = (pow1d_low - pow1d_up) / (pow1d_low + pow1d_up);
 
+	std::fill(pow2da(), pow2da() + _g->nxya(), 0.0);
+
 	for (int l2d = 0; l2d < _g->nxy(); l2d++)
 	{
 		int l2da = _g->ltola(l2d);
@@ -436,8 +459,7 @@ void Simon::generateResults()
 
 	//FIXME volcore should be given by Geometry.
 	GEOM_VAR volcore = 0.0;
-	GEOM_VAR hzcore = 381.0;
-	GEOM_VAR nbox = 4.0;
+	GEOM_VAR hzcore = _g->hzcore();
 
 	for (int l = 0; l < _g->nxyz(); l++)
 	{

@@ -38,8 +38,8 @@
 
 class Geometry : public Managed {
 protected:
-    int _ndivxy = 2;
-    int _npinxy = 16;
+    int _ndivxy;
+    int _ncellxy;
 	int _ng;
 	int _ng2;
 	int	_nxy;
@@ -65,6 +65,10 @@ protected:
     int* _latol;
     int* _larot;
 
+	int _nxyfa;
+	int _ncellfa;
+
+
 	int _nxa;
 	int _nya;
 	int* _nxsa;
@@ -78,6 +82,9 @@ protected:
 	int* _comps;
 	int  _ncomp;
 	char _compnames[50][13];
+	int* _hffs;
+	int  _nhff;
+	char _hffnames[50][13];
 
 	int* _lklr;
 	int* _idirlr;
@@ -106,13 +113,15 @@ public:
 
 	void setBoundaryCondition(int* symopt, int* symang, float* albedo);
 	void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
-	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int * latol_, int * larot_, int * ijtol_, int* neibr_, float* hmesh_);
-	void initAssemblyIndex(int * latol_, int * larot_);
-	void initCorner();
+	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int * ijtol_, int* neibr_, float* hmesh_);
+	void initAssemblyIndex(int nxyfa, int ncellfa, int * latol_, int * larot_);
+	void initCorner(const int& ncorn, const int* lctol, const int* ltolc);
 
     inline int& ndivxy() { return _ndivxy; };
-    inline int& npinxy() { return _npinxy; };
-
+    inline int& ncellxy() { return _ncellxy; };
+	inline int& ncellfa() { return _ncellfa; };
+	inline int& nxyfa() { return _nxyfa; };
+	
 	inline int& ng() { return _ng; };
 	inline int& ng2() { return _ng2; };
 	inline int& nxy() { return _nxy; };
@@ -187,10 +196,15 @@ public:
     inline int& larot(const int& li, const int& la) { return _larot[la*NEWS+li]; };
     inline int* larot(const int& la) { return &_larot[la*NEWS]; };
 
-	inline int& comp(const int& l) { return _comps[l]; };
-	inline int* comp() { return _comps; };
+	inline int& comp(const int& lk) { return _comps[lk]; };
+	inline int* comps() { return _comps; };
 	inline int& ncomp() { return _ncomp; };
 	char** compnames() { return (char**)_compnames; };
+
+	inline int& hff(const int& lk) { return _hffs[lk]; };
+	inline int* hffs() { return _hffs; };
+	inline int& nhff() { return _nhff; };
+	char** hffnames() { return (char**)_hffnames; };
 
 	inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
 	inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };

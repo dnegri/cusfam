@@ -31,10 +31,10 @@ private:
 
 static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
 
-unique_ptr<SimonCPU> simon_init(const char* geom_file, const char* tset_file) {
+unique_ptr<SimonCPU> simon_init(const char* geom_file, const char* tset_file, const char* ff_file) {
 	omp_set_num_threads(4);
 
-	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	
 	plog::init(plog::warning, &consoleAppender);
@@ -42,6 +42,7 @@ unique_ptr<SimonCPU> simon_init(const char* geom_file, const char* tset_file) {
 	auto simon = unique_ptr<SimonCPU>(new SimonCPU());
 	simon->initialize(geom_file);
 	simon->readTableSet(tset_file);
+	simon->readFormFunction(ff_file);
 
 	return simon;
 }
@@ -80,11 +81,18 @@ void simon_calcStatic(SimonCPU& simon, SteadyOption& s) {
 	//simon.runSteadySfam(s);
 }
 
+void simon_calcPinPower(SimonCPU& simon) {
+	simon.runPinPower();
+	//simon.runSteadySfam(s);
+}
+
+
 void simon_getResult(SimonCPU& simon, SimonResult& result) {
 	simon.generateResults();
 	result.ppm = simon.ppm();
 	result.eigv = simon.eigv();
 	result.asi = simon.asi();
+	result.fxy = simon.fxy();
 	Geometry& g = simon.g();
 
 	for (int la = 0; la < g.nxya(); la++)
@@ -224,6 +232,10 @@ PYBIND11_MODULE(cusfam, m) {
     )pbdoc");
 
 	m.def("calcStatic", &simon_calcStatic, R"pbdoc(
+        Run steady-state calculation.
+    )pbdoc");
+
+	m.def("calcPinPower", &simon_calcPinPower, R"pbdoc(
         Run steady-state calculation.
     )pbdoc");
 

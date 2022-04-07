@@ -15,6 +15,8 @@ private:
 	int  nmaxppr = 20;
     int  nterm = 15;
 
+	int _ncell_plane;
+
 	double  sqrt2 = 1.41421356;
     double  rsqrt2 = 0.70710678;
 
@@ -198,12 +200,12 @@ public:
     }
 
 
-    inline double& pinpowa(const int& ig, const int& ipa, const int& jpa, const int& la, const int& k) {
-        return _pinpowa[((k*_g.nxy()+la)*_g.npinxy()*_g.npinxy()+jpa*_g.npinxy()+ipa)*_g.ng()+ig];
+    inline double& pinpowa(const int& ipa, const int& jpa, const int& la, const int& k) {
+        return _pinpowa[((k*_g.nxya()+la)*_g.ncellxy()*_g.ncellxy()+jpa*_g.ncellxy()+ipa)];
     }
 
     inline double& pinphia(const int& ig, const int& ipa, const int& jpa, const int& la, const int& k) {
-        return _pinphia[((k*_g.nxy()+la)*_g.npinxy()*_g.npinxy()+jpa*_g.npinxy()+ipa)*_g.ng()+ig];
+        return _pinphia[((k*_g.nxy()+la)*_g.ncellxy()*_g.ncellxy()+jpa*_g.ncellxy()+ipa)*_g.ng()+ig];
     }
 
 	void calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
@@ -215,10 +217,14 @@ public:
     void calsol(int l, int k, SOL_VAR* jnet);
     void calsol2drhs(int l, int k, const double & reigv );
 	void calpinpower(const int& la, const int& k, const int* larot1a);
+	void applyFF(void* ff_ptr, float * burn);
 
 
     void expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
 
+	double getFxy();
+	double getFq();
+	double getFr();
 	
 };
 

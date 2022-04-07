@@ -15,8 +15,8 @@ class Simon:
 	AO_EPS = 0.002
 
 
-	def __init__(self, file_smg, file_tset, file_rst):
-		self.s = init(file_smg, file_tset)
+	def __init__(self, file_smg, file_tset, file_ff, file_rst):
+		self.s = init(file_smg, file_tset, file_ff)
 		self.g = SimonGeometry()
 		getGeometry(self.s, self.g)
 		self.file_rst = file_rst
@@ -29,6 +29,9 @@ class Simon:
 
 	def calculateStatic(self, std_option):
 		calcStatic(self.s, std_option)
+
+	def calculatePinPower(self):
+		calcPinPower(self.s)
 
 	def deplete(self, xe_option, sm_option, del_burn):
 		deplete(self.s, xe_option, sm_option, del_burn)

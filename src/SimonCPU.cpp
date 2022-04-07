@@ -267,10 +267,6 @@ void SimonCPU::runSteady(const SteadyOption& condition) {
 	}
 	//myblas::multi(_g->ngxyz(), _fnorm, _flux, _flux);
 	//_fnorm = 1.0;
-	_ppr->calphicorn(_flux, _phis);
-	_ppr->calhomo(_eigv, _flux, _phis, _jnet);
-	_ppr->calpinpower();
-
 }
 
 void SimonCPU::runSteadySfam(const SteadyOption& condition) {
@@ -361,5 +357,14 @@ void SimonCPU::runSteadySfam(const SteadyOption& condition) {
 
 	//myblas::multi(_g->ngxyz(), _fnorm, _flux, _flux);
 	//_fnorm = 1.0;
+}
+
+void SimonCPU::runPinPower()
+{
+	_ppr->calphicorn(_flux, _phis);
+	_ppr->calhomo(_eigv, _flux, _phis, _jnet);
+	_ppr->calpinpower();
+	_ppr->applyFF(_ff_ptr, _d->burn());
+	_fxy = _ppr->getFxy();
 }
 
