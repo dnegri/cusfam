@@ -455,7 +455,7 @@ class readSnapshotData:
 
         if len(self.inputArray) > 0:
 
-            if len(self.inputArray) < idx + 1:
+            if len(self.inputArray) > idx + 1:
                 for idx in range(idx + 1):
                     # unitArray.append("Snapshot")
                     unitArray.append(0.0)
@@ -476,7 +476,7 @@ class readSnapshotData:
 
         else:
 
-            if len(self.burnup) < idx + 1:
+            if len(self.burnup) > idx + 1:
                 for idx in range(idx+1):
                     #unitArray.append("Snapshot")
                     unitArray.append(self.burnup[idx][key_day])

@@ -20,7 +20,7 @@ import threading as td
 
 
 decay_table = [0.5, 0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-               10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+               10, 10, 10, 10, 10, 10, 10, 10, 10,
                100, 100, 100, 100, 100, 100, 100]
 
 initial_bps = [0.0, 50.0, 150.0, 500.0, 1000.0,]
@@ -1042,6 +1042,7 @@ class ASTRAProcess(mp.Process):
             std_option.crit = CBC
             pdil = ut.getPDIL(std_option.plevel*100)
             r5_pdil = pdil[0]
+            r4_pdil = pdil[1]
             if len(self.outputArray) != 0:
                 preStepPos = [self.outputArray[-1][df.asi_o_bp], self.outputArray[-1][df.asi_o_b5], self.outputArray[-1][df.asi_o_b4], self.outputArray[-1][df.asi_o_b3], ]
             else:
@@ -1053,6 +1054,10 @@ class ASTRAProcess(mp.Process):
                 rod_pos_r5 = result.rod_pos
                 rod_pos_r5['P'] = result.rod_pos['P']
                 is_P = True
+            elif preStepPos[2] < 381.0:
+                result = self.s.searchRodPositionO(std_option, target_ASI, rodids[1:], overlaps[:-1], r4_pdil, preStepPos[2])
+                rod_pos_r5 = result.rod_pos
+                rod_pos_r5['R5'] = preStepPos[1]
             else:
                 result = self.s.searchRodPositionO(std_option, target_ASI, rodids, overlaps, r5_pdil, preStepPos[1])
                 rod_pos_r5 = result.rod_pos
@@ -1082,6 +1087,7 @@ class ASTRAProcess(mp.Process):
                     unitArray.append(self.outputArray[-1][df.asi_o_b3])
                 else:
                     unitArray.append(preStepPos[0])
+
                     for rodid in rodids:
                         unitArray.append(rod_pos_r5[rodid])
 

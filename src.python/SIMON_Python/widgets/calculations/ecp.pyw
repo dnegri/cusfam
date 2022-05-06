@@ -195,6 +195,8 @@ class ECPWidget(CalculationWidget):
         self.ui.LabelSub_Selete01.setVisible(False)
         self.ui.pushButton_InputModel.setVisible(False)
 
+        self.ui.ECP_Input03.setMaximum(110.0)
+        self.ui.ECP_Input12.setMaximum(300.0)
 
         self.delete_current_calculation()
 
@@ -436,9 +438,9 @@ class ECPWidget(CalculationWidget):
         deltaTime = self.ui.ECP_Input12.value()
         second_criticality = deltaTime * 3600.0
         #check input
-        if not 0 < second_criticality <= 100*3600:
+        if not 0 < second_criticality <= 300*3600:
             msgBox = QMessageBoxWithStyle(self.get_ui_component())
-            msgBox.setText("Delta time should be in between 0 and 100 hour\nYour delta time is {}"
+            msgBox.setText("Delta time should be in between 0 and 300 hour\nYour delta time is {}"
                            .format(second_criticality//3600))
             msgBox.setStandardButtons(QMessageBox.Ok)
             msgBox.setCustomStyle()
@@ -558,13 +560,7 @@ class ECPWidget(CalculationWidget):
     def start_calc(self):
         super().start_calc()
 
-        error = self.check_calculation_input()
 
-        if not error:
-            self.start_calculation_message = SplashScreen()
-            self.start_calculation_message.killed.connect(self.killManagerProcess)
-            # print("timedex",self.time_index+2)
-            self.start_calculation_message.init_progress(self.time_index+2, 500)
         # if self.ui.ECP_run_button.text() == cs.RUN_BUTTON_CREATE_SCENARIO:
         #     self.setSuccecciveInput()
         #     self.load()
@@ -612,7 +608,13 @@ class ECPWidget(CalculationWidget):
         if len(pArray) == 0:
             pArray.append([0, 100, self.bp, self.eigen, 0, 0, 0,])
 
+        error = self.check_calculation_input()
+
         if not error:
+            self.start_calculation_message = SplashScreen()
+            self.start_calculation_message.killed.connect(self.killManagerProcess)
+            # print("timedex",self.time_index+2)
+            self.start_calculation_message.init_progress(self.time_index+2, 500)
             self.cal_start = True
             self.current_index = 0
 
@@ -690,6 +692,23 @@ class ECPWidget(CalculationWidget):
 
         if self.start_calculation_message:
             self.start_calculation_message.close()
+
+        pd1d = [-1]
+        # rp = []
+        # r5 = []
+        # r4 = []
+        # r3 = []
+        for row in range(len(self.calcManager.results.ecp_output)):
+            # pd2d.append(self.calcManager.results.shutdown_output[row][df.asi_o_p2d])
+            if self.calcManager.results.ecp_output[row][df.asi_o_power] > 0:
+                pd1d.append(max(self.calcManager.results.ecp_output[row][df.asi_o_p1d][self.calcManager.results.kbc:self.calcManager.results.kec]))
+
+            # rp.append(self.calcManager.results.shutdown_output[row][df.asi_o_bp])
+            # r5.append(self.calcManager.results.shutdown_output[row][df.asi_o_b5])
+            # r4.append(self.calcManager.results.shutdown_output[row][df.asi_o_b4])
+            # r3.append(self.calcManager.results.shutdown_output[row][df.asi_o_b3])
+
+        self.axialWidget.setMaximumPower(max(pd1d))
 
         # self.ui.ECP_run_button.setText("Run")
         # self.ui.ECP_run_button.setDisabled(False)
@@ -836,12 +855,12 @@ class ECPWidget(CalculationWidget):
             self.map_opr1000 = opr(self.ui.ECP_InputLP_Dframe,self.ui.gridLayout_ECP_InputLP_Dframe)
             self.map_opr1000_frame , self.map_opr1000_grid = self.map_opr1000.return_opr_frame()
             self.ui.gridLayout_ECP_InputLP_Dframe.addWidget(self.map_opr1000_frame , 0, 0, 1, 1)
-            self.radialWidget = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid)
+            self.radialWidget = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid, df.type_opr1000)
             #self.map_opr1000_frame.hide()
             self.map_apr1400 = apr(self.ui.ECP_InputLP_Dframe,self.ui.gridLayout_ECP_InputLP_Dframe)
             self.map_apr1400_frame, self.map_apr1400_grid = self.map_apr1400.return_apr_frame()
             self.ui.gridLayout_ECP_InputLP_Dframe.addWidget(self.map_apr1400_frame, 0, 0, 1, 1)
-            self.radialWidget02 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid)
+            self.radialWidget02 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid, df.type_apr1400)
             self.map_apr1400_frame.hide()
 
         if not self.axialWidget:

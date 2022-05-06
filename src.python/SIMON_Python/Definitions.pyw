@@ -29,9 +29,9 @@ rgbSet = [ ["FF","FF","CC"] ,
            ["CC","CC","99"] ,
            ["99","CC","CC"] ,
            ["CC","99","CC"] ,
-           [64, 71, 88],
-           [0, 41, 132],
-           [186, 0, 13]]
+           [  64,  71,  88] ,
+           [   0,  41, 132] ,
+           [ 186,   0,  13] ]
 
 APR1400MAP =  [ [ True , False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, True  ],
                 [ False, False, False, True , True , True , True , True , True , True , True , True , True , True , False, False, False ],
@@ -123,14 +123,14 @@ APR1000MAP_RADIAL =  [ [ False, False, False, False, False, True , True , True ,
                        [ False, False, False, True , True , True , True , True , True , True , True , True , True , True , False, False, False ],
                        [ False, False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, False ] ]
 
-OPR1000MAP_RADIAL_QUART =  [
+OPR1000MAP_RADIAL_QUART = [
                 [ True , True , True , True , True , True , True , True  ],
                 [ True , True , True , True , True , True , True , True  ],
                 [ True , True , True , True , True , True , True , True  ],
                 [ True , True , True , True , True , True , True , False ],
                 [ True , True , True , True , True , True , True , False ],
                 [ True , True , True , True , True , True , False, False ],
-                [ True , True , True , True , True , False, False , False ],
+                [ True , True , True , True , True , False, False, False ],
                 [ True , True , True , False, False, False, False, True ] ]
 
 APR1400MAP_RADIAL_QUART =  [
@@ -142,7 +142,7 @@ APR1400MAP_RADIAL_QUART =  [
                 [ True , True , True , True , True , True , True , True , False ],
                 [ True , True , True , True , True , True , True , False, False ],
                 [ True , True , True , True , True , True , False, False, False ],
-                [ True , True , True , True , False, False, False, False, False ] ]
+                [ True , True , True , True , False, False, False, False, True  ] ]
 
 
 OPR1000_QUAR_TO_FULL = [[0,0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8],
@@ -243,6 +243,9 @@ select_RodPos = 4
 RodPosUnit_percent = 0
 RodPosUnit_cm   = 1
 RodPosUnit_inch = 2
+
+
+
 
 convertRodPosUnit = [[ 1.0, 3.81, 1.50 ],[ 1.00 / 3.81, 1.0 , 1.50 / 3.81], [1.00 / 1.50,3.81 / 1.50, 1.0 ]]
 
@@ -467,3 +470,6 @@ _INPUT_TYPE_USER_       = 0
 _INPUT_TYPE_SNAPSHOT_   = 1
 _INPUT_TYPE_FILE_CSV_   = 2
 _INPUT_TYPE_FILE_EXCEL_ = 3
+
+type_opr1000 = 0
+type_apr1400 = 1

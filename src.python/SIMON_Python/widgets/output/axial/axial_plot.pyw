@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.gridspec as gs
 from matplotlib.ticker import FuncFormatter
 import matplotlib.ticker as ticker
+import numpy as np
 
 class AxialWidget(QWidget):
     def __init__(self):
@@ -24,6 +25,14 @@ class AxialWidget(QWidget):
         #self.whiteColor = '#FFFFFF'
         self.whiteColor = '#cccccc'
         self.orange = '#FFA000'
+        self.color_PWR   = "#990099"
+        self.color_Rod_P = "#FFFF66"
+        self.color_Rod05 = "#66FF66"
+        self.color_Rod04 = "#66FFFF"
+        self.color_Rod03 = "#6666FF"
+
+        # self.previous_min = -1
+        self.max_power = -1
 
         #self.fig = plt.Figure(facecolor=self.graphBackgroundColor)
         self.fig = plt.Figure(facecolor="None")
@@ -100,7 +109,7 @@ class AxialWidget(QWidget):
         # tick 값 또한 101-x를 계산하여 전시
         # 101의 값이 self.barYAxisTickPivot
         #self.barYAxisTickPivot = 382
-        self.barYAxisTickPivot = 381
+        self.barYAxisTickPivot = 382
 
         self.canvas = FigureCanvas(self.fig)
 
@@ -110,6 +119,9 @@ class AxialWidget(QWidget):
 
         # init graph
         self.init_graph()
+
+
+
 
         # # Mapping slot
         # self.button_layout = QHBoxLayout()
@@ -144,8 +156,9 @@ class AxialWidget(QWidget):
         #self.axial.tick_params(axis='y', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
         self.axial.tick_params(axis='y', which='major', colors=self.gridColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
         #self.axial.set_ylim(0, 382)
-        self.axial.set_ylim(0, 381)
-        self.axial.set_xlim(0.0, 2.0)
+        self.axial.set_ylim(0, 382.0)
+        self.axial.set_xlim(0.0, 1.3)
+        self.axial.yaxis.set_major_locator(ticker.FixedLocator([0, 30, 80, 130, 180, 230, 380, 330, 382.0]))
 
         self.bar.set_ylim(self.barYAxisTickPivot, 0)
         self.bar.yaxis.tick_right()
@@ -156,7 +169,7 @@ class AxialWidget(QWidget):
         self.bar.yaxis.set_major_formatter(formatter)
 
         #self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 51, 101, 151, 201, 251, 301, 351, 382]))
-        self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 31, 81, 131, 181, 231, 281, 331, 381]))
+        self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 100, 200, 300, 382.0]))
         self.clearAxial()
 
 
@@ -166,9 +179,19 @@ class AxialWidget(QWidget):
         #self.drawAxial(axialPower, axialHeight)
 
         data = {' P': self.barYAxisTickPivot-1, 'R5': self.barYAxisTickPivot-1, 'R4': self.barYAxisTickPivot-1, 'R3': self.barYAxisTickPivot-1}
+
+
+
+        axialHeight = [381., 96.81, 95.62, 93.62, 91, 87.38, 82.38, 77.62, 72.62, 67.38, 62.38, 57.62, 52.62, 47.38,
+                       42.38, 37.62, 32.62, 27.38, 22.38, 17.62, 12.62, 9, 6.38, 4.38, 3.19, 0.0]
+
+        axialPower = [-2]*len(axialHeight)
+
+        self.drawAxial(axialPower, axialHeight, data)
+
         self.drawBar(data)
 
-        self.canvas.draw()
+        # self.canvas.draw()
 
     def slotPB3(self):
         self.init_graph()
@@ -190,48 +213,68 @@ class AxialWidget(QWidget):
         #self.axial.tick_params(axis='y', colors=self.whiteColor)
         self.axial.tick_params(axis='y', colors=self.gridColor)
 
-    def drawAxial(self, x, y):
+    def setMaximumPower(self, max_power):
+        self.max_power = max_power
+
+    def drawAxial(self, x, y, data):
+
+        # x = np.array(x)*100
         self.axial.cla()
-        self.axial.plot(x, y, color='orange')
+        self.axial.plot(x, y, color=self.color_PWR, linewidth=1, marker='o', alpha=0.8, markersize=5)
 
         #self.axial.fill_betweenx(y, min(x), x, facecolor='cornflowerblue')
 
         # set axial tick arrange
         x_tick_min = min(x)
         x_tick_max = max(x)
+        # if x_tick_max -0.2 < self.previous_max <  x_tick_max + 0.2:
+        # self.previous_min == x_tick_min
+        # self.previous_max == x_tick_max
         #print("x_tick_min = " + str(x_tick_min) + "     x_tick_max" +str(x_tick_max))
         if x_tick_min == 0 and x_tick_max == 0:
-            self.axial.set_xlim(0.0, 2.0)
+            self.axial.set_xlim(0.0, 1.4)
         else:
             #self.axial.set_xlim(x_tick_min, x_tick_max * 1.1)
-            x_tick_range = round(x_tick_max * 1.1,3)
+            if x_tick_max < self.max_power:
+                x_tick_max = self.max_power
+            x_tick_range = round(x_tick_max * 1.1,300)
             self.axial.set_xlim(0.0, x_tick_range)
 
         y_tick_min = min(y)
         y_tick_max = max(y)
-        self.axial.set_ylim(y_tick_min, y_tick_max)
+        self.axial.set_ylim(0, 382.0)
 
-        self.axial.yaxis.grid(which='major', color=self.graphColor, linewidth=0.01, linestyle='-')
+        self.axial.yaxis.grid(which='major', color=self.graphColor, alpha=0.2, linewidth=0.5, linestyle='--')
         # self.axial.yaxis.grid(which='minor', color=self.graphColor, linewidth=1, linestyle='--')
-        self.axial.xaxis.grid(which='major', color=self.graphColor, linewidth=0.01, linestyle='--')
-        # self.axial.xaxis.grid(which='minor', color=self.graphColor, linewidth=1, linestyle='--')
-        self.axial.yaxis.set_major_locator(plt.MultipleLocator(20))
-        self.axial.yaxis.set_minor_locator(AutoMinorLocator(2))
-        self.axial.xaxis.set_major_locator(plt.MultipleLocator(0.4))
-        self.axial.xaxis.set_minor_locator(AutoMinorLocator(2))
+        # self.axial.xaxis.grid(which='major', color=self.graphColor, linewidth=0.01, linestyle='--')
+        self.axial.xaxis.grid(which='major', color=self.graphColor, alpha=0.2, linewidth=0.5, linestyle='--')
+        # self.axial.yaxis.set_major_locator(plt.MultipleLocator(40))
+        # self.axial.yaxis.set_minor_locator(AutoMinorLocator(2))
+        self.axial.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+        # self.axial.xaxis.set_minor_locator(AutoMinorLocator(2))
 
+        self.axial.yaxis.set_major_locator(ticker.FixedLocator([0, 30, 80, 130, 180, 230, 280, 330, 382]))
+        # self.axial.yaxis.set_major_locator(ticker.FixedLocator([0, 31, 81, 131, 181, 231, 281, 331, 381]))
         self.axial.set_facecolor(self.graphBackgroundColor)
 
         # self.axial.yaxis.yticks([0,10,20,30,40,50,60,70,80,90,100])
-        self.axial.tick_params(axis='x', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
-        self.axial.tick_params(axis='y', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
+        # self.axial.tick_params(axis='x', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
+        # self.axial.tick_params(axis='y', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
 
-        self.canvas.draw()
+        self.axial.tick_params(axis='x', rotation=0, colors=self.whiteColor)
+        self.axial.tick_params(axis='y', rotation=0, colors=self.whiteColor)
 
-
-    def slotPB4(self):
-        data = {' P': 100, '05': 80, '04': 60, '03': 0}
+        # self.canvas.draw()
         self.drawBar(data)
+
+    def drawRow(self, row):
+        x = self.p1d[row]
+        y = self.p1d_axial_position
+
+        self.axial.clear()
+        # if self.axial_plot_plot:
+        #     self.axial_plot_plot.remove()
+        self.axial_plot = self.axial.plot(x, y, color='orange')
 
     def drawBar(self, data):
         self.bar.cla()
@@ -239,6 +282,7 @@ class AxialWidget(QWidget):
         values = list(data.values())
 
         self.bar.set_ylim(self.barYAxisTickPivot, 0)
+        self.bar.yaxis.grid(which='major', color=self.graphColor, alpha=0.2, linewidth=0.5, linestyle='--')
         self.bar.yaxis.tick_right()
         self.bar.xaxis.tick_top()
         self.bar.tick_params(axis='x', rotation=0, colors=self.whiteColor)
@@ -247,43 +291,15 @@ class AxialWidget(QWidget):
         formatter = FuncFormatter(self.reversalOfBarTick)
         self.bar.yaxis.set_major_formatter(formatter)
 
-        #self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 51, 101, 151, 201, 251, 301, 351, 382]))
-        self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 31, 81, 131, 181, 231, 281, 331, 381]))
+        self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 52, 102, 152, 202, 252, 302, 352, 382]))
+        # self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 31, 81, 131, 181, 231, 281, 331, 381]))
+        # self.bar.yaxis.set_major_locator(ticker.FixedLocator([0, 100, 200, 300, 381.0]))
 
         # bar의  시작점 y=0을 옯길 수 없음, 따라서 입력값의 101-x를 계산하여 전시함
         # tick 값 또한 101-x를 계산하여 전시
         for i in range(len(values)):
             values[i] = self.barYAxisTickPivot - values[i]
 
-        self.bar.bar(banks, values, color='orange')
+        self.bar.bar(banks, values, alpha=0.8, color=[self.color_Rod_P, self.color_Rod05, self.color_Rod04, self.color_Rod03 ])
 
         self.canvas.draw()
-    """
-    def showLifetimeSummary(self, lifetimeSummary):
-        self.ti_power.setText(str(lifetimeSummary.power))
-        self.ti_inletTemp_c.setText(str(lifetimeSummary.inletTemp_F))
-        self.ti_inletTemp_f.setText(str(lifetimeSummary.inletTemp_C))
-        self.ti_burnup.setText(str(lifetimeSummary.burnup))
-        self.ti_time_efpd.setText(str(lifetimeSummary.time_EFPD))
-        self.ti_time_efph.setText(str(lifetimeSummary.time_EFPH))
-        self.ti_keff.setText(str(lifetimeSummary.keff))
-        self.ti_boron_ppm.setText(str(lifetimeSummary.boron))
-        self.ti_xeWorth_pcm.setText(str(lifetimeSummary.xeWorth))
-        self.ti_smWorth_pcm.setText(str(lifetimeSummary.smWorth))
-        self.ti_fqWithU.setText(str(lifetimeSummary.fqWithU))
-        self.ti_fqLimit.setText(str(lifetimeSummary.fqLimit))
-        self.ti_fdhWithU.setText(str(lifetimeSummary.fdhWithU))
-        self.ti_fdhLimit.setText(str(lifetimeSummary.fdhLimit))
-        self.ti_ao.setText(str(lifetimeSummary.ao))
-        self.ti_d_bank.setText(str(lifetimeSummary.dBank))
-        self.ti_c_bank.setText(str(lifetimeSummary.cBank))
-        self.ti_b_bank.setText(str(lifetimeSummary.bBank))
-        self.ti_a_bank.setText(str(lifetimeSummary.aBank))
-
-        # QTableWidget의 cell 높이 설정
-        height = self.tb_lifetimeSum.height()
-        for i in range(self.tb_lifetimeSum.rowCount()):
-            self.tb_lifetimeSum.setRowHeight(i, (height-15)/(self.tb_lifetimeSum.rowCount()))
-        # QTableWidget의 cell 높이 설정
-        self.tb_lifetimeSum.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
-    """

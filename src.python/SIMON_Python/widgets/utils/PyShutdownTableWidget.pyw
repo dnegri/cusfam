@@ -11,7 +11,7 @@ import Definitions as df
 
 
 class ShutdownTableWidget(unitTable.unitTableWidget):
-    def __init__(self, frame, headerItem, tableItemFormat, number_input=2, number_output=5, number_rod=4):
+    def __init__(self, frame, headerItem, tableItemFormat, number_input=2, number_output=6, number_rod=4):
         super().__init__(frame, headerItem )
 
         self.tableItemFormat = tableItemFormat
@@ -492,8 +492,8 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
             format03 = workbook.add_format({'align': 'center', 'border': 1, 'num_format': '0.000'})
             format05 = workbook.add_format({'align': 'center', 'border': 1, 'num_format': '0.00000'})
 
-            formatArray = [format01, format02, format01, format05, format03, format03, format02, format02, format02,
-                           format02, ]
+            formatArray = [format01, format02, format03, format01, format01,
+                           format03, format03, format03, format02, format02, format02, format02 ]
 
             for rowIdx in range(len(columnHeader)):
                 worksheet.write(0, rowIdx + 1, columnHeader[rowIdx], headerFormat)
@@ -509,11 +509,18 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 #        worksheet.write(colIdx + 1, rowIdx + 1, '', formatArray[rowIdx])
             else:
                 for colIdx in range(len(self.outputArray)):
+                    #for rowIdx in range(10):
                     for rowIdx in range(self.number_of_input_elements, self.number_of_input_elements +
                                                                        self.number_of_output_elements +
                                                                        self.number_of_rod_output_elements):
+                        if rowIdx - self.number_of_input_elements < 2:
+                            value = self.outputArray[colIdx][rowIdx - self.number_of_input_elements]
+                        elif rowIdx - self.number_of_input_elements == 2:
+                            value = self.outputArray[colIdx][df.asi_o_reactivity]
+                        else:
+                            value = self.outputArray[colIdx][rowIdx - self.number_of_input_elements-1]
                         worksheet.write(colIdx + 1, rowIdx + 1,
-                                        self.outputArray[colIdx][rowIdx - self.number_of_input_elements],
+                                        value,
                                         formatArray[rowIdx])
             worksheet.set_column('B:J', 12)
             writer.close()
@@ -568,7 +575,7 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                         if len(outputArray[iStep]) == self.number_of_rod_output_elements:
                             number_output = 0
 
-                        value_display = outputArray[iRow][iColumn + number_output]
+                        value_display = outputArray[iRow][iColumn + number_output-1]
                         self.calc_rodPosBox[iRow][iColumn].setVisible(visible)
                         self.calc_rodPosBox[iRow][iColumn].setValue(value_display)
                         self.calc_rodPos[iRow][iColumn] = value_display
@@ -597,10 +604,13 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 # font.setWeight(75)
                 item.setFont(font)
                 item.setTextAlignment(Qt.AlignCenter)
-                if iColumn == 1:
-                    text = "{:.1f}/{:.1f}".format(outputArray[iStep][iColumn], outputArray[iStep][-1])
-                else:
-                    text = "%.3f" % outputArray[iStep][iColumn]
+
+                text = "%.3f" % outputArray[iStep][iColumn]
+                if iColumn == 2:
+                    text = "%.3f" % outputArray[iStep][df.asi_o_reactivity]
+                elif iColumn > 2:
+                    text = "%.3f" % outputArray[iStep][iColumn-1]
+
                 item.setText(_translate("Form", text))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.setItem(start_index + iStep, iColumn + self.number_of_input_elements, item)
@@ -610,7 +620,7 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 for iColumn in range(self.number_of_rod_output_elements):
                     # self.calc_rodPosBox[iRow][iColumn].show()
                     visible = True
-                    value_display = outputArray[iRow][iColumn + self.number_of_output_elements]
+                    value_display = outputArray[iRow][iColumn + self.number_of_output_elements-1]
 
                     self.calc_rodPosBox[start_index + iRow][iColumn].setVisible(visible)
                     self.calc_rodPosBox[start_index + iRow][iColumn].setValue(value_display)

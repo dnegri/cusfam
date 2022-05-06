@@ -46,9 +46,10 @@ pointers = {
     "RO_Input03": "ndr_time",
     "RO_Input04": "ndr_bank_position_P",
     "RO_Input05": "ndr_bank_position_5",
-    "RO_Input06": "ndr_power_ratio",
-    "RO_Input07": "ndr_asi",
-    "RO_Input08": "ndr_end_power",
+    "RO_Input06": "ndr_bank_position_4",
+    "RO_Input07": "ndr_power_ratio",
+    "RO_Input08": "ndr_asi",
+    "RO_Input09": "ndr_end_power",
 
 
     # "RO_Input00": "ndr_cal_type",
@@ -163,6 +164,10 @@ class ReoperationWidget(CalculationWidget):
         self.load_snapshot(a_calculation)
 
         self.ui.RO_Input02.setMaximum(self.calcManager.cycle_burnup_values[-1] + 1000)
+        self.ui.RO_Input04.setMinimum(190.5)
+        self.ui.RO_Input05.setMinimum(190.5)
+        self.ui.RO_Input06.setMinimum(190.5+38.1)
+        # self.ui.RO_Input02.setMinimum(self.calcManager.cycle_burnup_values[-1] + 1000)
 
         # if len(self.inputArray) == 0:
         #     self.ui.RO_run_button.setText("Create Scenario")
@@ -203,7 +208,7 @@ class ReoperationWidget(CalculationWidget):
 
         # self.unitButton01.clicked['bool'].connect(self.clickSaveAsExcel)
         # self.unitButton02.clicked['bool'].connect(self.resetPositionData)
-        self.RO_TableWidget.itemSelectionChanged.connect(self.cell_changed)
+        # self.RO_TableWidget.itemSelectionChanged.connect(self.cell_changed)
 
         self.unitChart.canvas.mpl_connect('pick_event', self.clickEvent01)
         self.unitChart02.canvas.mpl_connect('pick_event', self.clickEvent02)
@@ -333,15 +338,15 @@ class ReoperationWidget(CalculationWidget):
         initPower = 0.0
         rodP = self.ui.RO_Input04.value()
         rod5 = self.ui.RO_Input05.value()
-        rod4 = 381.0
+        rod4 = self.ui.RO_Input06.value()
         rod3 = 381.0
 
         overlap_time = self.ui.RO_Input03.value()
 
         targetEigen = 1.00000
-        rdcPerHour = self.ui.RO_Input06.value()
-        targetASI = self.ui.RO_Input07.value()
-        EOF_Power = self.ui.RO_Input08.value()
+        rdcPerHour = self.ui.RO_Input07.value()
+        targetASI = self.ui.RO_Input08.value()
+        EOF_Power = self.ui.RO_Input09.value()
 
         self.rdcPerHour = rdcPerHour
 
@@ -503,7 +508,7 @@ class ReoperationWidget(CalculationWidget):
             self.map_opr1000 = opr(self.ui.RO_InputLP_Dframe,self.ui.gridLayout_RO_InputLP_Dframe)
             self.map_opr1000_frame , self.map_opr1000_grid = self.map_opr1000.return_opr_frame()
             self.ui.gridLayout_RO_InputLP_Dframe.addWidget(self.map_opr1000_frame , 0, 0, 1, 1)
-            self.radialWidget = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid)
+            self.radialWidget = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid, df.type_opr1000)
             #self.map_opr1000_frame.hide()
 
 
@@ -511,7 +516,7 @@ class ReoperationWidget(CalculationWidget):
             self.map_apr1400 = apr(self.ui.RO_InputLP_Dframe,self.ui.gridLayout_RO_InputLP_Dframe)
             self.map_apr1400_frame, self.map_apr1400_grid = self.map_apr1400.return_apr_frame()
             self.ui.gridLayout_RO_InputLP_Dframe.addWidget(self.map_apr1400_frame, 0, 0, 1, 1)
-            self.radialWidget02 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid)
+            self.radialWidget02 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid, df.type_apr1400)
             self.map_apr1400_frame.hide()
 
         if not self.axialWidget:
@@ -600,6 +605,25 @@ class ReoperationWidget(CalculationWidget):
         # self.ui.RO_run_button.setText(cs.RUN_BUTTON_RUN)
         # self.ui.RO_run_button.setDisabled(False)
 
+        pd1d = [-1]
+        # rp = []
+        # r5 = []
+        # r4 = []
+        # r3 = []
+        for row in range(len(self.calcManager.results.reoperation_output)):
+            # pd2d.append(self.calcManager.results.shutdown_output[row][df.asi_o_p2d])
+            # pd1d.append(max(self.calcManager.results.reoperation_output[row][df.asi_o_p1d][self.calcManager.results.kbc:self.calcManager.results.kec]))
+            if self.calcManager.results.reoperation_output[row][df.asi_o_power] > 0:
+                pd1d.append(max(self.calcManager.results.reoperation_output[row][df.asi_o_p1d][
+                                self.calcManager.results.kbc:self.calcManager.results.kec]))
+
+            # rp.append(self.calcManager.results.shutdown_output[row][df.asi_o_bp])
+            # r5.append(self.calcManager.results.shutdown_output[row][df.asi_o_b5])
+            # r4.append(self.calcManager.results.shutdown_output[row][df.asi_o_b4])
+            # r3.append(self.calcManager.results.shutdown_output[row][df.asi_o_b3])
+
+        self.axialWidget.setMaximumPower(max(pd1d))
+
         if is_success == self.calcManager.SUCC:
             self.save_output(self.calcManager.results.reoperation_output)
             self.showOutput()
@@ -646,37 +670,6 @@ class ReoperationWidget(CalculationWidget):
             #                            self.calcManager.results.axial_position)
             # self.radialWidget.slot_astra_data(pd2d)
 
-    def cell_changed(self):
-        import numpy
-        model_index = self.RO_TableWidget.selectedIndexes()
-        model_index = self.IO_table.IO_TableWidget.selectedIndexes()
-        if len(model_index) > 0:
-            row = model_index[-1].row()
-            #print(row)
-            if row < len(self.calcManager.results.reoperation_output):
-
-                pd2d = self.calcManager.results.reoperation_output[row][df.asi_o_p2d]
-                pd1d = self.calcManager.results.reoperation_output[row][df.asi_o_p1d]
-
-                p = self.calcManager.results.reoperation_output[row][df.asi_o_bp]
-                r5 = self.calcManager.results.reoperation_output[row][df.asi_o_b5]
-                r4 = self.calcManager.results.reoperation_output[row][df.asi_o_b4]
-                r3 = self.calcManager.results.reoperation_output[row][df.asi_o_b3]
-
-                data = {' P': p, 'R5': r5, 'R4': r4, 'R3': r3}
-                self.axialWidget.drawBar(data)
-                #print(data)
-
-                power = self.RO_TableWidget.InputArray[row][1]
-                power = self.IO_table.IO_TableWidget.InputArray[row][1]
-
-                if power == 0:
-                    self.axialWidget.clearAxial()
-                    self.radialWidget.clear_data()
-                else:
-                    self.axialWidget.drawAxial(pd1d[self.calcManager.results.kbc:self.calcManager.results.kec],
-                                               self.calcManager.results.axial_position)
-                    self.radialWidget.slot_astra_data(pd2d)
 
     def get_calculation_input(self):
 
@@ -739,10 +732,36 @@ class ReoperationWidget(CalculationWidget):
                                                             self.calcManager.cycle_burnup_values[-1]+1000))
             msgBox.setStandardButtons(QMessageBox.Ok)
             msgBox.setCustomStyle()
-            #msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+            # msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
             result = msgBox.exec_()
             # if result == QMessageBox.Cancel:
             return True
+
+        if self.ui.RO_Input06.value() < self.ui.RO_Input05.value()+38.1:
+            msgBox = QMessageBoxWithStyle(self.get_ui_component())
+            msgBox.setWindowTitle("Extended Overlap Error")
+            if (self.ui.RO_Input06.value()-self.ui.RO_Input05.value())/381*100 < 0:
+                msgBox.setText("R4 must be 10% higher than R5\n R4 is only {:.1f}% lower than R5".
+                               format(abs(self.ui.RO_Input06.value()-self.ui.RO_Input05.value())/381*100))
+            else:
+                msgBox.setText("R4 must be 10% higher than R5\n R4 is only {:.1f}% higher than R5".
+                               format(abs(self.ui.RO_Input06.value()-self.ui.RO_Input05.value())/381*100))
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            msgBox.setCustomStyle()
+            # msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+            result = msgBox.exec_()
+            # if result == QMessageBox.Cancel:
+            return True
+
+        # if self.ui.RO_Input06.value() < 381.0:
+        #     msgBox = QMessageBoxWithStyle(self.get_ui_component())
+        #     msgBox.setWindowTitle("Extended Overlap Warning")
+        #     msgBox.setText("Extended Overalp used")
+        #     msgBox.setStandardButtons(QMessageBox.Ok)
+        #     msgBox.setCustomStyle()
+        #     # msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        #     result = msgBox.exec_()
+
         return False
 
     def updateDecayTime(self):

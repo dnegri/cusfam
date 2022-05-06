@@ -25,7 +25,7 @@ from PyQt5.QtCore import Qt
 #class SnapshotWidget:
 class table_IO_widget(QDialog):
 
-    def __init__(self, ECP_Flag=False):
+    def __init__(self, ECP_Flag=True):
         super().__init__()
         self.setWindowModality(Qt.ApplicationModal)
         self.ui = unit_IO_table.Ui_unitWidget_Contents()
@@ -57,15 +57,11 @@ class table_IO_widget(QDialog):
     def insertTableWidget(self):
 
         # 01. Initialize horizontal header setting
-        if self.ECP_Flag:
-            boron = "Boron/React\n(ppm)"
-        else:
-            boron = "Boron\n(ppm)"
         self.tableItem = ["Time\n(hour)", "Power\n(%)"  ,
-                          "ASI",          boron, "Fr", "Fxy", "Fq",
+                          "ASI",          "Boron\n(ppm)", "Reactivity\n(pcm)", "Fr", "Fxy", "Fq",
                           "Bank P\n(cm)"     , "Bank 5\n(cm)", "Bank 4\n(cm)", "Bank 3\n(cm)", ]
         self.tableItemFormat = ["%.1f","%.2f",
-                                "%.3f","%.1f","%.3f","%.3f","%.3f",
+                                "%.3f","%.1f","%.1f","%.3f","%.3f","%.3f",
                                 "%.1f","%.1f","%.1f","%.1f"]
 
         # 02. Define Snapshot Table Widget and gridlayout
@@ -82,14 +78,15 @@ class table_IO_widget(QDialog):
         [self.unitButton01, self.unitButton02, self.unitButton03] = self.IO_TableWidget.returnTableButton()
 
         self.unitButton01.hide()
-        #self.unitButton02.show()
+        self.unitButton02.show()
         self.unitButton03.show()
         font = QFont()
         font.setFamilies([u"Segoe UI"])
         font.setPointSize(14)
+        self.unitButton02.setFont(font)
         self.unitButton03.setFont(font)
         #self.IO_TableWidget.setRowCount(0)
-        self.unitButton02.setText(QCoreApplication.translate("unitWidget_accept", u"Select", None))
+        self.unitButton02.setText(QCoreApplication.translate("unitWidget_accept", u"Save Excel", None))
         self.unitButton03.setText(QCoreApplication.translate("unitWidget_reject", u"Close", None))
         #self.unitButton02.setDisabled(True)
         self.unitButton02.setStyleSheet(df.styleSheet_Run)
@@ -97,7 +94,7 @@ class table_IO_widget(QDialog):
 
         self.unitButton03.setMinimumSize(QtCore.QSize(100, 50))
 
-        self.unitButton02.clicked['bool'].connect(self.accepted)
+        self.unitButton02.clicked['bool'].connect(self.IO_TableWidget.clickSaveAsExcel)
         self.unitButton03.clicked['bool'].connect(self.rejected)
 
         self.ui.gridLayout.setContentsMargins(4, 4, 4, 4)

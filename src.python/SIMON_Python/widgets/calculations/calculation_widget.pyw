@@ -34,6 +34,7 @@ from widgets.utils.PySaveMessageBox import PySaveMessageBox, QMessageBoxWithStyl
 _NUM_PRINTOUT_ = 5
 _MINIMUM_ITEM_COUNT = 40
 
+import time
 
 class CalculationWidget:
 
@@ -653,7 +654,7 @@ class CalculationWidget:
 
             #     #print(self.inputArray[idx][0])
             # row = round(xpos)
-            print(row)
+            # print(row)
             # model_index = self.SD_TableWidget.selectedIndexes()
             # if row > 0:
             # row = model_index[-1].row()
@@ -670,7 +671,6 @@ class CalculationWidget:
 
                 data = {' P': p, 'R5': r5, 'R4': r4, 'R3': r3}
 
-                self.axialWidget.drawBar(data)
 
                 power = outputs[row][df.asi_o_power]
                 # if power == 0:
@@ -678,7 +678,8 @@ class CalculationWidget:
                 #     self.radialWidget.clear_data()
                 # else:
                 self.axialWidget.drawAxial(pd1d[self.calcManager.results.kbc:self.calcManager.results.kec],
-                                           self.calcManager.results.axial_position)
+                                           self.calcManager.results.axial_position, data)
+
                 self.radialWidget.slot_astra_data(pd2d)
         else:
             pass

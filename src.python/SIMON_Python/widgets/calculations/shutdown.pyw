@@ -119,7 +119,8 @@ class Shutdown_Widget(CalculationWidget):
         self.unitChart = None
         self.unitChart02 = None
         self.radialWidget = None
-        self.radialWidget02 = None
+        self.radialWidget_opr1000 = None
+        self.radialWidget_apr1400 = None
         self.axialWidget = None
 
         self.map_opr1000 = None
@@ -194,7 +195,7 @@ class Shutdown_Widget(CalculationWidget):
 
         #self.unitChart.return_x_pos.connect(self.get_xxxx_pos)
 
-        self.SD_TableWidget.itemSelectionChanged.connect(self.cell_changed)
+        # self.SD_TableWidget.itemSelectionChanged.connect(self.cell_changed)
         # self.unitButton03.clicked['bool'].connect(self.clearOuptut)
 
         self.ui.SD_InputSelect.currentIndexChanged['int'].connect(self.changeInputType)
@@ -483,8 +484,27 @@ class Shutdown_Widget(CalculationWidget):
         self.SD_TableWidget.selectRow(0)
         self.IO_table.IO_TableWidget.selectRow(0)
 
-        # self.ui.SD_run_button.setText("Run")
-        # self.ui.SD_run_button.setDisabled(False)
+        self.ui.SD_run_button.setText("Run")
+        self.ui.SD_run_button.setDisabled(False)
+        # pd2d = []
+        pd1d = [-1]
+        # rp = []
+        # r5 = []
+        # r4 = []
+        # r3 = []
+        for row in range(len(self.calcManager.results.shutdown_output)):
+            # pd2d.append(self.calcManager.results.shutdown_output[row][df.asi_o_p2d])
+            if self.calcManager.results.shutdown_output[row][df.asi_o_power] > 0:
+                pd1d.append(max(self.calcManager.results.shutdown_output[row][df.asi_o_p1d][self.calcManager.results.kbc:self.calcManager.results.kec]))
+
+            # pd1d.append(max(self.calcManager.results.shutdown_output[row][df.asi_o_p1d][self.calcManager.results.kbc:self.calcManager.results.kec]))
+
+            # rp.append(self.calcManager.results.shutdown_output[row][df.asi_o_bp])
+            # r5.append(self.calcManager.results.shutdown_output[row][df.asi_o_b5])
+            # r4.append(self.calcManager.results.shutdown_output[row][df.asi_o_b4])
+            # r3.append(self.calcManager.results.shutdown_output[row][df.asi_o_b3])
+
+        self.axialWidget.setMaximumPower(max(pd1d))
 
         if is_success == self.calcManager.SUCC:
             self.save_output(self.calcManager.results.shutdown_output)
@@ -513,34 +533,6 @@ class Shutdown_Widget(CalculationWidget):
             #                            self.calcManager.results.axial_position)
             # self.radialWidget.slot_astra_data(pd2d)
 
-
-    def cell_changed(self):
-        model_index = self.SD_TableWidget.selectedIndexes()
-        model_index = self.IO_table.IO_TableWidget.selectedIndexes()
-        if len(model_index) > 0:
-            row = model_index[-1].row()
-            if row < len(self.calcManager.results.shutdown_output):
-                pd2d = self.calcManager.results.shutdown_output[row][df.asi_o_p2d]
-                pd1d = self.calcManager.results.shutdown_output[row][df.asi_o_p1d]
-
-                p = self.calcManager.results.shutdown_output[row][df.asi_o_bp]
-                r5 = self.calcManager.results.shutdown_output[row][df.asi_o_b5]
-                r4 = self.calcManager.results.shutdown_output[row][df.asi_o_b4]
-                r3 = self.calcManager.results.shutdown_output[row][df.asi_o_b3]
-
-                data = {' P': p, 'R5': r5, 'R4': r4, 'R3': r3}
-
-                self.axialWidget.drawBar(data)
-
-                power = self.SD_TableWidget.InputArray[row][1]
-                power = self.IO_table.IO_TableWidget.InputArray[row][1]
-                if power == 0:
-                    self.axialWidget.clearAxial()
-                    self.radialWidget.clear_data()
-                else:
-                    self.axialWidget.drawAxial(pd1d[self.calcManager.results.kbc:self.calcManager.results.kec],
-                                               self.calcManager.results.axial_position)
-                    self.radialWidget.slot_astra_data(pd2d)
 
     def get_calculation_input(self):
         calcOpt = df.CalcOpt_ASI
@@ -775,17 +767,16 @@ class Shutdown_Widget(CalculationWidget):
             self.map_opr1000 = opr(self.ui.SD_InputLP_Dframe,self.ui.gridLayout_SD_InputLP_Dframe)
             self.map_opr1000_frame , self.map_opr1000_grid = self.map_opr1000.return_opr_frame()
             self.ui.gridLayout_SD_InputLP_Dframe.addWidget(self.map_opr1000_frame , 0, 0, 1, 1)
-            self.radialWidget = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid)
-            #self.map_opr1000_frame.hide()
-
-
+            self.radialWidget_opr1000 = RadialWidget(self.map_opr1000_frame , self.map_opr1000_grid, df.type_opr1000)
+            # self.map_opr1000_frame.hide()
 
             self.map_apr1400 = apr(self.ui.SD_InputLP_Dframe,self.ui.gridLayout_SD_InputLP_Dframe)
             self.map_apr1400_frame, self.map_apr1400_grid = self.map_apr1400.return_apr_frame()
             self.ui.gridLayout_SD_InputLP_Dframe.addWidget(self.map_apr1400_frame, 0, 0, 1, 1)
-            self.radialWidget02 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid)
+            self.radialWidget_apr1400 = RadialWidget(self.map_apr1400_frame,self.map_apr1400_grid, df.type_apr1400)
             self.map_apr1400_frame.hide()
 
+            self.radialWidget = self.radialWidget_opr1000
 
         if not self.axialWidget:
             pass
