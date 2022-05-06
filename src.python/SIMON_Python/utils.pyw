@@ -3,6 +3,11 @@ import os
 import constants as cs
 
 from model import *
+import cecor_read
+
+
+def read_cecor_file():
+    cecor_read.read_cecor_file()
 
 def check_extensions(path, extensions):
     extension_counter = 0
@@ -56,6 +61,66 @@ def getPlantFiles(user):
 #     return plants, error_names
 #
 
+def getPDIL(power):
+
+    R5_95_65 = [249.936, 5.2832]
+    R5_65_50 = [91.44, 6.096]
+
+    R4_95_65 = [381.0, 2.032]
+    R4_65_50 = [320.04, 6.096]
+    R4_50_42 = [228.6, 9.525]
+    R4_42_20 = [152.4, 6.92727]
+
+    R3_42_20 = [381.0, 9.0054]
+    R3_20_0 = [182.88, 1.524]
+
+    if 100 >= power > 95:
+        pdil = [R5_95_65[0], R4_95_65[0], R3_42_20[0]]
+    elif 95 >= power > 65:
+        power_increment = 95-power
+        pdil = [R5_95_65[0]-power_increment*R5_95_65[1],
+                        R4_95_65[0]-power_increment*R4_95_65[1],
+                        R3_42_20[0]]
+    elif 65 >= power > 50:
+        power_increment = 65-power
+        pdil = [R5_65_50[0]-power_increment*R5_65_50[1],
+                        R4_65_50[0]-power_increment*R4_65_50[1],
+                        R3_42_20[0]]
+    elif 50 >= power > 42:
+        power_increment = 50-power
+        pdil = [0,
+                        R4_50_42[0]-power_increment*R4_50_42[1],
+                        R3_42_20[0]]
+    elif 42 >= power > 20:
+        power_increment = 50-power
+        pdil = [0,
+                        R4_42_20[0]-power_increment*R4_42_20[1],
+                        R3_42_20[0]-power_increment*R3_42_20[1]]
+    elif 20 >= power >= 0:
+        power_increment = 20 - power
+        pdil = [0,
+                        0,
+                        R3_20_0[0] - power_increment * R3_20_0[1]]
+    else:
+        pdil = [381,
+                        381,
+                        381]
+        #print("Power out of range {}".format(power))
+    return pdil
+
+
+def getPIDL_Rods(power, rod_pos, is_extended = True):
+
+    pdils = getPDIL(power)
+    if is_extended:
+        diff_overlap = .10*381.0
+    else:
+        diff_overlap = .60*381.0
+
+    r4_pdil = max(pdils[1], rod_pos[0]+diff_overlap)
+    r3_pdil = max(pdils[2], rod_pos[1]+diff_overlap)
+
+    return [pdils[0], r4_pdil, r3_pdil]
 
 def getRestartFiles(user):
 
@@ -68,7 +133,7 @@ def getRestartFiles(user):
 
         plant_found = False
         for plant in cs.DEFINED_PLANTS:
-            if plant == basename[:1]:
+            if plant == basename[:len(plant)]:
                 base_identifier = basename.split(".")[0]
                 if base_identifier not in plants:
                     plants.append(base_identifier)
@@ -100,6 +165,11 @@ def get_int_value(check_string):
             pass
     return int_value
 
+
+def get_cecore_output(filename = ""):
+    query = Cecor_Output.select().where(Cecor_Output.filename == filename).order_by(Cecor_Output.modified_date)
+    return query
+
 def get_all_inputs(class_find=None):
 
     if class_find:
@@ -120,6 +190,48 @@ def get_all_inputs(class_find=None):
 
     return query
 
+def get_default_input(user, class_find):
+
+    try:
+
+        query = Calculations.select().where(Calculations.filename == cs.RECENT_CALCULATION).order_by(-Calculations.modified_date)
+        calculation_final = None
+        input_final = None
+        for calculation_object in query:
+            if class_find == ECP_Input:
+                if calculation_object.ecp_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.ecp_input
+                    break
+            elif class_find == SD_Input:
+                if calculation_object.sd_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.sd_input
+                    break
+            elif class_find == RO_Input:
+                if calculation_object.ro_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.ro_input
+                    break
+            elif class_find == SDM_Input:
+                if calculation_object.sdm_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.sdm_input
+                    break
+            elif class_find == CoastDownInput:
+                if calculation_object.coastdown_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.coastdown_input
+                    break
+            elif class_find == LifetimeInput:
+                if calculation_object.lifetime_input:
+                    calculation_final = calculation_object
+                    input_final = calculation_object.lifetime_input
+                    break
+    except:
+        return None, None
+
+    return calculation_final, input_final
 
 def get_last_input(user, class_find):
 
@@ -159,6 +271,8 @@ def get_last_input(user, class_find):
                 break
 
     return calculation_final, input_final
+
+
 
 def delete_calculations(calculation_object):
     if calculation_object.ecp_input:

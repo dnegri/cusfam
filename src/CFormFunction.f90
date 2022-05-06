@@ -90,7 +90,6 @@ contains
             read(ifile,*) burn
         
             ihff = this%indexOfFormFunction(hffname)
-        
             if(ihff .ne. 0) then
                 cff => this%cff(ihff)
                 cff%nburn = cff%nburn+1
@@ -146,14 +145,18 @@ contains
         real(XS_PREC)       :: burn
         real(XS_PREC)       :: hff(NUM_CELLXY, NUM_CELLXY)
         class(CompFormFunction), pointer   :: cff
-        integer                     :: klo, jp, ip, ig
+        integer                     :: klo, jp, ip, ig, ihffref
         real(XS_PREC)               :: af(3)
         type(FormFunction), pointer   :: this
         real(XS_PREC), pointer  :: hff_ptr
+        character*(LEN_COMPNAME)    :: hffname
         
         call c_f_pointer(ff_ptr, this)
         
-        cff => this%cff(ihff)
+        hffname = this.hffnames(ihff)
+        ihffref = this%indexOfFormFunction(hffname)
+        
+        cff => this%cff(ihffref)
         
         
         call quad1(cff%nburn, cff%burn(:), burn, klo, af)

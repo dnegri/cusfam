@@ -29,22 +29,24 @@ from PyQt5.QtWidgets import *
 from app_modules import *
 import peewee
 from model import *
-from settings import Settings
 
 from widgets.calculations.calculation import RecentCalculationWidget
 from widgets.calculations.sdm import SDMWidget
 # from widgets.calculations.ecp import ECPWidget
 # from widgets.calculations.ecp4 import ECPWidget
-from widgets.calculations.ecp5 import ECPWidget
+from widgets.calculations.ecp import ECPWidget
 #from widgets.calculations.lifetime import LifetimeWidget
 from widgets.calculations.shutdown import Shutdown_Widget
 from widgets.calculations.reoperation import ReoperationWidget
 from widgets.calculations.calculationManagerProcess import CalculationManager
+from widgets.calculations.snapshot import SnapshotWidget
+from widgets.utils.PySnapshotWindow import SnapshotPopupWidget
 from settings import Settings
 
 # import ui_unitWidget_ECP_rev3 as unit_ECP
 # import ui_unitWidget_ECP_rev4 as unit_ECP
 import ui_unitWidget_ECP_revS01 as unit_ECP
+import ui_unitWidget_snapshot as unit_Snapshot
 #import ui_unitWidget_Lifetime_rev1 as unit_Lifetime
 import ui_unitWidget_RO_revS01 as unit_RO
 import ui_unitWidget_SD_revS01 as unit_SD
@@ -76,12 +78,13 @@ class MainWindow(QMainWindow):
                                Calculations,
                                InputModel,
                                ECP_Input, SD_Input, RO_Input, SDM_Input,
-                               ECP_Output, SD_Input, RO_Input, SDM_Output,
+                               ECP_Output, SD_Output, RO_Output, SDM_Output,
+                               Cecor_Output,
                                ])
 
         ## PRINT ==> SYSTEM
-        print('System: ' + platform.system())
-        print('Version: ' +platform.release())
+        # print('System: ' + platform.system())
+        # print('Version: ' +platform.release())
 
         ########################################################################
         ## START - WINDOW ATTRIBUTES
@@ -118,11 +121,16 @@ class MainWindow(QMainWindow):
         ## ==> ADD CUSTOM MENUS
         #self.ui.stackedWidget.setMinimumWidth(20)
         self.recentCalculation = UIFunctions.addNewMenu(self, cs.CALCULATION_RC_TITLE, cs.CALCULATION_RC_BUTTON, "url(:/24x24/icons/24x24/cil-star.png)", True)
+        # self.snapchotButton = UIFunctions.addNewMenu(self, cs.CALCULATION_SNAPSHOT_TITLE, cs.CALCULATION_SNAPSHOT_BUTTON, u":/24x24/icons/24x24/cil-view-stream.png", True)
         self.sdmButton = UIFunctions.addNewMenu(self, cs.CALCULATION_SDM_TITLE, cs.CALCULATION_SDM_BUTTON, "url(:/24x24/icons/24x24/cil-fullscreen-exit.png)", True)
         self.ecpButton = UIFunctions.addNewMenu(self, cs.CALCULATION_ECP_TITLE, cs.CALCULATION_ECP_BUTTON, "url(:/24x24/icons/24x24/cil-chevron-bottom.png)", True)
         self.roButton = UIFunctions.addNewMenu(self, cs.CALCULATION_PA_TITLE, cs.CALCULATION_PA_BUTTON, "url(:/24x24/icons/24x24/cil-arrow-circle-top.png)", True)
         self.sdButton = UIFunctions.addNewMenu(self, cs.CALCULATION_PR_TITLE, cs.CALCULATION_PR_BUTTON, "url(:/24x24/icons/24x24/cil-arrow-circle-bottom.png)", True)
         self.settingsButton = UIFunctions.addNewMenu(self, cs.CALCULATION_SETTINGS_TITLE, cs.CALCULATION_SETTINGS_BUTTON, "url(:/24x24/icons/24x24/cil-settings.png)", False)
+
+        self.sdButton.clicked['bool'].connect(self.click_sd_button)
+        self.roButton.clicked['bool'].connect(self.click_ro_button)
+        self.ecpButton.clicked['bool'].connect(self.click_ecp_button)
 
         ## ==> END ##
 
@@ -170,13 +178,18 @@ class MainWindow(QMainWindow):
         self.unitWidget_calc = QWidget()
         self.ui_calc = unit_contents.Ui_unitWidget_Contents()
         self.ui_calc.setupUi(self.unitWidget_calc)
-
         self.calculation_widget = RecentCalculationWidget(self.db, self.ui_calc, self.queue)
+
+        self.unitWidget_Snapshot = QWidget()
+        self.ui_Snapshot = unit_Snapshot.Ui_unitWidget_Contents()
+        self.ui_Snapshot.setupUi(self.unitWidget_Snapshot)
+        #self.snapshot = SnapshotWidget(self.db, self.ui_Snapshot, self.calcManager, self.queue, self.ui_calc.tableWidgetAll)
+        self.snapshot = SnapshotWidget(self.db, self.ui_Snapshot, self.queue)
 
         self.unitWidget_setting = QWidget()
         self.ui_setting = unit_setting.Ui_Form()
         self.ui_setting.setupUi(self.unitWidget_setting)
-        self.settings_widget = Settings(self.db, self.ui_setting, self.ui_calc.tableWidgetAll, self.calcManager)
+        self.settings_widget = Settings(self.db, self.ui_setting, self.ui_Snapshot, self.calcManager)
         # self.settings_widget.createTempUser()
 
         self.unitWidget_ECP = QWidget()
@@ -201,6 +214,14 @@ class MainWindow(QMainWindow):
         self.ui_RO.setupUi(self.unitWidget_RO)
         self.reoperation = ReoperationWidget(self.db, self.ui_RO, self.calcManager, self.queue, self.ui_calc.tableWidgetAll)
 
+        self.snapshot.linkData(self.settings_widget.loadInput)
+        #self.snapshotPopup = SnapshotPopupWidget(self.ui_Snapshot)
+        self.shutdown_widget.linkInputModule(self.settings_widget.loadInput)
+        self.reoperation.linkInputModule(self.settings_widget.loadInput)
+        self.ecp_widget.linkInputModule(self.settings_widget.loadInput)
+        self.sdm_widget.linkInputModule(self.settings_widget.loadInput)
+
+
         ########################################################################
         ## SHOW ==> MAIN WINDOW
         ########################################################################
@@ -209,48 +230,68 @@ class MainWindow(QMainWindow):
         self.calcManager.finished_working.connect(self.finished_worker)
         self.calcManager.start()
 
+        # self.start_calculation_message = SplashScreen()
+        # self.start_calculation_message.killed.connect(self.killManagerProcess)
+        # self.start_calculation_message.init_progress(1, 500, is_nano=True)
+
         ## ==> END ##W
         self.setModule(self.recentCalculation)
-        UIFunctions.toggleMenu(self, 220, True)
+        # UIFunctions.toggleMenu(self, 220, True)
         self.show()
 
 
     @pyqtSlot(str)
     def update_worker(self, value):
-        if self.calcManager.calcOption == df.CalcOpt_ASI:
+        option = self.calcManager.results.calcOption
+        if self.calcManager.calcOption == df.CalcOpt_KILL:
+
+            self.calcManager.setKillOutput()
+        elif self.calcManager.results.calcOption == df.CalcOpt_CECOR:
+            option = self.calcManager.calcOption
+
+        if option == df.CalcOpt_ASI:
             self.shutdown_widget.showOutput()
-        elif self.calcManager.calcOption == df.CalcOpt_RO:
+        elif option == df.CalcOpt_RO:
             self.reoperation.showOutput()
-        elif self.calcManager.calcOption == df.CalcOpt_ASI_RESTART:
+        elif option == df.CalcOpt_ASI_RESTART:
             self.shutdown_widget.showOutput()
-        elif self.calcManager.calcOption == df.CalcOpt_RO_RESTART:
+        elif option == df.CalcOpt_RO_RESTART:
             self.reoperation.showOutput()
-        elif self.calcManager.calcOption == df.CalcOpt_ECP:
+        elif option == df.CalcOpt_ECP:
             self.ecp_widget.showOutput()
+        elif option == df.CalcOpt_INIT:
+            if self.start_calculation_message:
+                self.start_calculation_message.close()
 
     @pyqtSlot(str)
     def finished_worker(self, value):
         title = ""
-        if self.calcManager.calcOption == df.CalcOpt_SDM:
-            self.sdm_widget.finished()
-            title = cs.CALCULATION_SDM_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_ASI:
-            self.shutdown_widget.finished()
-            title = cs.CALCULATION_PR_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_RO:
-            self.reoperation.finished()
-            title = cs.CALCULATION_PA_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_ECP:
-            self.ecp_widget.finished()
-            title = cs.CALCULATION_ECP_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_ASI_RESTART:
-            self.shutdown_widget.finished()
-            title = cs.CALCULATION_PR_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_RO_RESTART:
-            self.reoperation.finished()
-            title = cs.CALCULATION_PA_TITLE
-        elif self.calcManager.calcOption == df.CalcOpt_RECENT:
-            self.show_input(self.calcManager.row)
+        # print("options", self.calcManager.calcOption)
+
+        if self.calcManager.calcOption == df.CalcOpt_KILL:
+            self.calcManager.setKillOutput()
+        else:
+            option = self.calcManager.results.calcOption
+            if option == df.CalcOpt_SDM:
+                self.sdm_widget.finished(value)
+                title = cs.CALCULATION_SDM_TITLE
+            elif option == df.CalcOpt_ASI:
+                self.shutdown_widget.finished(value)
+                title = cs.CALCULATION_PR_TITLE
+            elif option == df.CalcOpt_RO:
+                self.reoperation.finished(value)
+                title = cs.CALCULATION_PA_TITLE
+            elif option == df.CalcOpt_ECP:
+                self.ecp_widget.finished(value)
+                title = cs.CALCULATION_ECP_TITLE
+            elif option == df.CalcOpt_ASI_RESTART:
+                self.shutdown_widget.finished(value)
+                title = cs.CALCULATION_PR_TITLE
+            elif option == df.CalcOpt_RO_RESTART:
+                self.reoperation.finished(value)
+                title = cs.CALCULATION_PA_TITLE
+            elif option == df.CalcOpt_RECENT:
+                self.show_input(self.calcManager.row)
 
         # self.calcManager.setKillOutput()
 
@@ -282,7 +323,7 @@ class MainWindow(QMainWindow):
             self.setModule(self.sdButton)
             load_module = self.shutdown_widget
 
-        load_module.load_input(calculation)
+        load_module.load(calculation)
 
     def Button(self):
         # GET BT CLICKED
@@ -297,7 +338,7 @@ class MainWindow(QMainWindow):
         self.settings_widget.login_main()
         if not self.calcManager.check_files(self.settings_widget.current_user):
             btnWidget = self.settingsButton
-
+            # print("settings")
             # msgBox = QMessageBox(btnWidget)
             # msgBox.setWindowTitle("Plant or Restart file not found",)
             # msgBox.setText("Redirecting to Settings",)
@@ -307,7 +348,7 @@ class MainWindow(QMainWindow):
         else:
             if not self.calcManager.initialized:
                 self.settings_widget.login()
-                is_success = self.calcManager.load(self.settings_widget.current_user)
+                self.calcManager.load(self.settings_widget.current_user)
 
         # if btnWidget != self.settingsButton:
         #     if self.calcManager.is_started:
@@ -409,6 +450,22 @@ class MainWindow(QMainWindow):
             self.unitWidgetLay.update()
             self.reoperation.load()
 
+        # snapshot
+        if btnWidget.objectName() == cs.CALCULATION_SNAPSHOT_BUTTON:
+            UIFunctions.resetStyle(self, cs.CALCULATION_SNAPSHOT_BUTTON)
+            UIFunctions.labelPage(self, cs.CALCULATION_SNAPSHOT_TITLE)
+            UIFunctions.labelDescription(self, cs.CALCULATION_SNAPSHOT_TITLE+"-"+self.calcManager.plant_name+"호기"+self.calcManager.cycle_name+"주기")
+            if(self.unitWidgetFlag==False):
+                self.unitWidgetLay.addWidget(self.unitWidget_Snapshot)
+            else:
+                self.unitWidget.hide()
+                self.unitWidgetLay.replaceWidget(self.unitWidget,self.unitWidget_Snapshot)
+            self.unitWidget = self.unitWidget_Snapshot
+            self.unitWidgetFlag = True
+            self.unitWidget_Snapshot.show()
+            self.unitWidgetLay.update()
+#            self.snapshot.load()
+
         # SETTINGS
         if btnWidget.objectName() == cs.CALCULATION_SETTINGS_BUTTON:
             UIFunctions.resetStyle(self, cs.CALCULATION_SETTINGS_BUTTON)
@@ -425,6 +482,23 @@ class MainWindow(QMainWindow):
             self.unitWidget_setting.show()
             #self.settings_widget.load()
             self.settings_widget.login()
+
+    def click_sd_button(self):
+        tmp = min(self.ui_SD.SD_InputLP_Dframe.height(), self.ui_SD.SD_InputLP_Dframe.width()) * 0.93
+        self.shutdown_widget.resizeRadialWidget(tmp)
+        #tmp = min(self.ui_SD.SD_InputLP_Dframe.height(), self.ui_SD.SD_InputLP_Dframe.width()) * 0.93
+        #self.ui_SD.SD_InputLP_frame.setMaximumSize(QSize(tmp, tmp))
+
+    def click_ro_button(self):
+        tmp = min(self.ui_RO.RO_InputLP_Dframe.height(), self.ui_RO.RO_InputLP_Dframe.width()) * 0.93
+        self.reoperation.resizeRadialWidget(tmp)
+        #self.ui_RO.RO_InputLP_frame.setMaximumSize(QSize(tmp, tmp))
+
+    def click_ecp_button(self):
+        tmp = min(self.ui_ECP.ECP_InputLP_Dframe.height(), self.ui_ECP.ECP_InputLP_Dframe.width()) * 0.93
+        self.ecp_widget.resizeRadialWidget(tmp)
+        # tmp = min(self.ui_ECP.ECP_InputLP_Dframe.height(), self.ui_ECP.ECP_InputLP_Dframe.width()) * 0.93
+        # self.ui_ECP.ECP_InputLP_frame.setMaximumSize(QSize(tmp, tmp))
 
     ## ==> END ##
 
@@ -471,7 +545,18 @@ class MainWindow(QMainWindow):
         return super(MainWindow, self).resizeEvent(event)
 
     def resizeFunction(self):
-        pass
+
+        tmp = min(self.ui_SD.SD_InputLP_Dframe.height(), self.ui_SD.SD_InputLP_Dframe.width()) * 0.93
+        size = max(300.0, tmp)
+        self.shutdown_widget.resizeRadialWidget(size)
+
+        tmp = min(self.ui_RO.RO_InputLP_Dframe.height(), self.ui_RO.RO_InputLP_Dframe.width()) * 0.93
+        size = max(300.0, tmp)
+        self.reoperation.resizeRadialWidget(size)
+
+        tmp = min(self.ui_ECP.ECP_InputLP_Dframe.height(), self.ui_ECP.ECP_InputLP_Dframe.width()) * 0.93
+        size = max(300.0, tmp)
+        self.ecp_widget.resizeRadialWidget(size)
         #print('Height: ' + str(self.height()) + ' | Width: ' + str(self.width()))
     ## ==> END ##
 
@@ -487,21 +572,15 @@ if __name__ == "__main__":
     #print(awareness.value)
     #ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-
     #os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "2"
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     os.environ["QT_SCALE_FACTOR"] = "1"
     app = QApplication(sys.argv)
     app.setApplicationName("SIMON 0.8")
-    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling,True)
-    app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps,True)
+    # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling,True)
+    # app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps,True)
     screen = app.screens()[0]
     dpi = screen.physicalDotsPerInch()
-    #print(dpi)
-    #app.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling,True)
-    #app.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling,True)
-
-
 
     QtGui.QFontDatabase.addApplicationFont('fonts/segoeui.ttf')
     QtGui.QFontDatabase.addApplicationFont('fonts/segoeuib.ttf')

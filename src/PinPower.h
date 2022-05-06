@@ -111,6 +111,11 @@ private:
 
     double  * _pinpowa,
             * _pinphia;     //(ng,nxy,nz)
+
+    double* _pow3da;
+    double* _peaka;
+
+    int _fxyb=6, _fxyt=22;
 public:
 	PinPower(Geometry& g, CrossSection& x);
 	virtual ~PinPower();
@@ -218,13 +223,18 @@ public:
     void calsol2drhs(int l, int k, const double & reigv );
 	void calpinpower(const int& la, const int& k, const int* larot1a);
 	void applyFF(void* ff_ptr, float * burn);
-
+    void printPinPower(int k);
+    double& pow3da(int la, int k) {return _pow3da[k * _g.nxya() + la]; };
+    double& peaka(int la, int k) { return _peaka[k * _g.nxya() + la]; };
 
     void expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
 
 	double getFxy();
 	double getFq();
 	double getFr();
+
+    int& fxyb() { return _fxyb; };
+    int& fxyt() { return _fxyt; };
 	
 };
 

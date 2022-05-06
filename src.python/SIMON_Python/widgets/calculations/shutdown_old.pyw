@@ -724,8 +724,6 @@ class Shutdown_Widget(CalculationWidget):
             self.calc_rodPosBox[iRow][iColumn].setStyleSheet(u"color: rgb(255,51,51);")
             self.calc_rodPosBox[iRow][iColumn].update()
 
-            print("color changed!")
-
         else:
             popupFlag = False
             unitRodPos = [iRow,iColumn]

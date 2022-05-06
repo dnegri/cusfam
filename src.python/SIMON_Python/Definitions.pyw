@@ -33,7 +33,7 @@ rgbSet = [ ["FF","FF","CC"] ,
            [0, 41, 132],
            [186, 0, 13]]
 
-APR1400MAP =  [ [ False, False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, False ],
+APR1400MAP =  [ [ True , False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, True  ],
                 [ False, False, False, True , True , True , True , True , True , True , True , True , True , True , False, False, False ],
                 [ False, False, True , True , True , True , True , True , True , True , True , True , True , True , True , False, False ],
                 [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
@@ -55,7 +55,7 @@ APR1400_xPos  = [ "A" ,"B" ,"C" ,"D" ,"E" ,"F" ,"G" ,"H" ,"J" ,"K" ,"L" ,"M" ,"N
 APR1400_yPos  = [ "01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17"]
 APR1400_yPos2 = [  "1", "2", "3", "4", "5", "6", "7", "8", "9","10","11","12","13","14","15","16","17"]
 
-OPR1000MAP =  [ [ True , False, False, False, False, True , True , True , True , True , False, False, False, False, True  ],
+OPR1000MAP =  [ [ False , False, False, False, False, True , True , True , True , True , False, False, False, False, False  ],
                 [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
                 [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
                 [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
@@ -69,7 +69,9 @@ OPR1000MAP =  [ [ True , False, False, False, False, True , True , True , True ,
                 [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
                 [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
                 [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
-                [ False, False, False, False, False, True , True , True , True , True , False, False, False, False, False ] ]
+                [ False, False, False, False, False, True , True , True , True , True , False, False, False, False, True ] ]
+
+
 
 OPR1000MAP_INFO =  [ [ True , False, False, False, False, False, False, False, False, False, False, False, False, False, True  ],
                      [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, False ],
@@ -85,23 +87,41 @@ OPR1000MAP_INFO =  [ [ True , False, False, False, False, False, False, False, F
                      [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, False ],
                      [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, False ],
                      [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, False ],
-                     [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, False ] ]
+                     [ False, False, False, False, False, False, False, False, False, False, False, False, False, False, True ] ]
 
-OPR1000MAP_RADIAL =  [ [ False, False, False, False, False, True , True , True , True , True , False, False, False, False , False ],
-                [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
-                [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
-                [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
-                [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
-                [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
-                [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
-                [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
-                [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
-                [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
-                [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
-                [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
-                [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
-                [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
-                [ False, False, False, False, False, True , True , True , True , True , False, False, False, False, False ] ]
+OPR1000MAP_RADIAL =  [ [ False, False, False, False, False, True , True , True , True , True , False, False, False, False, False ],
+                       [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
+                       [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, False, True , True , True , True , True , True , True , True , True , True , True , False, False ],
+                       [ False, False, False, True , True , True , True , True , True , True , True , True , False, False, False ],
+                       [ False, False, False, False, False, True , True , True , True , True , False, False, False, False, False ] ]
+
+APR1000MAP_RADIAL =  [ [ False, False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, False ],
+                       [ False, False, False, True , True , True , True , True , True , True , True , True , True , True , False, False, False ],
+                       [ False, False, True , True , True , True , True , True , True , True , True , True , True , True , True , False, False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , True  ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, True , True , True , True , True , True , True , True , True , True , True , True , True , True , True , False ],
+                       [ False, False, True , True , True , True , True , True , True , True , True , True , True , True , True , False, False ],
+                       [ False, False, False, True , True , True , True , True , True , True , True , True , True , True , False, False, False ],
+                       [ False, False, False, False, False, True , True , True , True , True , True , True , False, False, False, False, False ] ]
 
 OPR1000MAP_RADIAL_QUART =  [
                 [ True , True , True , True , True , True , True , True  ],
@@ -110,13 +130,25 @@ OPR1000MAP_RADIAL_QUART =  [
                 [ True , True , True , True , True , True , True , False ],
                 [ True , True , True , True , True , True , True , False ],
                 [ True , True , True , True , True , True , False, False ],
-                [ True , True , True , True , True , False, False, False ],
-                [ True , True , True , False, False, False, False, False ] ]
+                [ True , True , True , True , True , False, False , False ],
+                [ True , True , True , False, False, False, False, True ] ]
+
+APR1400MAP_RADIAL_QUART =  [
+                [ True , True , True , True , True , True , True , True , True  ],
+                [ True , True , True , True , True , True , True , True , True  ],
+                [ True , True , True , True , True , True , True , True , True  ],
+                [ True , True , True , True , True , True , True , True , True  ],
+                [ True , True , True , True , True , True , True , True , False ],
+                [ True , True , True , True , True , True , True , True , False ],
+                [ True , True , True , True , True , True , True , False, False ],
+                [ True , True , True , True , True , True , False, False, False ],
+                [ True , True , True , True , False, False, False, False, False ] ]
+
 
 OPR1000_QUAR_TO_FULL = [[0,0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8],
                         [1,0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8],
                         [2,0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8],
-                        [3,0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [5, 8],
+                        [3,0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8],
                         [4,0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7],
                         [5,0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7],
                         [6,0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6],
@@ -140,7 +172,7 @@ OPR1000_CR_ID = [    [ ""     , ""     , ""     , ""     , ""     , ""     , "R1
                      [ ""     , ""     , ""     , ""     , ""     , "R231" , ""     , "R331"  , ""     , "R242"  , ""    , ""     , ""     , ""      , ""     ],
                      [ ""     , ""     , ""     , ""     , ""     , ""     , "R131" , ""      , "R142" , ""      , ""    , ""     , ""     , ""      , ""     ]  ]
 
-OPR1000MAP_BP =  [ [ "Box No.\nBank Type\nSub-Group\nInsertion %", "" , "" , "" , "" , "" , "1", "" , "1", "" , "" , "" , "" , "", "Stuck\nRod" ],
+OPR1000MAP_BP =  [ [ "", "" , "" , "" , "" , "" , "1", "" , "1", "" , "" , "" , "" , "", "" ],
                    [ "" , "" , "" , "S", "" , "2", "" , "3", "" , "2", "" , "S", "" , "" , ""  ],
                    [ "" , "" , "" , "" , "B", "" , "B", "" , "B", "" , "B", "" , "" , "" , ""  ],
                    [ "" , "S", "" , "" , "" , "P", "" , "5", "" , "P", "" , "" , "" , "S", ""  ],
@@ -154,14 +186,34 @@ OPR1000MAP_BP =  [ [ "Box No.\nBank Type\nSub-Group\nInsertion %", "" , "" , "" 
                    [ "" , "S", "" , "" , "" , "P", "" , "5", "" , "P", "" , "" , "" , "S", ""  ],
                    [ "" , "" , "" , "" , "B", "" , "B", "" , "B", "" , "B", "" , "" , "" , ""  ],
                    [ "" , "" , "" , "S", "" , "2", "" , "3", "" , "2", "" , "S", "" , "" , ""  ],
-                   [ "" , "" , "" , "" , "" , "" , "1", "" , "1", "" , "" , "" , "" , "" , ""  ] ]
+                   [ "" , "" , "" , "" , "" , "" , "1", "" , "1", "" , "" , "" , "" , "" , "Stuck\nRod"  ] ]
+
+APR1400MAP_BP =  [ [ "Box No.\nBank Type\nSub-Group\nInsertion %",  "" , "" , "" , "" , "" , "S", "" , "3", "" , "S", "" , "" , "" , "" , "" , "Stuck\nRod"  ],
+                   [ "" , "" , "" , "" , "" , "A", "" , "B", "" , "B", "" , "A", "" , "" , "" , "" , ""  ],
+                   [ "" , "" , "4", "" , "2", "" , "P", "" , "5", "" , "P", "" , "2", "" , "4", "" , ""  ],
+                   [ "" , "" , "" , "B", "" , "B", "" , "1", "" , "1", "" , "B", "" , "B", "" , "" , ""  ],
+                   [ "" , "" , "2", "" , "4", "" , "" , "" , "3", "" , "" , "" , "4", "" , "2", "" , ""  ],
+                   [ "" , "A", "" , "B", "" , "P", "" , "A", "" , "A", "" , "P", "" , "B", "" , "A", ""  ],
+                   [ "S", "" , "P", "" , "" , "" , "3", "" , "" , "" , "3", "" , "" , "" , "P", "" , "S" ],
+                   [ "" , "B", "" , "1", "" , "A", "" , "2", "" , "2", "" , "A", "" , "1", "" , "B", ""  ],
+                   [ "3", "" , "5", "" , "3", "" , "" , "" , "5", "" , "" , "" , "3", "" , "5", "" , "3" ],
+                   [ "" , "B", "" , "1", "" , "A", "" , "2", "" , "2", "" , "A", "" , "1", "" , "B", ""  ],
+                   [ "S", "" , "P", "" , "" , "" , "3", "" , "" , "" , "3", "" , "" , "" , "P", "" , "S" ],
+                   [ "" , "A", "" , "B", "" , "P", "" , "A", "" , "A", "" , "P", "" , "B", "" , "A", ""  ],
+                   [ "" , "" , "2", "" , "4", "" , "" , "" , "3", "" , "" , "" , "4", "" , "2", "" , ""  ],
+                   [ "" , "" , "" , "B", "" , "B", "" , "1", "" , "1", "" , "B", "" , "B", "" , "" , ""  ],
+                   [ "" , "" , "4", "" , "2", "" , "P", "" , "5", "" , "P", "" , "2", "" , "4", "" , ""  ],
+                   [ "" , "" , "" , "" , "" , "A", "" , "B", "" , "B", "" , "A", "" , "" , "" , "" , ""  ],
+                   [ "",  "" , "" , "" , "" , "" , "S", "" , "3", "" , "S", "" , "" , "" , "" , "" , ""  ] ]
 
 OPR1000_xPos  = [  "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R" ]
 OPR1000_yPos  = [ "01","02","03","04","05","06","07","08","09","10","11","12","13","14","15" ]
 OPR1000_yPos2 = [  "1", "2", "3", "4", "5", "6", "7", "8", "9","10","11","12","13","14","15" ]
 
 OPR1000_xPos_Quart  = ["H", "J", "K", "L", "M", "N", "P", "R" ]
+APR1400_xPos_Quart  = ["J", "K", "L", "M", "N", "P", "R", "S", "T" ]
 OPR1000_yPos_Quart  = ["08","09","10","11","12","13","14","15" ]
+APR1400_yPos_Quart  = ["09","10","11","12","13","14","15","16","17" ]
 
 RGB_ORANGE = [ 0xff, 0xA0, 0x00]
 RGB_GREEN  = [ 0xBC, 0xFD, 0x60]
@@ -179,6 +231,8 @@ CalcOpt_RO_RESTART = 5
 CalcOpt_RECENT = 6
 CalcOpt_HEIGHT = 7
 CalcOpt_KILL = 8
+CalcOpt_CECOR = 9
+CalcOpt_INIT = 10
 
 select_none = 0
 select_snapshot = 1
@@ -293,10 +347,31 @@ asi_i_burnup = 2
 asi_i_keff = 3
 asi_i_asi = 4
 asi_i_boron = 5
-asi_i_bp = 6
-asi_i_b5 = 7
-asi_i_b4 = 8
-asi_i_b3 = 9
+asi_i_fr = 6
+asi_i_fxy = 7
+asi_i_fq = 8
+asi_i_bp = 9
+asi_i_b5 = 10
+asi_i_b4 = 11
+asi_i_b3 = 12
+asi_i_p1d = 13
+asi_i_p2d = 14
+
+asi_o_asi = 0
+asi_o_boron = 1
+asi_o_fr = 2
+asi_o_fxy = 3
+asi_o_fq = 4
+asi_o_bp = 5
+asi_o_b5 = 6
+asi_o_b4 = 7
+asi_o_b3 = 8
+asi_o_p1d = 9
+asi_o_p2d = 10
+asi_o_time = 11
+asi_o_power= 12
+asi_o_reactivity = 13
+
 
 
 styleSheet_Run = """QPushButton {
@@ -329,6 +404,57 @@ QPushButton:pressed {
 }"""
 
 
+styleSheet_Delete_Scenarios = """QPushButton {
+	border: 2px solid rgb(211, 90, 92);
+	border-radius: 5px;
+	background-color: rgb(211, 90, 92);
+}
+QPushButton:hover {
+	background-color: rgb(200, 80, 82);
+	background-color: rgb(200, 80, 82);
+}
+QPushButton:pressed {	
+	background-color: rgb(211, 90, 92);
+	background-color: rgb(211, 90, 92);
+}"""
+
+styleSheet_Table_Normal = """QPushButton {
+	border: 2px solid rgb(52, 59, 72);
+	border-radius: 5px;
+	background-color: rgb(52, 59, 72);
+}
+QPushButton:hover {
+	background-color: rgb(57, 65, 79);
+	border: 2px solid rgb(57, 65, 79);
+}
+QPushButton:pressed {	
+	background-color: rgb(67, 77, 93);
+	background-color: rgb(67, 77, 93);
+}"""
+
+
+styleSheet_Message_Button = """
+QPushButton {
+	border: 2px solid rgb(52, 59, 72);
+	border-radius: 5px;
+	background-color: rgb(52, 59, 72);
+}
+QPushButton:hover {
+	background-color: rgb(57, 65, 79);
+	border: 2px solid rgb(57, 65, 79);
+}
+QPushButton:pressed {	
+	background-color: rgb(67, 77, 93);
+	border: 2px solid rgb(67, 77, 93);
+}"""
+
+styleSheet_Message_Label = """
+QMessageBox QLabel {
+    font-size:16px;
+}
+"""
+
+
 # Global Constants
 
 sdm_astra_bias = 0.0
@@ -336,3 +462,8 @@ sdm_astra_uncertainty = 6.0
 sdm_required_sdm = 6.5
 
 inlet_temperature = 295.8333
+
+_INPUT_TYPE_USER_       = 0
+_INPUT_TYPE_SNAPSHOT_   = 1
+_INPUT_TYPE_FILE_CSV_   = 2
+_INPUT_TYPE_FILE_EXCEL_ = 3

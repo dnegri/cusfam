@@ -75,8 +75,11 @@ class RPCSWidget(CalculationWidget):
         lay.addWidget(unitChartView)
 
         # 03. Insert Table
-        self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","ASI","Boron\n(ppm)","Bank P\n(cm)","Bank 5\n(cm)","Bank 4\n(cm)","Bank 3\n(cm)"]
-        self.RPCS_TableWidget = table01.ShutdownTableWidget(self.ui.frame_RPCS_TableWidget, self.tableItem)
+        self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","ASI",
+                          "Boron\n(ppm)","Bank P\n(cm)","Bank 5\n(cm)","Bank 4\n(cm)","Bank 3\n(cm)"]
+        self.tableItemFormat = ["%.1f","%.2f","%.1f","%.5f","%.3f",
+                                "%.1f","%.1f","%.1f","%.1f","%.1f"]
+        self.RPCS_TableWidget = table01.ShutdownTableWidget(self.ui.frame_RPCS_TableWidget, self.tableItem,self.tableItemFormat)
         self.layoutTableButton = self.RPCS_TableWidget.returnButtonLayout()
         self.ui.gridlayout_RPCS_TableWidget.addWidget(self.RPCS_TableWidget, 0, 0, 1, 1)
         self.ui.gridlayout_RPCS_TableWidget.addLayout(self.layoutTableButton,1,0,1,1)

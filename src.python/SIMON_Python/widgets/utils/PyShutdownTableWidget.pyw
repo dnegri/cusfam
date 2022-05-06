@@ -11,15 +11,17 @@ import Definitions as df
 
 
 class ShutdownTableWidget(unitTable.unitTableWidget):
-    def __init__(self, frame, headerItem, number_input=4, number_output=2, number_rod=4):
-        super().__init__(frame, headerItem, )
+    def __init__(self, frame, headerItem, tableItemFormat, number_input=2, number_output=5, number_rod=4):
+        super().__init__(frame, headerItem )
 
+        self.tableItemFormat = tableItemFormat
         self.number_of_input_elements = number_input
         self.number_of_output_elements = number_output
         self.number_of_rod_output_elements = number_rod
 
         # Initialize Dataset
         self.InputArray = []
+        self.table_array = []
         self.calc_rodPosBox = []
         self.calc_rodPos = []
         self.rodPosChangedHistory = []
@@ -36,18 +38,32 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
         self.SD_tableWidget_button01 = QPushButton(self.frame)
         self.SD_tableWidget_button02 = QPushButton(self.frame)
         self.SD_tableWidget_button03 = QPushButton(self.frame)
+        self.SD_tableWidget_button01.hide()
+        self.SD_tableWidget_button02.hide()
+        self.SD_tableWidget_button03.hide()
+        self.makeButton()
         # self.SD_tableWidget_button03 = QPushButton(self.frame)
 
-        self.makeButton()
+        # self.makeButton()
         self.tableDatasetFlag = False
         self.last_update = 0
         self.columnHeader = headerItem
 
-    def returnButtonLayout(self):
-        return self.tableButtonLayout
+        self.idx_flag = 0
+        self.idx_input = 1
+        self.idx_calc_value = 2
+        self.idx_rod_pos = 3
 
-    def returnTableButton(self):
-        return self.SD_tableWidget_button01, self.SD_tableWidget_button02, self.SD_tableWidget_button03
+        self.idx_flag_input = 0
+        self.idx_flag_calc  = 1
+        self.idx_flag_rod_pos = 2
+
+
+    # def returnButtonLayout(self):
+    #     return self.tableButtonLayout
+    # 
+    # def returnTableButton(self):
+    #     return self.SD_tableWidget_button01, self.SD_tableWidget_button02, self.SD_tableWidget_button03
 
     def makeButton(self):
         # Define horizontalSpacer
@@ -75,8 +91,8 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
         self.SD_tableWidget_button02.setText(QCoreApplication.translate("unitWidget_SD", u"Reset", None))
         self.SD_tableWidget_button03.setText(QCoreApplication.translate("unitWidget_SD", u"Clear Output", None))
 
-    def addInputArray(self, inputArray):
 
+    def insertSnapshotInputArray(self, inputArray):
         self.InputArray = inputArray
         self.calc_rodPos = []
         self.calc_rodPosBox = []
@@ -85,12 +101,8 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
         # Reset TableWidget and, Redefine Row number
         self.setRowCount(0)
         self.setRowCount(nStep)
-
-        self.setTableItemSetting()
-        self.setTableSpinBox()
-
         _translate = QCoreApplication.translate
-        for iStep in range(nStep - 1):
+        for iStep in range(nStep):
             for iRow in range(len(self.InputArray[iStep])):
                 item = QTableWidgetItem()
                 font = QFont()
@@ -99,26 +111,57 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 # font.setWeight(75)
                 item.setFont(font)
                 item.setTextAlignment(Qt.AlignCenter)
-                if (iRow == 0):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 1):
-                    text = "%.2f" % self.InputArray[iStep][iRow]
-                elif (iRow == 2):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 3):
-                    text = "%.5f" % self.InputArray[iStep][iRow]
-                elif (iRow == 4):
-                    text = "%.3f" % self.InputArray[iStep][iRow]
-                elif (iRow == 5):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 6):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 7):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 8):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
-                elif (iRow == 9):
-                    text = "%.1f" % self.InputArray[iStep][iRow]
+                if(iRow==4 or iRow==5):
+                    text = ""
+                else:
+                    text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+
+                item.setText(_translate("Form", text))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                self.setItem(iStep, iRow, item)
+        #self.setRowCount(nStep+1)
+        #
+        # for iRow in range(len(self.InputArray[nStep - 1])):
+        #     item = QTableWidgetItem()
+        #     font = QFont()
+        #     font.setPointSize(11)
+        #     font.setBold(False)
+        #     # font.setWeight(75)
+        #     item.setFont(font)
+        #     item.setTextAlignment(Qt.AlignCenter)
+        #     text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+        #     if (iRow == 0):
+        #         text = "%.3f" % self.InputArray[nStep - 1][iRow]
+        #     item.setText(_translate("Form", text))
+        #     item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        #     self.setItem(nStep - 1, iRow, item)
+
+    def addSnapshotInputArray(self, nSnapshotArray, inputArray):
+
+        self.InputArray = inputArray
+        self.calc_rodPos = []
+        self.calc_rodPosBox = []
+        nStep = len(self.InputArray)
+
+        # Reset TableWidget and, Redefine Row number
+        #self.setRowCount(0)
+        self.setRowCount(nStep)
+
+        self.setTableItemSetting(nSnapshotArray)
+        self.setTableSpinBox(nSnapshotArray)
+
+        _translate = QCoreApplication.translate
+        for iStep in range(nSnapshotArray,nStep - 1):
+            for iRow in range(len(self.InputArray[iStep])):
+                item = QTableWidgetItem()
+                font = QFont()
+                font.setPointSize(11)
+                font.setBold(False)
+                # font.setWeight(75)
+                item.setFont(font)
+                item.setTextAlignment(Qt.AlignCenter)
+                text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+
                 item.setText(_translate("Form", text))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.setItem(iStep, iRow, item)
@@ -131,47 +174,165 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
             # font.setWeight(75)
             item.setFont(font)
             item.setTextAlignment(Qt.AlignCenter)
-            if (iRow == 0):
+            text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+            if(iRow == 0):
                 text = "%.3f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 1):
-                text = "%.2f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 2):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 3):
-                text = "%.5f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 4):
-                text = "%.3f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 5):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 6):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 7):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 8):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
-            elif (iRow == 9):
-                text = "%.1f" % self.InputArray[nStep - 1][iRow]
             item.setText(_translate("Form", text))
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             self.setItem(nStep - 1, iRow, item)
 
-    def setTableItemSetting(self):
+    def add_input_array(self, table_array):
+        self.table_array = table_array
+        # self.calc_rodPos = []
+        # self.calc_rodPosBox = []
+        nStep = len(self.table_array)
+
+        # Reset TableWidget and, Redefine Row number
+        self.setRowCount(0)
+        self.setRowCount(nStep)
+
+        self.set_table_item_setting()
+        self.set_table_spinbox()
+
+        _translate = QCoreApplication.translate
+        for iStep in range(nStep - 1):
+            for iRow in range(self.number_of_input_elements):
+                item = QTableWidgetItem()
+                font = QFont()
+                font.setPointSize(11)
+                font.setBold(False)
+                # font.setWeight(75)
+                item.setFont(font)
+                item.setTextAlignment(Qt.AlignCenter)
+                text = self.tableItemFormat[iRow] % self.table_array[iStep][self.idx_input][iRow]
+
+                item.setText(_translate("Form", text))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                self.setItem(iStep, iRow, item)
+
+        for iRow in range(self.number_of_input_elements):
+            item = QTableWidgetItem()
+            font = QFont()
+            font.setPointSize(11)
+            font.setBold(False)
+            # font.setWeight(75)
+            item.setFont(font)
+            item.setTextAlignment(Qt.AlignCenter)
+            text = self.tableItemFormat[iRow] % self.table_array[iStep+1][self.idx_input][iRow]
+            if(iRow == 0):
+                text = "%.3f" % self.table_array[iStep+1][self.idx_input][iRow]
+            item.setText(_translate("Form", text))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self.setItem(nStep - 1, iRow, item)
+
+    def set_table_item_setting(self):
         nRow = self.rowCount()
         nColumn = self.columnCount()
 
         # Setting TableWidgetItem Interaction
         for iRow in range(nRow):
+            #if(self.input_array[iRow])
+            if(self.table_array[iRow][self.idx_flag][self.idx_flag_rod_pos]==True):
+                columnValue = nColumn - self.number_of_rod_output_elements
+            else:
+                columnValue = nColumn
+            for iColumn in range(columnValue):#- self.number_of_rod_output_elements):
+                tmp = QTableWidgetItem()
+                tmp.setFlags(tmp.flags() ^ Qt.ItemIsEditable)
+                tmp.setTextAlignment(Qt.AlignCenter)
+                self.setItem(iRow, iColumn, tmp)
+
+    def set_table_spinbox(self):
+        nRow = self.rowCount()
+        nColumn = self.columnCount()
+        # Define
+        for iRow in range(nRow):
+            if (self.table_array[iRow][self.idx_flag][self.idx_flag_rod_pos] == True):
+                unitRodPos = []
+                unitData = []
+                for iColumn in range(self.number_of_rod_output_elements):
+                    unitBox = self.makeUnitBox(iRow, iColumn)
+                    # unitBox.hide()
+                    unitBox.setVisible(False)
+                    unitRodPos.append(unitBox)
+                    unitData.append(unitBox.value())
+
+                self.calc_rodPosBox.append(unitRodPos)
+                self.calc_rodPos.append(unitData)
+            else:
+                unitRodPos = [ None, None, None, None]
+                unitData = [ 0.0, 0.0, 0.0, 0.0]
+                self.calc_rodPosBox.append(unitRodPos)
+                self.calc_rodPos.append(unitData)
+
+    def addInputArray(self, inputArray):
+
+        self.InputArray = inputArray
+        self.calc_rodPos = []
+        self.calc_rodPosBox = []
+        nStep = len(self.InputArray)
+
+        # Reset TableWidget and, Redefine Row number
+        self.setRowCount(0)
+        self.setRowCount(nStep)
+
+        self.setTableItemSetting(0)
+        self.setTableSpinBox(0)
+
+        # input_length = len(self.InputArray[0])
+
+        # ydnam limit input array is set to 2
+        input_length = 2
+
+        _translate = QCoreApplication.translate
+        for iStep in range(nStep):
+            for iRow in range(input_length):
+                item = QTableWidgetItem()
+                font = QFont()
+                font.setPointSize(11)
+                font.setBold(False)
+                # font.setWeight(75)
+                item.setFont(font)
+                item.setTextAlignment(Qt.AlignCenter)
+                text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+
+                item.setText(_translate("Form", text))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                self.setItem(iStep, iRow, item)
+        #
+        # for iRow in range(len(self.InputArray[nStep - 1])):
+        #     item = QTableWidgetItem()
+        #     font = QFont()
+        #     font.setPointSize(11)
+        #     font.setBold(False)
+        #     # font.setWeight(75)
+        #     item.setFont(font)
+        #     item.setTextAlignment(Qt.AlignCenter)
+        #     text = self.tableItemFormat[iRow] % self.InputArray[iStep][iRow]
+        #     if (iRow == 0):
+        #         text = "%.3f" % self.InputArray[nStep - 1][iRow]
+        #     item.setText(_translate("Form", text))
+        #     item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        #     self.setItem(nStep - 1, iRow, item)
+
+    def setTableItemSetting(self,nSnapshotArray):
+        nRow = self.rowCount()
+        nColumn = self.columnCount()
+
+        # Setting TableWidgetItem Interaction
+        for iRow in range(nSnapshotArray,nRow):
             for iColumn in range(nColumn - self.number_of_rod_output_elements):
                 tmp = QTableWidgetItem()
                 tmp.setFlags(tmp.flags() ^ Qt.ItemIsEditable)
                 tmp.setTextAlignment(Qt.AlignCenter)
                 self.setItem(iRow, iColumn, tmp)
 
-    def setTableSpinBox(self):
+
+    def setTableSpinBox(self,nSnapshotArray):
         nRow = self.rowCount()
         nColumn = self.columnCount()
         # Define
-        for iRow in range(nRow):
+        for iRow in range(nSnapshotArray,nRow):
             unitRodPos = []
             unitData = []
             for iColumn in range(self.number_of_rod_output_elements):
@@ -217,6 +378,7 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
         doubleSpinBox.setSingleStep(1.000000000000000)
         doubleSpinBox.setStepType(QAbstractSpinBox.DefaultStepType)
         doubleSpinBox.setValue(381.000000000000000)
+        doubleSpinBox.setReadOnly(True)
 
         layout = QHBoxLayout(doubleSpinBoxWidget)
         layout.addWidget(doubleSpinBox)
@@ -423,7 +585,9 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
 
         self.outputFlag = True
         _translate = QCoreApplication.translate
+
         nStep = len(outputArray)
+
         for iStep in range(nStep):
             for iColumn in range(self.number_of_output_elements):
                 item = QTableWidgetItem()
@@ -433,7 +597,10 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 # font.setWeight(75)
                 item.setFont(font)
                 item.setTextAlignment(Qt.AlignCenter)
-                text = "%.3f" % outputArray[iStep][iColumn]
+                if iColumn == 1:
+                    text = "{:.1f}/{:.1f}".format(outputArray[iStep][iColumn], outputArray[iStep][-1])
+                else:
+                    text = "%.3f" % outputArray[iStep][iColumn]
                 item.setText(_translate("Form", text))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.setItem(start_index + iStep, iColumn + self.number_of_input_elements, item)
@@ -480,9 +647,8 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
 
         self.outputFlag = True
         _translate = QCoreApplication.translate
-        nStep = len(self.InputArray)
-
-        for iRow in range(nStep):
+        nStep = len(self.calc_rodPosBox)
+        for iRow in range(start, nStep):
             if len(self.calc_rodPosBox[start + iRow]) == self.number_of_rod_output_elements:
                 for iColumn in range(self.number_of_rod_output_elements):
                     # self.calc_rodPosBox[iRow][iColumn].show()
@@ -498,6 +664,8 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
 
     def checkModified(self):
         for iRow in range(len(self.calc_rodPosBox)):
+            if(self.calc_rodPosBox[iRow][0]==None):
+                continue
             for iColumn in range(len(self.calc_rodPosBox[0])):
                 tmp = round(self.calc_rodPosBox[iRow][iColumn].value(), 2)
                 tmp2 = round(self.calc_rodPos[iRow][iColumn], 2)
@@ -513,3 +681,9 @@ class ShutdownTableWidget(unitTable.unitTableWidget):
                 tmp = round(self.calc_rodPosBox[iRow][iColumn].value(), 2)
                 value_array[-1].append(tmp)
         return value_array
+
+    def returnButtonLayout(self):
+        return self.tableButtonLayout
+
+    def returnTableButton(self):
+        return self.SD_tableWidget_button01, self.SD_tableWidget_button02, self.SD_tableWidget_button03

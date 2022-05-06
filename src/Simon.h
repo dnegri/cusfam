@@ -98,6 +98,7 @@ protected:
 	float* _pow1d;
 	float* _pow2d;
 	float* _pow2da;
+	float* _pow3da;
 
 	float _pload;
 	float _pload0;
@@ -115,6 +116,8 @@ protected:
     float _tin;
 	float _asi;
 	float _fxy;
+	float _fq;
+	float _fr;
 
     bool _feed_tf;
     bool _feed_tm;
@@ -138,6 +141,8 @@ public:
 	__host__ void setRodPosition(const char* rodid, const float& position);
 
 	__host__ virtual void setBurnup(const char* dir_burn, const float& burnup);
+	__host__ virtual void setSMR(const char* dir_burn, const float& burnup);
+	__host__ virtual void saveSMR(const char* dir_burn, const float& burnup);
 	__host__ virtual void setBurnupPoints(const std::vector<double> & burnups);
 	__host__ virtual void initialize(const char* dbfile);
 	__host__ virtual void readTableSet(const char* tsetfile);
@@ -152,10 +157,14 @@ public:
     __host__ virtual void normalize() = 0;
 
     __host__ inline float* power() {return _power;};
+	__host__ inline float& power(const int& l) { return _power[l]; };
+	__host__ inline float& power(const int& l2d, const int& k) { return _power[k*_g->nxy()+l2d]; };
+	__host__ inline float* pow3da() { return _pow3da; };
+	__host__ inline float& pow3da(const int& lka) { return _pow3da[lka]; };
+	__host__ inline float& pow3da(const int& l2da, const int& k) { return _pow3da[k * _g->nxya() + l2da]; };
 	__host__ inline float* pow1d() { return _pow1d; };
 	__host__ inline float* pow2d() { return _pow2d; };
 	__host__ inline float* pow2da() { return _pow2da; };
-	__host__ inline float& power(const int& l) { return _power[l]; };
 	__host__ inline float& pow1d(const int& k) { return _pow1d[k]; };
 	__host__ inline float& pow2d(const int& l2d) { return _pow2d[l2d]; };
 	__host__ inline float& pow2da(const int& l2da) { return _pow2da[l2da]; };
@@ -168,6 +177,8 @@ public:
 	__host__ inline double& eigv() { return _eigv; };
 	__host__ inline double& fnorm() { return _fnorm; };
 	__host__ inline float fxy() { return _fxy; };
+	__host__ inline float fr() { return _fr; };
+	__host__ inline float fq() { return _fq; };
 	__host__ inline float& pload() { return _pload; };
 	__host__ inline const int& nburn() { return _nstep; };
 

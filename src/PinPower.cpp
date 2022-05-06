@@ -1,4 +1,5 @@
 #include "PinPower.h"
+#include "myblas.h"
 
 #define flux(ig, lk)   (flux[(lk)*_g.ng()+ig])
 #define phis(ig, lks)  (phis[(lks)*_g.ng() + ig])
@@ -92,6 +93,9 @@ PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
 
     _pinpowa = new PPR_VAR[g.nz()*g.nxya()*_g.ncellxy()*_g.ncellxy()]{};
     _pinphia = new PPR_VAR[g.ngxyz()*_g.ncellxy()*_g.ncellxy()]{};
+
+    _pow3da = new PPR_VAR[g.nz() * g.nxya()]{};
+    _peaka = new PPR_VAR[g.nz() * g.nxya()]{};
 
 
     _nrest = _g.ncellxy() % _g.ndivxy();
@@ -827,14 +831,57 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
 
 
 }
+void PinPower::printPinPower(int k) {
+    FILE * pFile = fopen("myfile.txt", "w");
 
-void PinPower::calpinpower() {
-	#pragma omp parallel for
-    for (int k = 0; k < _g.nz(); ++k) {
-        for (int la = 0; la < _g.nxya(); ++la) {
-            calpinpower(la,k,_g.larot(la));
+    for (int ja = 0; ja < _g.nya(); ja++)
+    {
+        for (int jpa = 0; jpa < _g.ncellxy(); jpa++)
+        {
+            for (int ia = _g.nxsa(ja); ia < _g.nxea(ja); ia++) {
+                auto la = _g.ijtola(ia, ja);
+                for (int ipa = 0; ipa < _g.ncellxy(); ipa++)
+                {
+                    fprintf(pFile, "%7.4f ", pinpowa(ipa, jpa, la, k));
+                }
+            }
+            fprintf(pFile, "\n");
         }
     }
+
+    fclose(pFile);
+
+}
+void PinPower::calpinpower() {
+
+    #pragma omp parallel for 
+    for (int k = _g.kbc(); k < _g.kec(); ++k) {
+        for (int la = 0; la < _g.nxya(); ++la) {
+            calpinpower(la, k, _g.larot(la));
+
+        }
+    }
+
+    //double psum = 0.0;
+    //int ncell2 = _g.ncellxy() * _g.ncellxy();
+
+    //#pragma omp parallel for reduction(+ : psum)
+    //for (int k = _g.kbc(); k < _g.kec(); ++k) {
+    //    for (int la = 0; la < _g.nxya(); ++la) {
+    //        calpinpower(la,k,_g.larot(la));
+    //        double psum1 = accumulate(&pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k) + ncell2, 0.0);
+    //        psum += psum1;
+    //    }
+    //}
+
+    //double fac = _g.ncellfa() * _g.nxyfa() * (_g.kec() - _g.kbc()) / psum;
+
+    //#pragma omp parallel for 
+    //for (int k = _g.kbc(); k < _g.kec(); ++k) {
+    //    for (int la = 0; la < _g.nxya(); ++la) {
+    //        myblas::multi(ncell2, fac, &pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k));
+    //    }
+    //}
 }
 
 extern "C" {
@@ -843,7 +890,8 @@ extern "C" {
 
 void PinPower::applyFF(void* ff_ptr, float* burn) {
 	
-#pragma omp parallel for
+    double psum = 0.0;
+#pragma omp parallel for reduction(+: psum)
 	for (int k = _g.kbc(); k < _g.kec(); ++k) {
 		for (int la = 0; la < _g.nxya(); ++la) {
 			if (_x.xskf(0, k*_g.nxy() + _g.latol(0, la)) == 0.0) continue;
@@ -878,7 +926,8 @@ void PinPower::applyFF(void* ff_ptr, float* burn) {
 			{
 				for (int ip = 0; ip < _g.ncellxy(); ip++)
 				{
-					pinpowa(ip, jp, la, k) *= hffa[jp*_g.ncellxy() + ip];
+					pinpowa(ip, jp, la, k) *= hffa[jp*_g.ncellxy() + ip] ;
+                    psum += pinpowa(ip, jp, la, k) * _g.hz(k);
 				}
 			}
 
@@ -886,22 +935,38 @@ void PinPower::applyFF(void* ff_ptr, float* burn) {
 			delete[] hff;
 		}
 	}
+
+    double fac = _g.ncellfa() * _g.nxyfa() * _g.hzcore() / psum;
+    int ncell2 = _g.ncellxy() * _g.ncellxy();
+
+    #pragma omp parallel for 
+    for (int k = _g.kbc(); k < _g.kec(); ++k) {
+        for (int la = 0; la < _g.nxya(); ++la) {
+            myblas::multi(ncell2, fac, &pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k));
+            pow3da(la, k) = accumulate(&pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k) + ncell2, 0.0);
+            if (pow3da(la, k) == 0.0) continue;
+            auto pck = *max_element(&pinpowa(0, 0, la, k), &pinpowa(0, 0, la, k) + ncell2);
+            peaka(la, k) = pck / pow3da(la, k);
+        }
+    }
+
 }
 
 double PinPower::getFxy()
 {
 	double * fxy_plane = new double[_g.nz()]{};
+    double* psum = new double[_g.nz()]{};
 
 #pragma omp parallel for
 	for (int k =_g.kbc(); k < _g.kec(); k++)
 	{
 		fxy_plane[k] = *max_element(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k)+_ncell_plane);
-		double psum = accumulate(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k) + _ncell_plane, 0.0);
-		fxy_plane[k] = fxy_plane[k] / psum * _g.ncellfa() * _g.nxyfa();
+		psum[k] = accumulate(&pinpowa(0, 0, 0, k), &pinpowa(0, 0, 0, k) + _ncell_plane, 0.0);
+		fxy_plane[k] = fxy_plane[k] / psum[k] * _g.ncellfa() * _g.nxyfa();
 	}
 
 	
-	auto fxy = *max_element(fxy_plane, fxy_plane + _g.nz());
+	auto fxy = *max_element(&fxy_plane[fxyb()], &fxy_plane[fxyt()]);
 
 	delete[] fxy_plane;
 
@@ -936,10 +1001,10 @@ double PinPower::getFq()
 
 double PinPower::getFr()
 {
-	double * fr_fa = new double[_g.nxya()];
-	double * p2dfa = new double[_g.ncellxy()*_g.ncellxy()*_g.nxya()];
+    double* fr_fa = new double[_g.nxya()]{};
+    double* p2dfa = new double[_g.ncellxy() * _g.ncellxy() * _g.nxya()]{};
 	#pragma omp parallel for
-	for (int la = 1; la < _g.nxya(); la++)
+	for (int la = 0; la < _g.nxya(); la++)
 	{
 		for (int k = _g.kbc(); k < _g.kec(); k++)
 		{
@@ -961,6 +1026,8 @@ double PinPower::getFr()
 
 	delete[] fr_fa;
 	delete[] p2dfa;
+
+    return fr;
 
 }
 

@@ -4,9 +4,9 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
+a = Analysis(['main.pyw'],
              pathex=['C:\\Users\\geonho\\Documents\\SVN\\SIMON\\SIMON_CODE_v3\\src.python\\SIMON_Python'],
-             binaries=[('cusfam.pyd', '.'), ('cusfamf.lib', '.'), ('sfam.parallel.lib', '.')],
+             binaries=[],
              datas=[],
              hiddenimports=[],
              hookspath=[],

@@ -5,7 +5,9 @@
 extern "C" {
 
 	void readConstantF(const int& n, float* data);
+	void writeConstantF(const int& n, float* data);
 	void readConstantD(const int& n, double* data);
+	void writeConstantD(const int& n, double* data);
 	void readConstantI(const int& n, int* data);
 	void readString(const int& n, const int& length, char** strings);
 
@@ -20,7 +22,9 @@ extern "C" {
 	void* readFormFunction(int* length, const char* file, const int* nhff, char** hffnames);
 	void readComposition(const int* nxy, const int*nz, int* ncomp, char** names, int* comps);
 	void readDensity(const int& niso, const int& nxyz, float* dnst);
+	void writeDensity(const int& niso, const int& nxyz, float* dnst);
 	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
+	void writeStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
 
 	//void readBoundary(int* symopt, int* symang, float* albedo);
 	//void readNXNY(const int* nx, const int* ny, float* val);
@@ -217,6 +221,7 @@ void Simon::initialize(const char* dbfile) {
 	_pow1d = new float[_g->nz()]{};
 	_pow2d = new float[_g->nxy()]{};
 	_pow2da = new float[_g->nxya()]{};
+	_pow3da = new float[_g->nz()*_g->nxya()]{};
 
 	_flux = new SOL_VAR[_g->ngxyz()]{};
 	_jnet = new SOL_VAR[_g->nsurf() * _g->ng()]{};
@@ -228,7 +233,7 @@ void Simon::initialize(const char* dbfile) {
 	delete[] nxe;
 	delete[] nys;
 	delete[] nye;
-	delete[] ijtol;
+	delete[] ijtol; 
 	delete[] neibr;
 	delete[] hmesh;
 }
@@ -295,6 +300,10 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 	for (; i < _nstep; ++i) {
 		if (burnup - 10.0 < _bucyc[i]) break;
 	}
+	
+	if (i >= _nstep) {
+		i = _nstep - 1;
+	}
 
 	char dbfile[512];
 
@@ -328,13 +337,14 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 
 	//float data[100];
 	//readConstantF(3, data);
-	//_press = data[0];
+	//_press = data[0];::
 	//_tin = data[1];
 	//_ppm = data[2];
 
 	//readNXYZ(&(_g->nxyz()), &(_f->tf(0)));
 	//readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
 	//readNXYZ(&(_g->nxyz()), &(_f->dm(0)));
+
 
 	//_f->updatePressure(_press);
 	//_f->updateTin(_tin);
@@ -385,6 +395,75 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 	printf("Finished reading burn file : %s\n", dbfile);
 
 	_f->updatePressure(155.13);
+
+}
+
+
+void Simon::setSMR(const char* dir_burn, const float& burnup) {
+
+	char dbfile[512];
+
+	int intbu = round(burnup);
+	sprintf(dbfile, "%s.%05d.SSMR", dir_burn, intbu);
+	printf("Started reading burn file : %s\n", dbfile);
+
+	int length = strlen(dbfile);
+	opendb(&length, dbfile);
+
+	float bucyc, buavg, efpd;
+	readStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
+
+	_reigv = 1. / _eigv;
+
+
+	readDensity(NISO, _g->nxyz(), _d->dnst());
+
+	readConstantF(_g->nxyz(), _d->burn());
+	readConstantF(_g->nxyz(), _power);
+
+	double* temp = new double[_g->ngxyz()];
+	readConstantD(_g->ngxyz(), temp);
+	std::copy_n(temp, _g->ngxyz(), _flux);
+	delete[] temp;
+
+	closedb();
+	printf("Finished reading burn file : %s\n", dbfile);
+
+	_f->updatePressure(155.13);
+
+}
+
+void Simon::saveSMR(const char* dir_burn, const float& burnup) {
+
+	int i = 0;
+	for (; i < _nstep; ++i) {
+		if (burnup - 10.0 < _bucyc[i]) break;
+	}
+
+	char dbfile[512];
+
+	int intbu = round(_bucyc[i]);
+	sprintf(dbfile, "%s.%05d.SSMR", dir_burn, intbu);
+	printf("Started saving burn file : %s\n", dbfile);
+
+	int length = strlen(dbfile);
+	opendb(&length, dbfile);
+
+	float bucyc, buavg, efpd;
+	writeStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
+	   
+	writeDensity(NISO, _g->nxyz(), _d->dnst());
+	
+	writeConstantF(_g->nxyz(), _d->burn());
+	writeConstantF(_g->nxyz(), _power);
+
+	double* temp = new double[_g->ngxyz()];
+	writeConstantD(_g->ngxyz(), temp);
+	std::copy_n(temp, _g->ngxyz(), _flux);
+	delete[] temp;
+
+	closedb();
+	printf("Finished saving burn file : %s\n", dbfile);
 
 }
 
@@ -471,6 +550,23 @@ void Simon::generateResults()
 	{
 		pow2da(l2da) = pow2da(l2da) / _pload / _g->vola(l2da) * volcore / hzcore * _g->hmesh(ZDIR, 0);
 	}
+	std::fill(pow3da(), pow3da() + _g->nxya()* _g->nz(), 0.0);
+	for (int k = _g->kbc(); k < _g->kec(); k++)
+	{
+		for (int l2d = 0; l2d < _g->nxy(); l2d++)
+		{
+			auto l2da = _g->ltola(l2d);
+			pow3da(l2da, k) += power(l2d, k);
+		}
+
+		for (int l2da = 0; l2da < _g->nxya(); l2da++)
+		{
+			auto lka = k * _g->nxya() + l2da;
+			pow3da(l2da, k) = pow3da(l2da, k) / _g->vola(lka) / _pload * volcore;
+		}
+
+	}
+
 
 
 	l = 0;

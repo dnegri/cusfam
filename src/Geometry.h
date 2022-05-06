@@ -100,12 +100,12 @@ protected:
 	GEOM_VAR* _albedo;
 
 	GEOM_VAR* _hmesh;
+	GEOM_VAR* _hz;
 	GEOM_VAR* _vol;
 	GEOM_VAR* _vola;
 
 	GEOM_VAR _part;
 	GEOM_VAR _hzcore;
-
 
 public:
 	Geometry();
@@ -186,6 +186,8 @@ public:
 	inline int& lktosfc(const int& lr, const int& idir, const int& lk) { return _lktosfc[(lk * NDIRMAX + idir) * LR + lr]; };
 
 	inline const int& nxya() const { return _nxya; };
+	inline const int& nya() const { return _nya; };
+	inline const int& nxa() const { return _nxa; };
 	inline int& nxsa(const int& ja) { return _nxsa[ja]; };
 	inline int& nxea(const int& ja) { return _nxea[ja]; };
 	inline int& nysa(const int& ia) { return _nysa[ia]; };
@@ -207,6 +209,7 @@ public:
 	char** hffnames() { return (char**)_hffnames; };
 
 	inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+	inline GEOM_VAR& hz(const int& k) { return _hz[k]; };
 	inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };
 	inline GEOM_VAR& vola(const int& lka) { return _vola[lka]; };
 	inline GEOM_VAR& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };

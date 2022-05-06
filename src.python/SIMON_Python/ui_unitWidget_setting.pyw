@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'unitWidget_setting.ui'
+# Form implementation generated from reading ui file 'unitWidget_setting_rev03.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -229,8 +229,6 @@ class Ui_Form(object):
         self.gridLayout = QtWidgets.QGridLayout(self.frame_main_5)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        spacerItem = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.gridLayout.addItem(spacerItem, 0, 0, 1, 1)
         self.working_directory_frame_2 = QtWidgets.QFrame(self.frame_main_5)
         self.working_directory_frame_2.setMinimumSize(QtCore.QSize(0, 110))
         self.working_directory_frame_2.setMaximumSize(QtCore.QSize(16777215, 110))
@@ -348,7 +346,68 @@ class Ui_Form(object):
         self.gridLayout_4.addWidget(self.plant_button, 0, 2, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout_4, 0, 0, 1, 1)
         self.verticalLayout_14.addWidget(self.frame_content_wid_3)
-        self.gridLayout.addWidget(self.working_directory_frame_2, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.working_directory_frame_2, 3, 0, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem, 8, 0, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.gridLayout.addItem(spacerItem1, 0, 0, 1, 1)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.gridLayout.addItem(spacerItem2, 5, 0, 1, 1)
+        self.working_directory_frame_4 = QtWidgets.QFrame(self.frame_main_5)
+        self.working_directory_frame_4.setMinimumSize(QtCore.QSize(0, 20))
+        self.working_directory_frame_4.setMaximumSize(QtCore.QSize(16777215, 110))
+        self.working_directory_frame_4.setStyleSheet("background-color: rgb(41, 45, 56);\n"
+"border-radius: 5px;\n"
+"")
+        self.working_directory_frame_4.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.working_directory_frame_4.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.working_directory_frame_4.setObjectName("working_directory_frame_4")
+        self.verticalLayout_15 = QtWidgets.QVBoxLayout(self.working_directory_frame_4)
+        self.verticalLayout_15.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_15.setSpacing(0)
+        self.verticalLayout_15.setObjectName("verticalLayout_15")
+        self.frame_content_wid_5 = QtWidgets.QFrame(self.working_directory_frame_4)
+        self.frame_content_wid_5.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_content_wid_5.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_content_wid_5.setObjectName("frame_content_wid_5")
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.frame_content_wid_5)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.gridLayout_6 = QtWidgets.QGridLayout()
+        self.gridLayout_6.setContentsMargins(-1, -1, -1, 0)
+        self.gridLayout_6.setObjectName("gridLayout_6")
+        self.refreshButton = QtWidgets.QPushButton(self.frame_content_wid_5)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.refreshButton.sizePolicy().hasHeightForWidth())
+        self.refreshButton.setSizePolicy(sizePolicy)
+        self.refreshButton.setMinimumSize(QtCore.QSize(150, 30))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(9)
+        self.refreshButton.setFont(font)
+        self.refreshButton.setStyleSheet("QPushButton {\n"
+"    border: 2px solid rgb(52, 59, 72);\n"
+"    border-radius: 5px;    \n"
+"    background-color: rgb(52, 59, 72);\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: rgb(57, 65, 80);\n"
+"    border: 2px solid rgb(61, 70, 86);\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(35, 40, 49);\n"
+"    border: 2px solid rgb(43, 50, 61);\n"
+"}")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("../../Documents/SVN/SIMON/SIMON_CODE_v3/src.python/SIMON_Python/icons/24x24/cil-folder-open.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.refreshButton.setIcon(icon1)
+        self.refreshButton.setIconSize(QtCore.QSize(24, 24))
+        self.refreshButton.setObjectName("refreshButton")
+        self.gridLayout_6.addWidget(self.refreshButton, 0, 0, 1, 1)
+        self.gridLayout_3.addLayout(self.gridLayout_6, 0, 0, 1, 1)
+        self.verticalLayout_15.addWidget(self.frame_content_wid_5)
+        self.gridLayout.addWidget(self.working_directory_frame_4, 1, 0, 1, 1)
         self.working_directory_frame_3 = QtWidgets.QFrame(self.frame_main_5)
         self.working_directory_frame_3.setMinimumSize(QtCore.QSize(0, 110))
         self.working_directory_frame_3.setMaximumSize(QtCore.QSize(16777215, 110))
@@ -464,14 +523,77 @@ class Ui_Form(object):
         self.gridLayout_5.addWidget(self.restart_dropdown, 0, 1, 1, 1)
         self.gridLayout_8.addLayout(self.gridLayout_5, 0, 0, 1, 1)
         self.verticalLayout_17.addWidget(self.frame_content_wid_4)
-        self.gridLayout.addWidget(self.working_directory_frame_3, 5, 0, 1, 1)
-        self.refreshButton = QtWidgets.QPushButton(self.frame_main_5)
-        self.refreshButton.setMinimumSize(QtCore.QSize(150, 30))
+        self.gridLayout.addWidget(self.working_directory_frame_3, 6, 0, 1, 1)
+        self.working_directory_frame_5 = QtWidgets.QFrame(self.frame_main_5)
+        self.working_directory_frame_5.setMinimumSize(QtCore.QSize(0, 110))
+        self.working_directory_frame_5.setMaximumSize(QtCore.QSize(16777215, 110))
+        self.working_directory_frame_5.setStyleSheet("background-color: rgb(41, 45, 56);\n"
+"border-radius: 5px;\n"
+"")
+        self.working_directory_frame_5.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.working_directory_frame_5.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.working_directory_frame_5.setObjectName("working_directory_frame_5")
+        self.verticalLayout_19 = QtWidgets.QVBoxLayout(self.working_directory_frame_5)
+        self.verticalLayout_19.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_19.setSpacing(0)
+        self.verticalLayout_19.setObjectName("verticalLayout_19")
+        self.frame_title_wid_5 = QtWidgets.QFrame(self.working_directory_frame_5)
+        self.frame_title_wid_5.setMaximumSize(QtCore.QSize(16777215, 35))
+        self.frame_title_wid_5.setStyleSheet("background-color: rgb(39, 44, 54);")
+        self.frame_title_wid_5.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_title_wid_5.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_title_wid_5.setObjectName("frame_title_wid_5")
+        self.verticalLayout_20 = QtWidgets.QVBoxLayout(self.frame_title_wid_5)
+        self.verticalLayout_20.setObjectName("verticalLayout_20")
+        self.labelBoxBlenderInstalation_5 = QtWidgets.QLabel(self.frame_title_wid_5)
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelBoxBlenderInstalation_5.setFont(font)
+        self.labelBoxBlenderInstalation_5.setStyleSheet("")
+        self.labelBoxBlenderInstalation_5.setObjectName("labelBoxBlenderInstalation_5")
+        self.verticalLayout_20.addWidget(self.labelBoxBlenderInstalation_5)
+        self.verticalLayout_19.addWidget(self.frame_title_wid_5)
+        self.frame_content_wid_6 = QtWidgets.QFrame(self.working_directory_frame_5)
+        self.frame_content_wid_6.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_content_wid_6.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_content_wid_6.setObjectName("frame_content_wid_6")
+        self.gridLayout_9 = QtWidgets.QGridLayout(self.frame_content_wid_6)
+        self.gridLayout_9.setObjectName("gridLayout_9")
+        self.gridLayout_10 = QtWidgets.QGridLayout()
+        self.gridLayout_10.setContentsMargins(-1, -1, -1, 0)
+        self.gridLayout_10.setObjectName("gridLayout_10")
+        self.cecor_output_edit = QtWidgets.QLineEdit(self.frame_content_wid_6)
+        self.cecor_output_edit.setMinimumSize(QtCore.QSize(0, 30))
+        self.cecor_output_edit.setStyleSheet("QLineEdit {\n"
+"    background-color: rgb(27, 29, 35);\n"
+"    border-radius: 5px;\n"
+"    border: 2px solid rgb(27, 29, 35);\n"
+"    padding-left: 10px;\n"
+"}\n"
+"QLineEdit:hover {\n"
+"    border: 2px solid rgb(64, 71, 88);\n"
+"}\n"
+"QLineEdit:focus {\n"
+"    border: 2px solid rgb(91, 101, 124);\n"
+"}")
+        self.cecor_output_edit.setObjectName("cecor_output_edit")
+        self.gridLayout_10.addWidget(self.cecor_output_edit, 0, 0, 1, 1)
+        self.cecor_output_label = QtWidgets.QLabel(self.frame_content_wid_6)
+        self.cecor_output_label.setStyleSheet("color: rgb(98, 103, 111);")
+        self.cecor_output_label.setLineWidth(1)
+        self.cecor_output_label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.cecor_output_label.setObjectName("cecor_output_label")
+        self.gridLayout_10.addWidget(self.cecor_output_label, 1, 0, 1, 3)
+        self.cecor_output_button = QtWidgets.QPushButton(self.frame_content_wid_6)
+        self.cecor_output_button.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
         font.setPointSize(9)
-        self.refreshButton.setFont(font)
-        self.refreshButton.setStyleSheet("QPushButton {\n"
+        self.cecor_output_button.setFont(font)
+        self.cecor_output_button.setStyleSheet("QPushButton {\n"
 "    border: 2px solid rgb(52, 59, 72);\n"
 "    border-radius: 5px;    \n"
 "    background-color: rgb(52, 59, 72);\n"
@@ -484,13 +606,34 @@ class Ui_Form(object):
 "    background-color: rgb(35, 40, 49);\n"
 "    border: 2px solid rgb(43, 50, 61);\n"
 "}")
-        self.refreshButton.setIcon(icon)
-        self.refreshButton.setObjectName("refreshButton")
-        self.gridLayout.addWidget(self.refreshButton, 1, 0, 1, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.gridLayout.addItem(spacerItem1, 4, 0, 1, 1)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem2, 6, 0, 1, 1)
+        self.cecor_output_button.setIcon(icon)
+        self.cecor_output_button.setObjectName("cecor_output_button")
+        self.gridLayout_10.addWidget(self.cecor_output_button, 0, 2, 1, 1)
+        self.cecor_check_files_button = QtWidgets.QPushButton(self.frame_content_wid_6)
+        self.cecor_check_files_button.setMinimumSize(QtCore.QSize(150, 30))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(9)
+        self.cecor_check_files_button.setFont(font)
+        self.cecor_check_files_button.setStyleSheet("QPushButton {\n"
+"    border: 2px solid rgb(52, 59, 72);\n"
+"    border-radius: 5px;    \n"
+"    background-color: rgb(52, 59, 72);\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: rgb(57, 65, 80);\n"
+"    border: 2px solid rgb(61, 70, 86);\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(35, 40, 49);\n"
+"    border: 2px solid rgb(43, 50, 61);\n"
+"}")
+        self.cecor_check_files_button.setIcon(icon)
+        self.cecor_check_files_button.setObjectName("cecor_check_files_button")
+        self.gridLayout_10.addWidget(self.cecor_check_files_button, 0, 1, 1, 1)
+        self.gridLayout_9.addLayout(self.gridLayout_10, 0, 0, 1, 1)
+        self.verticalLayout_19.addWidget(self.frame_content_wid_6)
+        self.gridLayout.addWidget(self.working_directory_frame_5, 7, 0, 1, 1)
         self.gridLayout_7.addWidget(self.frame_main_5, 0, 0, 1, 1)
 
         self.retranslateUi(Form)
@@ -504,10 +647,14 @@ class Ui_Form(object):
         self.plant_edit.setPlaceholderText(_translate("Form", "Unable to find a directory"))
         self.plant_dropdown.setItemText(0, _translate("Form", "None"))
         self.plant_button.setText(_translate("Form", "Open"))
+        self.refreshButton.setText(_translate("Form", "Refresh"))
         self.labelBoxBlenderInstalation_4.setText(_translate("Form", "CYCLE FILE DIRECTORY"))
         self.restart_button.setText(_translate("Form", "Open"))
         self.restart_edit.setPlaceholderText(_translate("Form", "Unable to find a directory"))
         self.restart_label.setText(_translate("Form", "Select a folder that contains all your restart files"))
         self.restart_dropdown.setItemText(0, _translate("Form", "None"))
-        self.refreshButton.setText(_translate("Form", "Refresh"))
-import files_rc
+        self.labelBoxBlenderInstalation_5.setText(_translate("Form", "CECOR OUTPUT FILE DIRECTORY"))
+        self.cecor_output_edit.setPlaceholderText(_translate("Form", "Unable to find a directory"))
+        self.cecor_output_label.setText(_translate("Form", "Select a folder that contains all your CECOR output files"))
+        self.cecor_output_button.setText(_translate("Form", "Open"))
+        self.cecor_check_files_button.setText(_translate("Form", "Check Files"))

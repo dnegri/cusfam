@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import Definitions as df
 
 class Ui_SplashScreen(object):
     def setupUi(self, SplashScreen):

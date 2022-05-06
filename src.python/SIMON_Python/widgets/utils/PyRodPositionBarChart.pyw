@@ -8,6 +8,7 @@ import matplotlib.gridspec as gs
 from matplotlib.ticker import FuncFormatter
 import matplotlib.ticker as ticker
 
+
 class AxialWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -77,6 +78,8 @@ class AxialWidget(QWidget):
         self.init_graph()
 
         self.drawBar()
+        cursor = Qt.Cross
+
 
     def setChartSize(self,width,height):
         self.canvas.setFixedSize(width,760)

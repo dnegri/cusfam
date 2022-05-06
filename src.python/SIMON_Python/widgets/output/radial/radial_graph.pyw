@@ -127,6 +127,7 @@ class RadialWidget(QWidget):
         _translate = QCoreApplication.translate
         xID = df.OPR1000_xPos_Quart
         yID = df.OPR1000_yPos_Quart
+
         for yPos in range(len(yID)):
             for xPos in range(len(xID)):
                 if(df.OPR1000MAP_RADIAL_QUART[xPos][yPos]==True):
@@ -148,19 +149,47 @@ class RadialWidget(QWidget):
                     #buttonCore.setFlat(False)
                     buttonCore.setObjectName(bName)
                     buttonCore.setStyle(QStyleFactory.create("Windows"))
-                    # if xPos == 0 and yPos == 0:
-                    #     gridLayout.addWidget(buttonCore, yPos + 1, xPos + 1, 2, 2)
-                    # else:
-                    gridLayout.addWidget(buttonCore, yPos+1, xPos+1, 1, 1)
+                    buttonCore.setDisabled(True)
+                    if xPos == 7 and yPos == 7:
+                        # buttonCore.setText("Avg.Power \nFxy   \nFq   \nFr")
+                        buttonCore.setText("Power \nFxy")
+                        gridLayout.addWidget(buttonCore, yPos + 1, xPos + 1, 1, 1)
+                        self.bClassRCS[xPos][yPos] = buttonCore
+                        buttonCore.setStyleSheet( "background-color: #272c36;"
+                                                  "border-radius = 0px;"
+                                                  "color: white;"
+                                                  "padding: 5px;"
+                                                  "border:1px solid rgb(150,150,150);"
+                                                  "Text-align:right;")
+                    else:
+                        # style_sheet = "background-color: rgb({},{},{});"\
+                        # "border-radius: 0px;"\
+                        # "border-width: 0.5px;"\
+                        # "border-style: solid;"\
+                        # "color: white;".\
+                        #     format(df.rgbSet[-3][0],
+                        #        df.rgbSet[-3][1],
+                        #        df.rgbSet[-3][2])
+                        style_sheet = "background-color: #272c36;" \
+                                      "border-radius: 0px;" \
+                                      "border-width: 0.5px;" \
+                                      "border-style: solid;" \
+                                      "color: white;"
+                        if xPos == 0 and yPos == 0:
+                            style_sheet += "border-color: rgb(150,150,150);"
+                        elif xPos == 0:
+                            style_sheet += "border-color: rgb({},{},{}) rgb(150,150,150) rgb(150,150,150) rgb(150,150,150);".format(
+                                df.rgbSet[-3][0], df.rgbSet[-3][1], df.rgbSet[-3][2])
+                        elif yPos == 0:
+                            style_sheet += "border-color: rgb(150,150,150) rgb(150,150,150) rgb(150,150,150) rgb({},{},{});".format(
+                                df.rgbSet[-3][0], df.rgbSet[-3][1], df.rgbSet[-3][2])
+                        else:
+                            style_sheet += "border-color: rgb({},{},{}) rgb(150,150,150) rgb(150,150,150) rgb({},{},{});".format(
+                                df.rgbSet[-3][0], df.rgbSet[-3][1], df.rgbSet[-3][2], df.rgbSet[-3][0], df.rgbSet[-3][1], df.rgbSet[-3][1])
 
-                    self.bClassRCS[xPos][yPos] = buttonCore
-                    colorR = int(df.rgbDummy[0], 16)
-                    colorG = int(df.rgbDummy[1], 16)
-                    colorB = int(df.rgbDummy[2], 16)
-
-                    buttonCore.setStyleSheet( "background-color: rgb({},{},{});border-radius = 0px;color: white;".format(df.rgbSet[-3][0],
-                                                                                                   df.rgbSet[-3][1],
-                                                                                                   df.rgbSet[-3][2]))
+                        gridLayout.addWidget(buttonCore, yPos+1, xPos+1, 1, 1)
+                        self.bClassRCS[xPos][yPos] = buttonCore
+                        buttonCore.setStyleSheet(style_sheet)
 
 
     @staticmethod
@@ -355,6 +384,8 @@ class RadialWidget(QWidget):
         # print(average_value)
         for xPos in range(len(df.OPR1000_xPos_Quart)):
             for yPos in range(len(df.OPR1000_yPos_Quart)):
+                if xPos == 7 and yPos == 7:
+                    continue
                 r, g, b = self.colormap(data[xPos, yPos], min_value, max_value)
                 #
                 # if (self.data[xPos, yPos] >= 1.000):
@@ -369,11 +400,29 @@ class RadialWidget(QWidget):
                     r_t, g_t, b_t = (0, 0, 0)
                 if df.OPR1000MAP_RADIAL_QUART[xPos][yPos]:
                     #print(r, g, b)
-                    self.bClassRCS[xPos][yPos].setStyleSheet(
-                        "background-color: rgb({},{},{});border-radius = 0px;color: rgb({},{},{});".format(
-                            int(r*255), int(g*255), int(b*255)
-                            ,r_t, g_t, b_t))
-                    self.bClassRCS[xPos][yPos].setText("{:.3f}".format(data[xPos, yPos]))
+                    style_sheet = "background-color: rgb({},{},{});"\
+                                    "border-radius: 0px;"\
+                                    "border-width: 0.5px;"\
+                                    "border-style: solid;"\
+                                    "color: rgb({},{},{});".format(
+                                        int(r * 255), int(g * 255), int(b * 255)
+                                        , r_t, g_t, b_t)
+
+                    if xPos == 0 and yPos == 0:
+                        style_sheet += "border-color: rgb(150,150,150);"
+                    elif xPos == 0:
+                        style_sheet += "border-color: rgb({},{},{}) rgb(150,150,150) rgb(150,150,150) rgb(150,150,150);".format(
+                                        int(r * 255), int(g * 255), int(b * 255))
+                    elif yPos == 0:
+                        style_sheet += "border-color: rgb(150,150,150) rgb(150,150,150) rgb(150,150,150) rgb({},{},{});".format(
+                                        int(r * 255), int(g * 255), int(b * 255))
+                    else:
+                        style_sheet += "border-color: rgb({},{},{}) rgb(150,150,150) rgb(150,150,150) rgb({},{},{});".format(
+                                        int(r * 255), int(g * 255), int(b * 255), int(r * 255), int(g * 255), int(b * 255))
+
+                    self.bClassRCS[xPos][yPos].setStyleSheet(style_sheet)
+                    self.bClassRCS[xPos][yPos].setText("{:.3f}\n{:.3f}".format(data[xPos, yPos], data[xPos, yPos]))
+
     def slotPB_fdh(self):
         self.data[:, :] = [
             [0.000, 0.000, 0.000, 0.000, 0.000, 0.365, 0.409, 0.392, 0.412, 0.363, 0.000, 0.000, 0.000, 0.000, 0.000],
@@ -397,6 +446,7 @@ class RadialWidget(QWidget):
         #print("clicked~~~!!!!")
 
     def slot_astra_data(self, data):
+        data = np.array(data)
         self.data[:, :] = data[-9:-1, -9:-1]
         self.drawGraphB(self.data)
 

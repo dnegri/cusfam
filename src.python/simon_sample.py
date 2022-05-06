@@ -11,21 +11,22 @@ def sample_static(s, std_option) :
 def sample_deplete(s, std_option) :
 
     burn_del = 1000.0
-    burn_end = 13650
+    burn_end = 1000.0
     burn_step = int(burn_end / burn_del)
-
-    result = SimonResult()
+    
+    result = SimonResult(s.g.nxya, s.g.nz)
 
     start = time.time()
     for i in range(burn_step) :
         s.calculateStatic(std_option)
         s.getResult(result)
+        s.calculatePinPower()
         print("STEP : ", i, " -> PPM : ", result.ppm)
         s.deplete(XE_EQ, SM_TR, burn_del)
 
     end = time.time()
     print(end - start)
-    print("END")
+    print("END DEP")
 
 def sample_dynxe(s, std_option) :
     std_option.plevel = 0.9
@@ -76,9 +77,19 @@ if __name__ == "__main__":
     #"../run/KMYGN34C01_PLUS7_XSE.XS",
     #"D:/work/corefollow/ygn3/c01/depl/rst/Y301ASBDEP");
     
-    s = Simon("../run/ygn3/Y312ASBDEP.SMG", "../run/ygn3/KMYGN34C01_PLUS7_XSE.XS", "../run/ygn3/KMYGN34C01_PLUS7_XSE.FF", "../run/ygn3/Y312ASBDEP")
+    #s = Simon("D:/codes/cusfam/main/run/ucn6/c12/UCN612ASBDEP.SMG", 
+    #          "D:/codes/cusfam/main/run/ucn6/db/UCN6_OPR1000_rev1.XS", 
+    #          "D:/codes/cusfam/main/run/ucn6/db/UCN6_OPR1000_rev1.FF", 
+    #          "D:/codes/cusfam/main/run/ucn6/c12/UCN612ASBDEP")
+
+    s = Simon("D:/codes/cusfam/main/run/ygn3/Y312ASBDEP.SMG", 
+              "D:/codes/cusfam/main/run/ygn3/KMYGN34C01_PLUS7_XSE.XS", 
+              "D:/codes/cusfam/main/run/ygn3/KMYGN34C01_PLUS7_XSE.FF", 
+              "D:/codes/cusfam/main/run/ygn3/Y312ASBDEP")
+
     #s = Simon("D:/work/corefollow/ygn3/c01/depl/rst/Y301ASBDEP.FCE.SMG", "../run/KMYGN34C01_PLUS7_XSE.XS", "D:/work/corefollow/ygn3/c01/depl/rst/Y301ASBDEP.FCE")
-    bp = [0.0, 50.0, 150.0, 500.0, 1000.0, 2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0, 8000.0, 9000.0, 10000.0, 11000.0, 12000.0, 13000.0, 14000.0, 15000.0, 16000.0]
+    bp = [0.0, 50.0, 150.0, 500.0, 1000.0,
+         2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0, 8000.0, 9000.0, 10000.0, 11000.0, 12000.0, 13000.0, 14000.0, 15000.0, 16000.0]
     s.setBurnupPoints(bp)
 
     std_option = SteadyOption()
@@ -89,18 +100,23 @@ if __name__ == "__main__":
     std_option.xenon = XE_EQ
     std_option.tin = 292.22
     std_option.eigvt = 1.0
-    std_option.ppm = 1286.4
+    std_option.ppm = 800
     std_option.plevel = 1.0
     std_option.epsiter = 1.0E-4
 
     result = SimonResult(s.g.nxya, s.g.nz)
 
-    s.setBurnup(10000.0)
+    #std_option.xenon = XE_TR
+
+    s.setBurnup(0.0)
+    sample_deplete(s, std_option)
+    
+    std_option.xenon = XE_EQ
     s.setRodPosition(['R', 'B', 'A', 'P'], [0, ] * 4, s.g.core_height)
     s.calculateStatic(std_option)
     s.calculatePinPower()
     s.getResult(result)
-    print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f}")
+    print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f},  Fxy : {result.fxy:.3f}")
 
     std_option.xenon = XE_TR
     std_option.plevel = 0.0
@@ -109,14 +125,14 @@ if __name__ == "__main__":
     s.calculateStatic(std_option)
     s.calculatePinPower()
     s.getResult(result)
-    print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f}")
+    print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f},  Fxy : {result.fxy:.3f}")
     std_option.ppm = result.ppm
     for i in range(0,30) :
         s.depleteXeSm(XE_TR, SM_TR, 3600)
         s.calculateStatic(std_option)
         s.calculatePinPower()
         s.getResult(result)
-        print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f}")
+        print(f"ASI : {result.asi:.3f}, PPM : {result.ppm:.1f}, Fxy : {result.fxy:.3f}")
         std_option.ppm = result.ppm
     
 

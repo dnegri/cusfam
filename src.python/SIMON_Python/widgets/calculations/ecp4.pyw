@@ -290,13 +290,13 @@ class ECPWidget(CalculationWidget):
 
     def check_calculation_input(self):
 
-        if self.ui.ECP_Input04.value() >= self.calcManager.cycle_burnup_values[-1]:
+        if self.ui.ECP_Input04.value() >= self.calcManager.cycle_burnup_values[-1]+1000:
             msgBox = QMessageBox(self.get_ui_component())
             msgBox.setWindowTitle("Burnup Out of Range")
             msgBox.setText("{}MWD/MTU excedes EOC Cycle Burnup({} MWD/MTU)\n"
                            "Put Cycle Burnup less than {}MWD/MTU".format(self.ui.ECP_Input04.value(),
                                                             self.calcManager.cycle_burnup_values[-1],
-                                                            self.calcManager.cycle_burnup_values[-1]))
+                                                            self.calcManager.cycle_burnup_values[-1]+1000))
             msgBox.setStandardButtons(QMessageBox.Ok)
             #msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
             result = msgBox.exec_()

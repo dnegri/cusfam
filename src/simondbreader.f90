@@ -24,6 +24,10 @@ contains
     subroutine readDimension(ng_, nxy, nz, nx, ny, nsurf)  bind(c, name="readDimension")
         integer         :: ng_, nxy, nz, nx, ny, nsurf
         
+        
+        
+        
+        
         read(ifile) ng_, nxy, nz, nx, ny, nsurf
     end subroutine
     
@@ -97,11 +101,27 @@ contains
         
     end subroutine
 
+    subroutine writeConstantF(n, cnst)   bind(c, name="writeConstantF")
+        integer         :: n
+        real(4)         :: cnst(n)
+        
+        write(ifile) cnst(1:n)
+        
+    end subroutine
+    
     subroutine readConstantD(n, cnst)   bind(c, name="readConstantD")
         integer         :: n
         real(8)         :: cnst(n)
         
         read(ifile) cnst(1:n)
+        
+    end subroutine
+    
+    subroutine writeConstantD(n, cnst)   bind(c, name="writeConstantD")
+        integer         :: n
+        real(8)         :: cnst(n)
+        
+        write(ifile) cnst(1:n)
         
     end subroutine
     
@@ -127,11 +147,33 @@ contains
         
     end subroutine
     
+    subroutine writestep(power, bucyc, buavg, efpd, eigv, fnorm)   bind(c, name="writeStep")
+        real(4)         :: power, bucyc, buavg, efpd
+        real(8)         :: eigv, fnorm
+        
+        write(ifile) power
+        write(ifile) bucyc
+        write(ifile) buavg
+        write(ifile) efpd
+        write(ifile) eigv
+        write(ifile) fnorm
+        
+    end subroutine
+    
     subroutine readDensity(niso, nxyz, dnst)   bind(c, name="readDensity")
         real(4)            :: dnst(niso,nxyz)
 
         do l = 1,nxyz
             read(ifile) dnst(:,l) 
+        enddo
+    
+    end subroutine
+    
+    subroutine writeDensity(niso, nxyz, dnst)   bind(c, name="writeDensity")
+        real(4)            :: dnst(niso,nxyz)
+
+        do l = 1,nxyz
+            write(ifile) dnst(:,l) 
         enddo
     
     end subroutine

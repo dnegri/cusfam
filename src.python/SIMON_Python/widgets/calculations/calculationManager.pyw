@@ -25,7 +25,7 @@ class CalculationManager(QObject):
                        "C:/Users/geonho/Documents/SVN/SIMON/SIMON_CODE_v2/run/KMYGN34C01_PLUS7_XSE.XS", 
                        "C:/Users/geonho/Documents/SVN/SIMON/SIMON_CODE_v2/rst/Y301ASBDEP")
 
-        self.s_full = Simon("C:/Users/geonho/Documents/SVN/SIMON/SIMON_CODE_v2/rst/Y301ASBDEP.FCE.SMG", 
+        self.s_full = Simon("C:/Users/geonho/Documents/SVN/SIMON_/SIMON_CODE_v2/rst/Y301ASBDEP.FCE.SMG",
                             "C:/Users/geonho/Documents/SVN/SIMON/SIMON_CODE_v2/run/KMYGN34C01_PLUS7_XSE.XS", 
                             "C:/Users/geonho/Documents/SVN/SIMON/SIMON_CODE_v2/rst/Y301ASBDEP.FCE")
 

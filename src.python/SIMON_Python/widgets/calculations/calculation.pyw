@@ -19,6 +19,7 @@ import widgets.utils.PyUnitButton   as ts
 
 import constants as cs
 import utils as ut
+from widgets.utils.PySaveMessageBox import PySaveMessageBox, QMessageBoxWithStyle
 
 _STR_DEFAULT_    = "Default"
 _STR_MONITOR_    = "Monitor"
@@ -60,8 +61,8 @@ class RecentCalculationWidget:
 
         self.ui.tableWidgetAll.horizontalHeader().setVisible(True)
         width = self.ui.Search004_A.width()
-        self.ui.Search004_A.setMinimumWidth(width+80)
-        self.ui.Search004_B.setMinimumWidth(width+80)
+        self.ui.Search004_A.setMinimumWidth(width+40)
+        self.ui.Search004_B.setMinimumWidth(width+40)
         now = datetime.datetime.now()
         self.ui.Search004_A.setDate(QtCore.QDate(now.year-1, now.month, now.day))
         self.ui.Search004_B.setDate(QtCore.QDate(now.year, now.month, now.day))
@@ -237,20 +238,22 @@ class RecentCalculationWidget:
                     # if result == QMessageBox.Ok:
                     #     self.queue.put([df.CalcOpt_RECENT, row])
 
-                    msgBox = QMessageBox(self.ui.tableWidgetAll)
+                    msgBox = QMessageBoxWithStyle(self.ui.tableWidgetAll)
                     msgBox.setWindowTitle(cs.MESSAGE_LOAD_INPUT_TITLE.format(name))
                     msgBox.setText(cs.MESSAGE_LOAD_INPUT_CONTENT.format(name))
                     msgBox.setStandardButtons(QMessageBox.Discard | QMessageBox.Open | QMessageBox.Cancel )
+                    msgBox.setCustomStyle()
                     #msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
                     result = msgBox.exec_()
 
                     if result == QMessageBox.Open:
                         self.queue.put([df.CalcOpt_RECENT, row])
                     elif result == QMessageBox.Discard:
-                        msgBox = QMessageBox(self.ui.tableWidgetAll)
+                        msgBox = QMessageBoxWithStyle(self.ui.tableWidgetAll)
                         msgBox.setWindowTitle(cs.MESSAGE_DISCARD_CONFIRM_TITLE.format(name))
                         msgBox.setText(cs.MESSAGE_DISCARD_CONFIRM_CONTENT.format(name))
                         msgBox.setStandardButtons(QMessageBox.Discard | QMessageBox.Cancel)
+                        msgBox.setCustomStyle()
                         # msgBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
                         result = msgBox.exec_()
                         if result == QMessageBox.Discard:
@@ -259,8 +262,9 @@ class RecentCalculationWidget:
 
                                 self.load()
 
-                                msgBox1 = QMessageBox(self.ui.tableWidgetAll)
+                                msgBox1 = QMessageBoxWithStyle(self.ui.tableWidgetAll)
                                 msgBox1.setWindowTitle(cs.MESSAGE_DISCARD_COMPLETE_TITLE.format(name))
                                 msgBox1.setText(cs.MESSAGE_DISCARD_COMPLETE_CONTENT.format(name))
                                 msgBox1.setStandardButtons(QMessageBox.Ok)
+                                msgBox1.setCustomStyle()
                                 msgBox1.exec_()

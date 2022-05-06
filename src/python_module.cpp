@@ -32,7 +32,7 @@ private:
 static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
 
 unique_ptr<SimonCPU> simon_init(const char* geom_file, const char* tset_file, const char* ff_file) {
-	omp_set_num_threads(4);
+	//omp_set_num_threads(4);
 
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
@@ -93,6 +93,8 @@ void simon_getResult(SimonCPU& simon, SimonResult& result) {
 	result.eigv = simon.eigv();
 	result.asi = simon.asi();
 	result.fxy = simon.fxy();
+	result.fr  = simon.fr();
+	result.fq  = simon.fq();
 	Geometry& g = simon.g();
 
 	for (int la = 0; la < g.nxya(); la++)

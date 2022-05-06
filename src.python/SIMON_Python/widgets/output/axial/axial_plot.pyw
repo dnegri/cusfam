@@ -13,13 +13,16 @@ class AxialWidget(QWidget):
         #self.setContentsMargins(125,125,125,125)
 
         self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.verticalLayout_4)
         # 그래프 색상 설정
         self.graphBackgroundColor = '#272c36'
         self.graphColor = '#d2d2d2'
         self.graphLine  = '#1b1d23'
-        self.gridColor = '#999999'
-        self.whiteColor = '#FFFFFF'
+        #self.gridColor = '#999999'
+        self.gridColor = '#cccccc'
+        #self.whiteColor = '#FFFFFF'
+        self.whiteColor = '#cccccc'
         self.orange = '#FFA000'
 
         #self.fig = plt.Figure(facecolor=self.graphBackgroundColor)
@@ -27,7 +30,19 @@ class AxialWidget(QWidget):
 
 #        self.axe = plt.Axes()
 
-        self.fig.subplots_adjust(wspace=0, hspace=0)
+        self.subplot_adjust_left   = 0.10
+        self.subplot_adjust_right  = 0.90
+        self.subplot_adjust_bottom = 0.105
+        self.subplot_adjust_top    = 0.91
+        self.subplot_adjust_wspace = 0.0
+        self.subplot_adjust_hspace = 0.0
+
+        self.fig.subplots_adjust(left=self.subplot_adjust_left,
+                                 right=self.subplot_adjust_right,
+                                 bottom=self.subplot_adjust_bottom,
+                                 top=self.subplot_adjust_top,
+                                 wspace=self.subplot_adjust_wspace,
+                                 hspace=self.subplot_adjust_hspace)
         grid = gs.GridSpec(8, 8)
         #grid = gs.GridSpec(1, 1)
 
@@ -50,27 +65,36 @@ class AxialWidget(QWidget):
         self.axial.set_ylabel('Test')
         self.axial.yaxis.set_major_locator(plt.MultipleLocator(10))
         self.axial.yaxis.set_minor_locator(plt.MultipleLocator(2))
+        #self.axial.set_facecolor(self.graphBackgroundColor)
         self.axial.set_facecolor(self.graphBackgroundColor)
 
         # self.axial.yaxis.yticks([0,10,20,30,40,50,60,70,80,90,100])
-        self.axial.tick_params(axis='x', which='major', colors=self.gridColor)
-        self.axial.tick_params(axis='y', which='major', colors=self.gridColor)
+        self.axial.tick_params(axis='x', which='major', colors=self.gridColor,width=1)
+        self.axial.tick_params(axis='y', which='major', colors=self.gridColor,width=1)
 
         self.axial.spines['top'].set_color(self.gridColor)
         self.axial.spines['left'].set_color(self.gridColor)
         self.axial.spines['right'].set_color(self.gridColor)
         self.axial.spines['bottom'].set_color(self.gridColor)
+        self.axial.spines['top'].set_linewidth(1.0)
+        self.axial.spines['left'].set_linewidth(1.0)
+        self.axial.spines['right'].set_linewidth(1.0)
+        self.axial.spines['bottom'].set_linewidth(1.0)
 
         self.bar = self.fig.add_subplot(grid[:, -2:])
         self.bar.set_facecolor(self.graphBackgroundColor)
-        self.bar.tick_params(axis='x', colors=self.gridColor)
-        self.bar.tick_params(axis='y', colors=self.gridColor)
+        self.bar.tick_params(axis='x', colors=self.gridColor,width=1)
+        self.bar.tick_params(axis='y', colors=self.gridColor,width=1)
 
 
         self.bar.spines['top'].set_color(self.gridColor)
         self.bar.spines['left'].set_color(self.gridColor)
         self.bar.spines['right'].set_color(self.gridColor)
         self.bar.spines['bottom'].set_color(self.gridColor)
+        self.bar.spines['top'].set_linewidth(1.0)
+        self.bar.spines['left'].set_linewidth(1.0)
+        self.bar.spines['right'].set_linewidth(1.0)
+        self.bar.spines['bottom'].set_linewidth(1.0)
         # self.axial.setContentsMargins(-10,-10,-10,-10)
         # bar의  시작점 y=0을 옯길 수 없음, 따라서 입력값의 101-x를 계산하여 전시함
         # tick 값 또한 101-x를 계산하여 전시
@@ -115,8 +139,10 @@ class AxialWidget(QWidget):
         # self.axial.set_xlim(0.0, 2.0)
         # self.axial.set_ylim(0, 100)
 
-        self.axial.tick_params(axis='x', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
-        self.axial.tick_params(axis='y', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor)
+        #self.axial.tick_params(axis='x', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
+        self.axial.tick_params(axis='x', which='major', colors=self.gridColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
+        #self.axial.tick_params(axis='y', which='major', colors=self.whiteColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
+        self.axial.tick_params(axis='y', which='major', colors=self.gridColor, grid_linewidth=1, grid_color=self.gridColor,width=1)
         #self.axial.set_ylim(0, 382)
         self.axial.set_ylim(0, 381)
         self.axial.set_xlim(0.0, 2.0)
@@ -159,8 +185,10 @@ class AxialWidget(QWidget):
 
     def clearAxial(self):
         self.axial.cla()
-        self.axial.tick_params(axis='x', colors=self.whiteColor)
-        self.axial.tick_params(axis='y', colors=self.whiteColor)
+        #self.axial.tick_params(axis='x', colors=self.whiteColor)
+        self.axial.tick_params(axis='x', colors=self.gridColor)
+        #self.axial.tick_params(axis='y', colors=self.whiteColor)
+        self.axial.tick_params(axis='y', colors=self.gridColor)
 
     def drawAxial(self, x, y):
         self.axial.cla()

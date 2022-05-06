@@ -127,7 +127,8 @@ class LifetimeWidget(CalculationWidget):
         #                                              self.RodPosUnit)
 
         # 03. Insert Table
-        self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","ASI","Boron\n(ppm)","Bank P\n(cm)","Bank 5\n(cm)","Bank 4\n(cm)","Bank 3\n(cm)"]
+        self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","ASI",
+                          "Boron\n(ppm)","Bank P\n(cm)","Bank 5\n(cm)","Bank 4\n(cm)","Bank 3\n(cm)"]
         self.LifeTime_TableWidget = table01.ShutdownTableWidget(self.ui.frame_Lifetime_TableWidget, self.tableItem)
         layoutTableButton = self.LifeTime_TableWidget.returnButtonLayout()
         self.ui.gridlayout_Lifetime_TableWidget.addWidget(self.LifeTime_TableWidget, 0, 0, 1, 1)

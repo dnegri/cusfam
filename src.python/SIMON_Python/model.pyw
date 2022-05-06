@@ -1,6 +1,7 @@
 from peewee import *
 import constants as cs
 from datetime import date
+import Definitions as df
 
 db = SqliteDatabase('simon.db')
 
@@ -21,7 +22,7 @@ class User(BaseModel):
     restart_directory = CharField(null=True)
     restart_file = CharField(null=True)
     cycle_number = CharField(null=True)
-    snapshot_directory = CharField(null=True)
+    cecor_directory = CharField(null=True)
 
 
 class LoginUser(BaseModel):
@@ -30,7 +31,9 @@ class LoginUser(BaseModel):
 
 
 class InputModel(BaseModel):
-    pass
+    calculation_type = CharField(default="User Input")
+    snapshot_table = TextField(default="")
+    snapshot_text = CharField(default="Load Data")
 
 
 class MonitoringInput(InputModel):
@@ -44,35 +47,35 @@ class MonitoringInput(InputModel):
 class ECP_Input(InputModel):
 
     #Required Object
-    search_type = IntegerField()
+    search_type = IntegerField(default=0)
 
     #NDR
     #bs_ndr_date_time = DateTimeField()
     bs_ndr_date = DateField()
     bs_ndr_time = TimeField()
-    bs_ndr_power = FloatField()
-    bs_ndr_burnup = FloatField()
-    bs_ndr_average_temperature = FloatField()
-    bs_ndr_target_eigen = FloatField()
-    bs_ndr_bank_position_P = FloatField()
-    bs_ndr_bank_position_5 = FloatField()
-    bs_ndr_bank_position_4 = FloatField()
+    bs_ndr_power = FloatField(default=100.0)
+    bs_ndr_burnup = FloatField(default=0.0)
+    bs_ndr_average_temperature = FloatField(default=272.12)
+    bs_ndr_target_eigen = FloatField(default=1.0)
+    bs_ndr_bank_position_P = FloatField(default=190.5)
+    bs_ndr_bank_position_5 = FloatField(default=190.5)
+    bs_ndr_bank_position_4 = FloatField(default=381.0)
 
     # Rod Search
     #as_ndr_date_time = DateTimeField()
-    as_ndr_delta_time = FloatField()
-    as_ndr_boron_concentration = FloatField()
+    as_ndr_delta_time = FloatField(default=100.0)
+    as_ndr_boron_concentration = FloatField(default=1000.0)
 
-    as_ndr_bank_position_P = FloatField()
-    as_ndr_bank_position_5 = FloatField()
-    as_ndr_bank_position_4 = FloatField()
+    as_ndr_bank_position_P = FloatField(default=190.5)
+    as_ndr_bank_position_5 = FloatField(default=190.5)
+    as_ndr_bank_position_4 = FloatField(default=381.0)
 
 class SD_Input(InputModel):
 
-    ndr_burnup = FloatField()
-    ndr_target_keff = FloatField()
-    ndr_power_ratio = FloatField()
-    ndr_power_asi = FloatField()
+    ndr_burnup = FloatField(default=0.0)
+    ndr_target_keff = FloatField(default=1.0)
+    ndr_power_ratio = FloatField(default=3.0)
+    ndr_power_asi = FloatField(default=0.010)
 
 class RPCS_Input(InputModel):
 
@@ -90,33 +93,33 @@ class RPCS_Input(InputModel):
 
 class RO_Input(InputModel):
 
-    ndr_cal_type = CharField()
+    #ndr_cal_type = CharField()
 
-    ndr_burnup = FloatField()
-    ndr_power = FloatField()
+    ndr_burnup = FloatField(default=12000.0)
+    ndr_power = FloatField(default=1.0)
 
-    ndr_time = FloatField()
+    ndr_time = FloatField(default=30.0)
 
-    ndr_bank_position_5 = FloatField()
-    ndr_bank_position_4 = FloatField()
-    ndr_bank_position_3 = FloatField()
-    ndr_bank_position_P = FloatField()
+    ndr_bank_position_5 = FloatField(default=190.5)
+    ndr_bank_position_4 = FloatField(default=381.0)
+    ndr_bank_position_3 = FloatField(default=381.0)
+    ndr_bank_position_P = FloatField(default=190.5)
 
-
-    ndr_target_keff = FloatField()
-    ndr_power_ratio = FloatField()
-    ndr_asi = FloatField()
-    ndr_end_power = FloatField()
+    ndr_target_keff = FloatField(default=1.0)
+    ndr_power_ratio = FloatField(default=3.0)
+    ndr_asi = FloatField(default=0.010)
+    ndr_end_power = FloatField(default=100.0)
 
 class SDM_Input(InputModel):
     #ndr
-    ndr_burnup = FloatField()
-    ndr_mode_selection = CharField()
+    ndr_mode_selection = CharField(default="Mode 1, 2")
+    ndr_burnup = FloatField(default=0.0)
+    ndr_power = FloatField(default=100.0)
 
-    ndr_stuckrod1_x = IntegerField()
-    ndr_stuckrod1_y = IntegerField()
-    ndr_stuckrod2_x = IntegerField()
-    ndr_stuckrod2_y = IntegerField()
+    ndr_stuckrod1_x = IntegerField(default=-1)
+    ndr_stuckrod1_y = IntegerField(default=-1)
+    ndr_stuckrod2_x = IntegerField(default=-1)
+    ndr_stuckrod2_y = IntegerField(default=-1)
 
 
 class CoastDownInput(InputModel):
@@ -163,43 +166,43 @@ class LifetimeInput(InputModel):
 class OutputModel(BaseModel):
     pass
 
-
-
 class ECP_Output(OutputModel):
-    table_values = TextField()
+    success = BooleanField(default=False)
+    table = TextField(default="")
 
 class SD_Output(OutputModel):
-    table_values = TextField()
-    p1d_values = TextField()
-    rod_values = TextField()
-    p2d_values = TextField()
+    success = BooleanField(default=False)
+    table = TextField(default="")
 
 class RO_Output(OutputModel):
-    table_values = TextField()
-    p1d_values = TextField()
-    rod_values = TextField()
-    p2d_values = TextField()
-
+    success = BooleanField(default=False)
+    table = TextField(default="")
 
 class SDM_Output(OutputModel):
-    m1_success = BooleanField()
-    m1_core_burnup = FloatField()
-    m1_temperature = FloatField()
-    m1_cea_configuration = CharField()
-    m1_stuck_rod = CharField()
-    m1_n1_worth = FloatField()
-    m1_defect_worth = FloatField()
-    m1_required_worth = FloatField()
-    m1_sdm_worth = FloatField()
 
-    m2_success = BooleanField()
-    m2_core_burnup = FloatField()
-    m2_temperature = FloatField()
-    m2_cea_configuration = CharField()
-    m2_stuck_rod = CharField()
-    m2_required_worth = FloatField()
-    m2_required_cbc = FloatField()
+    m1_success = BooleanField(default=False)
+    m1_core_burnup = FloatField(default=0.0)
+    m1_temperature = FloatField(default=df.inlet_temperature)
+    m1_cea_configuration = CharField(default="")
+    m1_stuck_rod = CharField(default="")
+    m1_n1_worth = FloatField(default=0.0)
+    m1_defect_worth = FloatField(default=0.0)
+    m1_required_worth = FloatField(default=0.0)
+    m1_sdm_worth = FloatField(default=0.0)
 
+    m2_success = BooleanField(default=False)
+    m2_core_burnup = FloatField(default=0.0)
+    m2_temperature = FloatField(default=0.0)
+    m2_cea_configuration = CharField(default="")
+    m2_stuck_rod = CharField(default="")
+    m2_required_worth = FloatField(default=0.0)
+    m2_required_cbc = FloatField(default=0.0)
+
+
+class Cecor_Output(BaseModel):
+    filename = CharField(default="")
+    table = TextField(default="")
+    modified_date = DateTimeField()
 
 class Calculations(BaseModel):
     user = ForeignKeyField(User, backref='user')
@@ -222,35 +225,3 @@ class Calculations(BaseModel):
     sd_output = ForeignKeyField(SD_Output, backref='sd_output', null=True)
     ro_output = ForeignKeyField(RO_Output, backref='ro_output', null=True)
     sdm_output = ForeignKeyField(SDM_Output, backref='sdm_output', null=True)
-
-
-
-"""
-db.connect()
-db.create_tables([Person, Pet])
-uncle_bob = Person.create(name="Bob", birthday=date(1960, 1, 15))
-grandma = Person.create(name="Grandma", birthday=date(1960, 1, 15))
-
-grandma.name = 'Grandma L.'
-grandma.save()
-
-bob_kitty = Pet.create(owner=uncle_bob, name="Kitty", animal_type='cat')
-grandma_dog = Pet.create(owner=grandma, name="Dog", animal_type='dog')
-
-grandma_dog.delete_instance()
-
-grandma_found = Person.select().where(Person.name == 'Grandma L.').get()
-
-print(grandma_found.name)
-for person in Person.select():
-    print(person.name, person.pets.count(), 'pets')
-
-query = (Person
-         .select(Person, fn.Count(Pet.id).alias('pet_count'))
-         .join(Pet, JOIN.LEFT_OUTER)
-         .group_by(Person)
-         .order_by(Person.name))
-
-for person in query:
-    print(person.name, person.pets.count(), 'pets')
-"""

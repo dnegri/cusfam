@@ -2,7 +2,7 @@
 PLANT_EXTENSIONS = [".FF", ".PLT", ".XS"]
 RESTART_EXTENSIONS = [".SMR", ".SMG"]
 
-DEFINED_PLANTS = {"UCN":"울진", "Y":"영광"}
+DEFINED_PLANTS = {"UCN":"울진", "Y":"한빛"}
 
 ADMIN_USER = "ADMIN"
 
@@ -26,6 +26,8 @@ RESTART_FILE_BURNUP_INDEX = -2
 # main.py Calculation Module
 CALCULATION_RC_TITLE = "Recent Calculations"
 CALCULATION_RC_BUTTON = "btn_recent_calculations"
+CALCULATION_SNAPSHOT_BUTTON = "btn_Snapshot"
+CALCULATION_SNAPSHOT_TITLE = "Snapshot"
 CALCULATION_SDM_TITLE = "SDM"
 CALCULATION_SDM_BUTTON = "btn_sdm"
 CALCULATION_ECP_TITLE = "ECP"
@@ -64,4 +66,7 @@ MESSAGE_SAVE_COMPLETE_CONTENT = "{} input saved successfully"
 # calculation_widget.py Save UnSuccessful
 MESSAGE_SAVE_UNSUCCESSFUL_TITLE = "{} Input Save Unuccessful"
 MESSAGE_SAVE_UNSUCCESSFUL_CONTENT = "{} input save is Unsuccessful"
+
+
+UNABLE_CECOR_OUTPUT = "CECOR Output Read Error"
 

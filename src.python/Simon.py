@@ -27,6 +27,12 @@ class Simon:
 	def setBurnup(self, burnup):
 		setBurnup(self.s, self.file_rst, burnup)
 
+	def setSMR(self, burnup):
+		setSMR(self.s, self.file_rst, burnup)
+
+	def saveSMR(self, burnup):
+		saveSMR(self.s, self.file_rst, burnup)
+
 	def calculateStatic(self, std_option):
 		calcStatic(self.s, std_option)
 

@@ -151,13 +151,15 @@ class unitTableWidget(QTableWidget):
 "    margin: 21px 0 21px 0;\n"
 "	border-radius: 0px;\n"
 " }\n"
+"QHeaderView {\n"
+"	Background-color: rgb(39, 44, 54);\n"
+"}\n"
 "QHeaderView::section{\n"
 "	Background-color: rgb(39, 44, 54);\n"
 "	max-width: 30px;\n"
 "	border: 1px solid rgb(44, 49, 60);\n"
 "	border-style: none;\n"
-"    bo"
-                        "rder-bottom: 1px solid rgb(44, 49, 60);\n"
+"    border-bottom: 1px solid rgb(44, 49, 60);\n"
 "    border-right: 1px solid rgb(44, 49, 60);\n"
 "}\n"
 "QTableWidget::horizontalHeader {	\n"
@@ -174,7 +176,13 @@ class unitTableWidget(QTableWidget):
 "}\n"
 "QHeaderView::section:vertical\n"
 "{\n"
+# "	background-color: rgb(51, 59, 70);\n"
+# "	padding: 3px;\n"
+# "	border-top-left-radius: 7px;\n"
+# "    border-bottom-left-radius: 7px;\n"
+# "	color: rgb(167,	174, 183);\n"                               
 "    border: 1px solid rgb(44, 49, 60);\n"
+#"    background-color: rgb(44, 49, 60);\n"
 "}\n"
 "\n"
 "QScrollBar:handle:vertical {\n"
@@ -217,7 +225,7 @@ class unitTableWidget(QTableWidget):
             self.tableRowHeaderItem[iRow].setText(QCoreApplication.translate("unitWidget_SD",self.headerItemList[iRow],None))
 
         for iColumn in range(df.tableDefaultColumnNum):
-            a = "%d" %(iColumn+1)
+            a = "%3d" %(iColumn+1)
             self.tableColumnHeaderItem[iColumn].setText(QCoreApplication.translate("unitWidget_SD",a,None))
             # self.tableColumnHeaderItem[iColumn] = self.verticalHeaderItem(iColumn)
 

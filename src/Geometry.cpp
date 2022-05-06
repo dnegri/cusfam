@@ -135,6 +135,14 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 		_hzcore  += hmesh(ZDIR, l);
 	}
 
+	_hz = new GEOM_VAR[_nz];
+	for (int k = 1; k < _nz; k++)
+	{
+		int l = k * _nxy;
+		hz(k) = hmesh(ZDIR, l);
+	}
+
+
 	_idirlr = new int[_nsurf * LR];
 	_sgnlr = new int[_nsurf * LR];
 	_lklr = new int[_nsurf * LR];

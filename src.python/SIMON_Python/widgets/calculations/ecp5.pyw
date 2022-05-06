@@ -26,7 +26,7 @@ from widgets.utils.PySaveMessageBox import PySaveMessageBox
 from itertools import islice
 from random import random
 from time import perf_counter
-from cusfam import *
+# from cusfam import *
 import datetime
 
 from PyQt5.QtCore import QPointF, QThread
@@ -38,6 +38,8 @@ import widgets.calculations.calculationManagerProcess as CMP
 pointers = {
 
     #"ECP_Input01": "bs_ndr_date_time",
+    "ECP_InputSelect": "calculation_type",
+    "pushButton_InputModel": "snapshot_text",
     "ECP_Input01_date": "bs_ndr_date",
     "ECP_Input01_time": "bs_ndr_time",
     "ECP_Input03": "bs_ndr_power",
@@ -97,9 +99,18 @@ class ECPWidget(CalculationWidget):
         self.initSnapshotFlag = False
 
         # 03. Insert Table
-        self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","Boron\n(ppm)",
-                           "Bank P\n(cm)", "Bank 5\n(cm)","Bank 4\n(cm)",]
-        self.ECP_TableWidget = table01.ShutdownTableWidget(self.ui.frame_ECP_TableWidget, self.tableItem, 4, 1, 3)
+        # self.tableItem = ["Time\n(hour)","Power\n(%)","Burnup\n(MWD/MTU)","Keff","Boron\n(ppm)",
+        #                    "Bank P\n(cm)", "Bank 5\n(cm)","Bank 4\n(cm)",]
+        # self.tableItemFormat = ["%.1f","%.2f","%.1f","%.5f","%.3f",
+        #                         "%.1f","%.1f","%.1f"]
+        self.tableItem = ["Time\n(hour)", "Power\n(%)"  ,
+                          "ASI",          "Boron\n(ppm)", "Fr", "Fxy", "Fq",
+                          "Bank P\n(cm)" ,"Bank 5\n(cm)", "Bank 4\n(cm)", "Bank 3\n(cm)", ]
+        self.tableItemFormat = ["%.1f","%.2f",
+                                "%.3f","%.1f","%.3f","%.3f","%.3f",
+                                "%.1f","%.1f","%.1f","%.1f"]
+        #self.ECP_TableWidget = table01.ShutdownTableWidget(self.ui.frame_ECP_TableWidget, self.tableItem, self.tableItemFormat, 4, 1, 3)
+        self.ECP_TableWidget = table01.ShutdownTableWidget(self.ui.frame_ECP_TableWidget, self.tableItem, self.tableItemFormat)
         layoutTableButton = self.ECP_TableWidget.returnButtonLayout()
         self.ui.gridlayout_ECP_TableWidget.addWidget(self.ECP_TableWidget, 0, 0, 1, 1)
         self.ui.gridlayout_ECP_TableWidget.addLayout(layoutTableButton,1,0,1,1)
@@ -152,9 +163,22 @@ class ECPWidget(CalculationWidget):
         lay.addWidget(self.unitChart, 0, 0, 1, 1)
         # self.load()
 
+        # 05. Setting Input Type
+        self.loadInputData = None
+        self.ui.ECP_InputSelect.setCurrentIndex(df._INPUT_TYPE_USER_)
+        self.inputType = df._INPUT_TYPE_USER_
+        self.ui.LabelSub_Selete01.setVisible(False)
+        self.ui.pushButton_InputModel.setVisible(False)
 
-    def load(self):
-        self.load_input()
+        self.delete_current_calculation()
+
+    def linkInputModule(self,module):
+        self.loadInputData = module
+
+    def load(self, a_calculation=None):
+        self.load_input(a_calculation)
+        self.load_output(a_calculation)
+
         if len(self.inputArray) == 0:
             self.ui.ECP_run_button.setText("Create Scenario")
             self.ui.ECP_run_button.setStyleSheet(df.styleSheet_Create_Scenarios)
@@ -162,7 +186,75 @@ class ECPWidget(CalculationWidget):
             self.ui.ECP_run_button.setText("Run")
             self.ui.ECP_run_button.setStyleSheet(df.styleSheet_Run)
 
-        #self.load_input()
+    def load_output(self, a_calculation=None):
+
+        if not a_calculation:
+            a_calculation = self.current_calculation
+
+        if not a_calculation:
+            raise("Error")
+
+        if a_calculation.ecp_output.success:
+            self.setSuccecciveInput()
+            read_table = a_calculation.ecp_output.table
+
+            values = read_table.split(",")
+
+            element_array = []
+
+            length_row = int(values[0])
+            length_p1d = int(values[1])
+            start = 2
+            end = length_row + start
+            for i in range(start, end):
+                element_array.append(float(values[i]))
+
+            self.calcManager.results.out_ppm_old = element_array
+
+            start += length_row
+            end += length_row
+
+            element_array = []
+
+            for i in range(start, end):
+                element_array.append(float(values[i]))
+
+            self.calcManager.results.out_ppm = element_array
+
+            start += length_row
+            end += length_row * 3
+
+            element_array = []
+
+            rods = []
+            for i in range(start, end):
+                col = (i-start)%3
+
+                rods.append(float(values[i]))
+
+                if col == 2:
+                    element_array.append(rods)
+                    rods = []
+
+            self.calcManager.results.rodPos = element_array
+
+            start += length_row * 3
+
+            end += length_row * length_p1d
+
+            element_array = []
+            p1d = []
+            for i in range(start, end):
+                col = (i-start)%length_p1d
+
+                p1d.append(float(values[i]))
+
+                if col == length_p1d-1:
+                    element_array.append(p1d)
+                    p1d = []
+
+            self.calcManager.results.ecpP1d = element_array
+            self.showOutput()
 
     def set_all_component_values(self, ecp_input):
         super().set_all_component_values(ecp_input)
@@ -206,7 +298,8 @@ class ECPWidget(CalculationWidget):
         self.buttonGroupTarget.addButton(self.ui.ECP_CalcTarget02)
 
     def settingLinkAction(self):
-
+        self.ui.pushButton_InputModel.clicked['bool'].connect(self.readModel)
+        self.ui.ECP_InputSelect.currentIndexChanged['int'].connect(self.changeInputType)
         #self.ui.ECP_CalcTarget01.toggled['bool'].connect(self.settingTargetOpt)
         #self.ui.ECP_CalcTarget02.toggled['bool'].connect(self.settingTargetOpt)
         self.ui.ECP_Input00.currentIndexChanged['int'].connect(self.settingTargetOpt)
@@ -217,6 +310,66 @@ class ECPWidget(CalculationWidget):
         self.unitButton01.clicked['bool'].connect(self.clickSaveAsExcel)
         self.unitButton02.clicked['bool'].connect(self.resetPositionData)
         self.unitButton03.clicked['bool'].connect(self.clearOuptut)
+
+    def changeInputType(self,idx):
+        self.inputType = idx
+        if(idx==df._INPUT_TYPE_USER_):
+            self.ui.LabelSub_Selete01.setVisible(False)
+            self.ui.pushButton_InputModel.setVisible(False)
+        elif(idx==df._INPUT_TYPE_SNAPSHOT_):
+            self.ui.LabelSub_Selete01.setText("Snapshot Setup")
+            self.ui.pushButton_InputModel.setText("Load Data")
+            self.ui.LabelSub_Selete01.setVisible(True)
+            self.ui.pushButton_InputModel.setVisible(True)
+            self.ui.pushButton_InputModel.setStyleSheet(df.styleSheet_Create_Scenarios)
+        elif(idx==df._INPUT_TYPE_FILE_CSV_):
+            self.ui.LabelSub_Selete01.setText("Read File")
+            self.ui.pushButton_InputModel.setText("Load CSV")
+            self.ui.LabelSub_Selete01.setVisible(True)
+            self.ui.pushButton_InputModel.setVisible(True)
+        elif(idx==df._INPUT_TYPE_FILE_EXCEL_):
+            self.ui.LabelSub_Selete01.setText("Read File")
+            self.ui.pushButton_InputModel.setText("Load Excel")
+            self.ui.LabelSub_Selete01.setVisible(True)
+            self.ui.pushButton_InputModel.setVisible(True)
+
+    def readModel(self):
+        if(self.inputType==df._INPUT_TYPE_SNAPSHOT_):
+            self.loadInputData.readSnapshotData()
+            [self.nSnapshot, inputArray] = self.loadInputData.returnSnapshot()
+            #self.ECP_TableWidget.insertSnapshotInputArray(self.inputArray)
+            #self.SD_TableWidget.addInputArray(self.inputArray)
+
+            if len(inputArray) > 0:
+                burnup_text = "B:{:d}".format(int(inputArray[-1][1]))
+                self.ui.pushButton_InputModel.setText(burnup_text)
+                self.ui.pushButton_InputModel.setStyleSheet(df.styleSheet_Run)
+                self.current_calculation.ecp_input.snapshot_text = burnup_text
+                self.ui.ECP_Input04.setValue(inputArray[-1][1])
+
+        elif(self.inputType==df._INPUT_TYPE_FILE_CSV_):
+            pass
+            # status = self.loadInputData.openCSV()
+            # if(status==False):
+            #     return
+            # [ self.nStep, self.targetASI,  self.inputArray ] = self.loadInputData.returnCSV()
+            # self.initBU = self.inputArray[0][2]
+            # self.targetEigen = self.inputArray[0][3]
+            # rdcPerHour = abs((self.inputArray[1][1]-self.inputArray[0][1])/(self.inputArray[1][0]-self.inputArray[0][0]))
+            # self.ui.SD_Input01.setValue(self.initBU)
+            # self.ui.SD_Input02.setValue(self.targetEigen)
+            # self.ui.SD_Input03.setValue(rdcPerHour)
+            # self.ui.SD_Input04.setValue(self.targetASI)
+            # if len(self.inputArray) == 0:
+            #     self.ui.SD_run_button.setText("Create Scenario")
+            #     self.ui.SD_run_button.setStyleSheet(df.styleSheet_Create_Scenarios)
+            #     self.ui.SD_run_button.setDisabled(False)
+            # else:
+            #     self.ui.SD_run_button.setText("Run")
+            #     self.ui.SD_run_button.setStyleSheet(df.styleSheet_Run)
+            #     self.ui.SD_run_button.setDisabled(False)
+            # self.SD_TableWidget.addInputArray(self.inputArray)
+            # self.last_table_created = datetime.datetime.now()
 
     def settingTargetOpt(self):
         search_type = 0
@@ -292,6 +445,8 @@ class ECPWidget(CalculationWidget):
 
     def setSuccecciveInput(self):
         # Initialize
+        self.clearOuptut()
+
         self.inputArray = []
 
         startT    = self.ui.ECP_Input01_time.time()
@@ -334,28 +489,59 @@ class ECPWidget(CalculationWidget):
 
         self.unitChart.insertTime(timeArray)
 
-        output_array.append([381.0, 381.0, 381.0])
-        output_array.append([0.0, 0.0, 0.0])
+        output_array.append([0.0, 0.0, 0.0, 0.0, 0.0, 381.0, 381.0, 381.0, 381.0])
+        output_array.append([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
         for i in range(len(self.inputArray)-2):
             if self.ECP_TargetOpt==df.select_Boron:
                 self.shutdown_P_Pos = self.ui.ECP_Input14.value()
                 self.shutdown_r5Pos = self.ui.ECP_Input15.value()
                 self.shutdown_r4Pos = self.ui.ECP_Input16.value()
-                an_output = [self.shutdown_P_Pos, self.shutdown_r5Pos, self.shutdown_r4Pos]
+                an_output = [0.0, 0.0, 0.0, 0.0, 0.0, self.shutdown_P_Pos, self.shutdown_r5Pos, self.shutdown_r4Pos, 381.0]
             else:
                 self.shutdown_ppm = self.ui.ECP_Input13.value()
-                an_output = [self.shutdown_ppm]
+                an_output = [0.0, self.shutdown_ppm, 0.0, 0.0, 0.0, self.shutdown_P_Pos, self.shutdown_r5Pos, self.shutdown_r4Pos, 381.0]
             output_array.append(an_output)
 
         self.ECP_TableWidget.addInputArray(self.inputArray)
         self.ECP_TableWidget.makeOutputTable(output_array)
+        self.startD = self.ui.ECP_Input01_date.date()
+        self.startT = self.ui.ECP_Input01_time.time()
+        self.startTime = QDateTime()
+        self.startTime.setDate(self.startD)
+        self.startTime.setTime(self.startT)
+        # self.startTime = self.ui.ECP_Input01.dateTime()
+        self.deltaTime = self.ui.ECP_Input12.value()
+        self.endTime = self.startTime.addSecs(self.deltaTime * 3600.0)
+        # self.endTime = self.ui.ECP_Input12.dateTime()
+        self.pw = self.ui.ECP_Input03.value()
+        self.bp = self.ui.ECP_Input04.value()
+        self.mtc = df.inlet_temperature
+        self.eigen = 1.0
+        self.P_Pos = 381.0
+        self.r5Pos = 381.0
+        self.r4Pos = 381.0
+        self.inputArray = [self.pw, self.bp, self.mtc, self.eigen, self.P_Pos, self.r5Pos, self.r4Pos]
+        if self.ECP_TargetOpt == df.select_Boron:
+            self.shutdown_P_Pos = self.ui.ECP_Input14.value()
+            self.shutdown_r5Pos = self.ui.ECP_Input15.value()
+            self.shutdown_r4Pos = self.ui.ECP_Input16.value()
+            self.inputArray.append(self.shutdown_P_Pos)
+            self.inputArray.append(self.shutdown_r5Pos)
+            self.inputArray.append(self.shutdown_r4Pos)
+        elif self.ECP_TargetOpt == df.select_RodPos:
+            self.shutdown_ppm = self.ui.ECP_Input13.value()
+            self.inputArray.append(self.shutdown_ppm)
+        self.inputArray.append(self.deltaTime)
+
 
     def get_input(self, calculation_object):
         return calculation_object.ecp_input
 
+    def get_output(self, calculation_object):
+        return calculation_object.ecp_output
 
-    def get_default_input(self, user):
+    def create_default_input_output(self, user):
         now = datetime.datetime.now()
         ecp_input = ECP_Input.create(
             search_type=0,
@@ -363,7 +549,7 @@ class ECPWidget(CalculationWidget):
             #bs_ndr_date_time=now,
             bs_ndr_date=now,
             bs_ndr_time=now,
-            bs_ndr_power=0,
+            bs_ndr_power=100,
             bs_ndr_burnup=0,
             bs_ndr_average_temperature=0,
             bs_ndr_target_eigen = 1.0,
@@ -371,20 +557,27 @@ class ECPWidget(CalculationWidget):
             bs_ndr_bank_position_5=381.0,
             bs_ndr_bank_position_4=381.0,
             #as_ndr_date_time=now,
-            as_ndr_delta_time=0.0,
+            as_ndr_delta_time=30.0,
             as_ndr_boron_concentration=0,
             as_ndr_bank_position_P=381.0,
             as_ndr_bank_position_5=381.0,
             as_ndr_bank_position_4=381.0,
         )
 
+        ecp_output = ECP_Output.create(
+            success=False,
+            table = "",
+        )
+
         ecp_calculation = Calculations.create(user=user,
                                               calculation_type=cs.CALCULATION_ECP,
                                               created_date=now,
                                               modified_date=now,
-                                              ecp_input=ecp_input
+                                              ecp_input=ecp_input,
+                                              ecp_output=ecp_output
                                               )
-        return ecp_calculation, ecp_input
+
+        return ecp_calculation, ecp_input, ecp_output
 
     def start_calc(self):
         super().start_calc()
@@ -458,28 +651,29 @@ class ECPWidget(CalculationWidget):
 
     def ECP_output_index_changed(self):
         index = self.ui.ECP_Output1.currentIndex()
-        if len(self.calcManager.out_ppm) > index:
+        if len(self.calcManager.results.out_ppm) > index:
             self.show_output_values(index)
 
             p = 381.0
-            r5 = self.calcManager.rodPos[index][0]
-            r4 = self.calcManager.rodPos[index][1]
-            r3 = self.calcManager.rodPos[index][2]
+            r5 = self.calcManager.results.rodPos[index][0]
+            r4 = self.calcManager.results.rodPos[index][1]
+            r3 = self.calcManager.results.rodPos[index][2]
 
             data = {' P': p, 'R5': r5, 'R4': r4, 'R3': r3}
             self.axialWidget.drawBar(data)
             # print(data)
 
-            pd1d = self.calcManager.ecpP1d[index]
-            self.axialWidget.drawAxial(pd1d[self.calcManager.kbc:self.calcManager.kec],
-                                       self.calcManager.axial_position)
+            pd1d = self.calcManager.results.ecpP1d[index]
+            self.axialWidget.drawAxial(pd1d[self.calcManager.results.kbc:self.calcManager.results.kec],
+                                       self.calcManager.results.axial_position)
 
     def showOutput(self):
-        self.start_calculation_message.progress()
-        if len(self.calcManager.out_ppm) > 0:
-            self.show_output_values(len(self.calcManager.out_ppm) -1)
+        if self.start_calculation_message:
+            self.start_calculation_message.progress()
+        if len(self.calcManager.results.out_ppm) > 0:
+            self.show_output_values(len(self.calcManager.results.out_ppm) -1)
 
-    def finished(self):
+    def finished(self, is_success):
         if self.start_calculation_message:
             self.start_calculation_message.close()
 
@@ -489,6 +683,52 @@ class ECPWidget(CalculationWidget):
         # if len(self.calcManager.out_ppm) > 0:
         #     self.show_output_values()
         # self.ECP_output_index_changed()
+        if is_success == self.calcManager.SUCC:
+            self.save_output()
+            self.showOutput()
+        else:
+            ecp_output = ECP_Output.create(
+                success=False,
+                table="",
+            )
+
+            self.current_calculation.ecp_output = ecp_output
+            self.current_calculation.ecp_output.save()
+            self.current_calculation.save()
+
+    def save_output(self):
+
+        if len(self.calcManager.results.out_ppm_old) == 0:
+            return
+
+        out_ppm_old = self.calcManager.results.out_ppm_old
+        out_ppm = self.calcManager.results.out_ppm
+        rodPos = self.calcManager.results.rodPos
+        ecpP1d = self.calcManager.results.ecpP1d
+
+        row_length = len(out_ppm)
+        p1d_length = len(ecpP1d[0])
+
+        storage_text = "{:d},{:d},".format(row_length, p1d_length)
+        for output_value in out_ppm_old:
+            storage_text = storage_text + "{:.3f},".format(output_value)
+
+        for output_value in out_ppm:
+            storage_text = storage_text + "{:.3f},".format(output_value)
+
+        for output_values in rodPos:
+            for output_value in output_values:
+                storage_text = storage_text + "{:.3f},".format(output_value)
+
+        for output_values in ecpP1d:
+            for output_value in output_values:
+                storage_text = storage_text + "{:.3f},".format(output_value)
+
+        # print(storage_text)
+        self.current_calculation.ecp_output.success = True
+        self.current_calculation.ecp_output.table = storage_text
+        self.current_calculation.ecp_output.save()
+        self.current_calculation.save()
 
     def show_output_values(self, show_index=0):
         # startTime_Day  = self.startTime.date()
@@ -501,37 +741,51 @@ class ECPWidget(CalculationWidget):
         if self.ECP_TargetOpt==df.select_Boron:
 
             [self.pw, self.bp, self.mtc, eigen, P_Pos, r5Pos, r4Pos, shutdown_P_Pos, shutdown_r5Pos,
-             shutdown_r4Pos, deltaTime] = self.calcManager.inputArray
+             shutdown_r4Pos, deltaTime] = self.inputArray
             # self.unitChartClass.axisY_CBC.setMax(max(1200, np.max(self.calcManager.out_ppm)+100))
             # self.unitChartClass.axisY_CBC.setMin(max(0, np.max(self.calcManager.out_ppm)+100-1000))
             #self.unitChart.insertTime()axisX.setMax(deltaTime)
             output_array = []
-            for i in range(0, len(self.calcManager.out_ppm)):
-                output_array.append([self.calcManager.out_ppm[i],
-                                     self.calcManager.rodPos[i][0],
-                                     self.calcManager.rodPos[i][1],
-                                     self.calcManager.rodPos[i][2],])
+            # print(self.calcManager.results.out_ppm)
+            # print(self.calcManager.results.rodPos)
+            for i in range(0, len(self.calcManager.results.out_ppm)):
+                output_array.append([0.0,
+                                     self.calcManager.results.out_ppm[i],
+                                     0.0,
+                                     0.0,
+                                     0.0,
+                                     self.calcManager.results.rodPos[i][0],
+                                     self.calcManager.results.rodPos[i][1],
+                                     self.calcManager.results.rodPos[i][2],
+                                     381.0])
             self.appendPointData(output_array, 0)
-            self.ECP_TableWidget.makeOutputTable(output_array)
+            self.ECP_TableWidget.appendOutputTable(output_array, 0)
 
         if self.ECP_TargetOpt==df.select_RodPos:
 
-            [ self.pw, self.bp, self.mtc, eigen, P_Pos, r5Pos, r4Pos, target_ppm, deltaTime] = self.calcManager.inputArray
+            [ self.pw, self.bp, self.mtc, eigen, P_Pos, r5Pos, r4Pos, target_ppm, deltaTime] = self.inputArray
 
             # self.unitChartClass.axisY_CBC.setMax(max(1200, np.max(self.calcManager.out_ppm)+100))
             # self.unitChartClass.axisY_CBC.setMin(max(0, np.max(self.calcManager.out_ppm)+100-1000))
             #self.unitChart.axisX.setMax(target_ppm + 100)
             #self.unitChart.axisX.setMax(deltaTime)
 
+            # print(self.calcManager.results.out_ppm)
+            # print(self.calcManager.results.rodPos)
             output_array1 = []
-            for i in range(0, len(self.calcManager.out_ppm)):
-                output_array1.append([self.calcManager.out_ppm[i],
-                                     self.calcManager.rodPos[i][0],
-                                     self.calcManager.rodPos[i][1],
-                                     self.calcManager.rodPos[i][2],
+            for i in range(0, len(self.calcManager.results.out_ppm)):
+                output_array1.append([0.0,
+                                      self.calcManager.results.out_ppm[i],
+                                      0.0,
+                                      0.0,
+                                      0.0,
+                                     self.calcManager.results.rodPos[i][0],
+                                     self.calcManager.results.rodPos[i][1],
+                                     self.calcManager.results.rodPos[i][2],
+                                     381.0
                                      ])
             self.appendPointData(output_array1, 0)
-            self.ECP_TableWidget.makeOutputTable(output_array1)
+            self.ECP_TableWidget.appendOutputTable(output_array1, 0)
 
     def appendPointData(self, outputArray, start):
 
@@ -540,10 +794,10 @@ class ECPWidget(CalculationWidget):
         posR4 = []
         posCBC = []
         for i in range(len(outputArray)):
-            posP.append(outputArray[i][1])
-            posR5.append(outputArray[i][2])
-            posR4.append(outputArray[i][3])
-            posCBC.append(outputArray[i][0])
+            posP.append(outputArray[i][df.asi_o_bp])
+            posR5.append(outputArray[i][df.asi_o_b5])
+            posR4.append(outputArray[i][df.asi_o_b4])
+            posCBC.append(outputArray[i][df.asi_o_boron])
         # self.unitChartClass.clear()
         #
         # posP = []
@@ -572,7 +826,7 @@ class ECPWidget(CalculationWidget):
     def clearOuptut(self):
         self.ECP_TableWidget.clearOutputArray()
         self.ECP_TableWidget.clearOutputRodArray()
-
+        self.unitChart.clearData()
 
     # def setSuccecciveInput(self):
     #     # Initialize

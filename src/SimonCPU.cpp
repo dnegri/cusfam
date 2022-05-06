@@ -194,7 +194,6 @@ void SimonCPU::runSteady(const SteadyOption& condition) {
 	bool updxs = true;
 	bool updls = true;
 
-
 	for (int iout = 0; iout < condition.maxiter; iout++)
 	{
 		if (updppm) {
@@ -265,8 +264,10 @@ void SimonCPU::runSteady(const SteadyOption& condition) {
 
 		eigvd = _eigv;
 	}
-	//myblas::multi(_g->ngxyz(), _fnorm, _flux, _flux);
-	//_fnorm = 1.0;
+	myblas::multi(_g->ngxyz(), _fnorm, _flux, _flux);
+	myblas::multi(_g->nsurf() * _g->ng(), _fnorm, _phis, _phis);
+	myblas::multi(_g->nsurf() * _g->ng(), _fnorm, _jnet, _jnet);
+	_fnorm = 1.0;
 }
 
 void SimonCPU::runSteadySfam(const SteadyOption& condition) {
@@ -364,7 +365,10 @@ void SimonCPU::runPinPower()
 	_ppr->calphicorn(_flux, _phis);
 	_ppr->calhomo(_eigv, _flux, _phis, _jnet);
 	_ppr->calpinpower();
+	//_ppr->printPinPower(10);
 	_ppr->applyFF(_ff_ptr, _d->burn());
 	_fxy = _ppr->getFxy();
+	_fr = _ppr->getFr();
+	_fq = _ppr->getFq();
 }
 

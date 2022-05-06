@@ -18,7 +18,6 @@ from PyQt5.QtCore import Qt, QPointF
 # from ui_main_rev9 import Ui_MainWindow
 import Definitions as df
 
-
 class UnitSplineChart:
 
     def __init__(self, unit):
@@ -99,6 +98,7 @@ class UnitSplineChart:
         # self.replaceRodPosition(3,list0,listn)
 
         # self.replaceRodPosition(1,list0,list)
+
 
     def setXPoints(self, x_20, x_100):
         self.x_20 = x_20
