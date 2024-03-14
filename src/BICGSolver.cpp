@@ -45,31 +45,31 @@
 
 BICGSolver::BICGSolver(Geometry &g) : _g(g) {
 
-    _vz = new SOL_VAR[_g.ng() * _g.nxyz()]{};
-    _vy = new SOL_VAR[_g.ng() * _g.nxyz()]{};
+    _vz = new double[_g.ng() * _g.nxyz()]{};
+    _vy = new double[_g.ng() * _g.nxyz()]{};
 
-    _vr = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _vr0 = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _vp = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _vv = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _vs = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _vt = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _y1d = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _b1i = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _b01d = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _s1dl = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _b03d = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _s3d = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
-    _s3dd = new CMFD_VAR[_g.ng() * _g.nxyz()]{};
+    _vr = new double[_g.ng() * _g.nxyz()]{};
+    _vr0 = new double[_g.ng() * _g.nxyz()]{};
+    _vp = new double[_g.ng() * _g.nxyz()]{};
+    _vv = new double[_g.ng() * _g.nxyz()]{};
+    _vs = new double[_g.ng() * _g.nxyz()]{};
+    _vt = new double[_g.ng() * _g.nxyz()]{};
+    _y1d = new double[_g.ng() * _g.nxyz()]{};
+    _b1i = new double[_g.ng() * _g.nxyz()]{};
+    _b01d = new double[_g.ng() * _g.nxyz()]{};
+    _s1dl = new double[_g.ng() * _g.nxyz()]{};
+    _b03d = new double[_g.ng() * _g.nxyz()]{};
+    _s3d = new double[_g.ng() * _g.nxyz()]{};
+    _s3dd = new double[_g.ng() * _g.nxyz()]{};
 
-    _del = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _ainvd = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _ainvl = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _ainvu = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _au = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _delinv = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _al = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
-    _deliau = new CMFD_VAR[_g.ng2() * _g.nxyz()]{};
+    _del = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvd = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvl = new double[_g.ng2() * _g.nxyz()]{};
+    _ainvu = new double[_g.ng2() * _g.nxyz()]{};
+    _au = new double[_g.ng2() * _g.nxyz()]{};
+    _delinv = new double[_g.ng2() * _g.nxyz()]{};
+    _al = new double[_g.ng2() * _g.nxyz()]{};
+    _deliau = new double[_g.ng2() * _g.nxyz()]{};
 }
 
 BICGSolver::~BICGSolver() {
@@ -98,7 +98,7 @@ BICGSolver::~BICGSolver() {
     delete _deliau;
 }
 
-double BICGSolver::reset(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src) {
+double BICGSolver::reset(const int &ig, const int &l, double *diag, double *cc, double *phi, double *src) {
     double aphi = axb(ig, l, diag, cc, phi);
     vr(ig, l) = src(ig, l) - aphi;
     vr0(ig, l) = vr(ig, l);
@@ -108,7 +108,7 @@ double BICGSolver::reset(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *
     return vr(ig, l) * vr(ig, l);
 }
 
-void BICGSolver::reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src, CMFD_VAR &r20) {
+void BICGSolver::reset(double *diag, double *cc, double *phi, double *src, double &r20) {
 
     _calpha = 1;
     _crho = 1;
@@ -124,7 +124,7 @@ void BICGSolver::reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src
     r20 = sqrt(r20);
 }
 
-void BICGSolver::sol1d(const int &j, const int &k, CMFD_VAR *b1d, CMFD_VAR *x1d) {
+void BICGSolver::sol1d(const int &j, const int &k, double *b1d, double *x1d) {
 
     int ibeg = _g.nxs(j);
     int iend = _g.nxe(j);
@@ -160,7 +160,7 @@ void BICGSolver::sol1d(const int &j, const int &k, CMFD_VAR *b1d, CMFD_VAR *x1d)
     }
 }
 
-void BICGSolver::sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x) {
+void BICGSolver::sol2d(double *cc, const int &k, double *b, double *x) {
     //  forward solve
 
     for (int j = 0; j < _g.ny(); ++j) {
@@ -207,7 +207,7 @@ void BICGSolver::sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x) {
     }
 }
 
-void BICGSolver::minv(CMFD_VAR *cc, CMFD_VAR *b, SOL_VAR *x) {
+void BICGSolver::minv(double *cc, double *b, double *x) {
 
     // forward solve
     for (int k = 0; k < _g.nz(); k++) {
@@ -261,7 +261,7 @@ void BICGSolver::abi1d(const int &j, const int &k) {
         int lp1 = l;
         l = l - 1;
 
-        CMFD_VAR al1[4]{}, au1[4]{};;
+        double al1[4]{}, au1[4]{};;
         // lower part of the inverse
         matxmat2g(&ainvd(0, 0, lp1), &al(0, 0, lp1), al1); // lower part of the inverse
         al1[0] = -al1[0];
@@ -299,7 +299,7 @@ void BICGSolver::facilu1d(const int &j, const int &k) {
     //   calc. inv(del)*u for later use in backsub
     matxmat2g(&delinv(0, 0, l), &au(0, 0, l), &deliau(0, 0, l));
 
-    CMFD_VAR ald1[4]{}, temp[4]{};
+    double ald1[4]{}, temp[4]{};
     for (int i = _g.nxs(j) + 1; i < _g.nxe(j); ++i) {
         int lm1 = l;
         l = l + 1;
@@ -311,7 +311,7 @@ void BICGSolver::facilu1d(const int &j, const int &k) {
     }
 }
 
-void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
+void BICGSolver::facilu(double *diag, double *cc) {
 
 //    &al = 0;
 //    &au = 0;
@@ -343,7 +343,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
                 int l = _g.ijtol(i, j) + k * _g.nxy();
                 int ln = _g.neib(NORTH, l);
                 if (ln > -1) {
-                    CMFD_VAR ccy[LR][2]{}, temp[4]{};
+                    double ccy[LR][2]{}, temp[4]{};
                     ccy[LEFT][0] = cc(LEFT, YDIR, 0, l);
                     ccy[LEFT][1] = cc(LEFT, YDIR, 1, l);
                     ccy[RIGHT][0] = cc(RIGHT, YDIR, 0, ln);
@@ -365,7 +365,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
                     int lw = _g.ijtol(i - 1, j) + k * _g.nxy();
                     int lwn = _g.neib(NORTH, lw);
                     if (lwn > -1) {
-                        CMFD_VAR ccy[LR][2]{}, temp[4]{};
+                        double ccy[LR][2]{}, temp[4]{};
                         ccy[LEFT][0] = -cc(LEFT, YDIR, 0, l);
                         ccy[LEFT][1] = -cc(LEFT, YDIR, 1, l);
                         ccy[RIGHT][0] = cc(RIGHT, YDIR, 0, lwn);
@@ -392,7 +392,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
                     int le = _g.ijtol(i + 1, j) + k * _g.nxy();
                     int len = _g.neib(NORTH, le);
                     if (len > -1) {
-                        CMFD_VAR ccy[LR][2]{}, temp[4]{};
+                        double ccy[LR][2]{}, temp[4]{};
                         ccy[LEFT][0] = -cc(LEFT, YDIR, 0, l);
                         ccy[LEFT][1] = -cc(LEFT, YDIR, 1, l);
                         ccy[RIGHT][0] = cc(RIGHT, YDIR, 0, len);
@@ -416,7 +416,7 @@ void BICGSolver::facilu(CMFD_VAR *diag, CMFD_VAR *cc) {
     }
 }
 
-void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, CMFD_VAR &r2) {
+void BICGSolver::solve(double *diag, double *cc, double &r20, double *phi, double &r2) {
     int n = _g.nxyz() * _g.ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
@@ -433,7 +433,7 @@ void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi
     minv(cc, _vp, _vy);
     axb(diag, cc, _vy, _vv);
 
-    CMFD_VAR r0v = myblas::dot(n, _vr0, _vv);
+    double r0v = myblas::dot(n, _vr0, _vv);
 
     if (r0v == 0.0) {
         return;
@@ -448,8 +448,8 @@ void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi
     minv(cc, _vs, _vz);
     axb(diag, cc, _vz, _vt);
 
-    CMFD_VAR pts = myblas::dot(n, _vs, _vt);
-    CMFD_VAR ptt = myblas::dot(n, _vt, _vt);
+    double pts = myblas::dot(n, _vs, _vt);
+    double ptt = myblas::dot(n, _vt, _vt);
 
     _comega = 0.0;
     if (ptt != 0.0) {
@@ -472,7 +472,7 @@ void BICGSolver::solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi
     }
 }
 
-void BICGSolver::axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *aphi) {
+void BICGSolver::axb(double *diag, double *cc, double *phi, double *aphi) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aphi(ig,l) = axb(ig, l, diag, cc, phi);
@@ -480,7 +480,7 @@ void BICGSolver::axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *aphi)
     }
 }
 
-double BICGSolver::axb(const int &ig, const int &l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi) {
+double BICGSolver::axb(const int &ig, const int &l, double *diag, double *cc, double *phi) {
     double ab = 0.0;
     for (int igs = 0; igs < _g.ng(); ++igs) {
         ab += diag(igs, ig, l) * phi(igs, l);

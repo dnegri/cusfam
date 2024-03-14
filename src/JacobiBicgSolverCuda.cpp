@@ -44,22 +44,22 @@ JacobiBicgSolverCuda::JacobiBicgSolverCuda(Geometry& g) {
 
     _g = &g;
 
-    checkCudaErrors(cudaMalloc((void**)&_r20_dev, sizeof(CMFD_VAR)));
-    checkCudaErrors(cudaMalloc((void**)&_r2_dev, sizeof(CMFD_VAR)));
+    checkCudaErrors(cudaMalloc((void**)&_r20_dev, sizeof(double)));
+    checkCudaErrors(cudaMalloc((void**)&_r2_dev, sizeof(double)));
 
-    checkCudaErrors(cudaMalloc((void**)& _crho_dev, sizeof(CMFD_VAR)));
-    checkCudaErrors(cudaMalloc((void**)&_r0v_dev, sizeof(CMFD_VAR)));
-    checkCudaErrors(cudaMalloc((void**)&_pts_dev, sizeof(CMFD_VAR)));
-    checkCudaErrors(cudaMalloc((void**)&_ptt_dev, sizeof(CMFD_VAR)));
-    checkCudaErrors(cudaMalloc((void**)&_vz, sizeof(SOL_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vy, sizeof(SOL_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vr, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vr0, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vp, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vv, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vs, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_vt, sizeof(CMFD_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_delinv, sizeof(CMFD_VAR) *_g->ng2() * _g->nxyz()));
+    checkCudaErrors(cudaMalloc((void**)& _crho_dev, sizeof(double)));
+    checkCudaErrors(cudaMalloc((void**)&_r0v_dev, sizeof(double)));
+    checkCudaErrors(cudaMalloc((void**)&_pts_dev, sizeof(double)));
+    checkCudaErrors(cudaMalloc((void**)&_ptt_dev, sizeof(double)));
+    checkCudaErrors(cudaMalloc((void**)&_vz, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vy, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vr, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vr0, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vp, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vv, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vs, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_vt, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_delinv, sizeof(double) *_g->ng2() * _g->nxyz()));
 
 
 }
@@ -68,7 +68,7 @@ JacobiBicgSolverCuda::~JacobiBicgSolverCuda() {
 
 }
 
-__global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
+__global__ void reset(JacobiBicgSolverCuda& self, double* diag, double* cc, double* flux, double* src, double& r20) {
 
     __shared__ float r2[NTHREADSPERBLOCK];
 
@@ -95,21 +95,21 @@ __global__ void reset(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, 
     }
 }
 
-void JacobiBicgSolverCuda::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
+void JacobiBicgSolverCuda::reset(double* diag, double* cc, double* flux, double* src, double& r20) {
 
     _calpha = 1;
     _crho   = 1;
     _comega = 1;
 
     r20 = 0.0;
-    checkCudaErrors(cudaMemcpy(_r20_dev, &r20, sizeof(CMFD_VAR), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(_r20_dev, &r20, sizeof(double), cudaMemcpyHostToDevice));
     ::reset<<<BLOCKS_NODE, THREADS_NODE>>>(*this, diag, cc, flux, src, *_r20_dev);
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaMemcpy(&r20, _r20_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(&r20, _r20_dev, sizeof(double), cudaMemcpyDeviceToHost));
     r20 = sqrt(r20);
 }
 
-__global__ void minv(JacobiBicgSolverCuda& self, CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
+__global__ void minv(JacobiBicgSolverCuda& self, double* cc, double* b, double* x) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -121,13 +121,13 @@ __global__ void minv(JacobiBicgSolverCuda& self, CMFD_VAR* cc, CMFD_VAR* b, SOL_
 }
 
 
-void JacobiBicgSolverCuda::minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
+void JacobiBicgSolverCuda::minv(double* cc, double* b, double* x) {
 
     ::minv << <BLOCKS_NODE, THREADS_NODE >> > (*this, cc, b, x);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void facilu(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc) {
+__global__ void facilu(JacobiBicgSolverCuda& self, double* diag, double* cc) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -136,13 +136,13 @@ __global__ void facilu(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc)
     invmat2g(&diag(0, 0, l), &self.delinv(0, 0, l));
 
 }
-void JacobiBicgSolverCuda::facilu(CMFD_VAR* diag, CMFD_VAR* cc) {
+void JacobiBicgSolverCuda::facilu(double* diag, double* cc) {
 
     ::facilu << <BLOCKS_NODE, THREADS_NODE >> > (*this, diag, cc);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void axb(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aphi) {
+__global__ void axb(JacobiBicgSolverCuda& self, double* diag, double* cc, double* flux, double* aphi) {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
 
@@ -154,24 +154,24 @@ __global__ void axb(JacobiBicgSolverCuda& self, CMFD_VAR* diag, CMFD_VAR* cc, SO
 
 }
 
-void JacobiBicgSolverCuda::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aphi) {
+void JacobiBicgSolverCuda::axb(double* diag, double* cc, double* flux, double* aphi) {
     ::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, diag, cc, flux, aphi);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-CMFD_VAR temp1[12532];
+double temp1[12532];
 
-void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* flux, CMFD_VAR& r2) {
+void JacobiBicgSolverCuda::solve(double* diag, double* cc, double& r20, double* flux, double& r2) {
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
-    CMFD_VAR crhod = _crho;
+    double crhod = _crho;
     myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vr0, _vr, _crho_dev);
     checkCudaErrors(cudaDeviceSynchronize());
-    //    checkCudaErrors(cudaMemcpy(temp1, _vr, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vr, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
 
-    cudaMemcpy(&_crho, _crho_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&_crho, _crho_dev, sizeof(double), cudaMemcpyDeviceToHost);
     checkCudaErrors(cudaDeviceSynchronize());
 
     _cbeta = _crho * _calpha / (crhod * _comega);
@@ -179,7 +179,7 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
     //    _vp(:,:,:)=_vr(:,:,:)+_cbeta*(_vp(:,:,:)-_comega*_vv(:,:,:))
     myblascuda::multi << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _comega, _vv, _vt);
     checkCudaErrors(cudaDeviceSynchronize());
-    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
     myblascuda::minus << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vp, _vt, _vt);
     checkCudaErrors(cudaDeviceSynchronize());
@@ -189,21 +189,21 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
 
     myblascuda::plus << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vr, _vt, _vp);
     checkCudaErrors(cudaDeviceSynchronize());
-    //    checkCudaErrors(cudaMemcpy(temp1, _vr, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
-    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
-    //    checkCudaErrors(cudaMemcpy(temp1, _vp, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vr, sizeof(double) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(double) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vp, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
     minv(cc, _vp, _vy);
-    //    checkCudaErrors(cudaMemcpy(temp1, _vy, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vy, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
     axb(diag, cc, _vy, _vv);
-    //    checkCudaErrors(cudaMemcpy(temp1, _vv, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vv, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
-    CMFD_VAR r0v;
+    double r0v;
     myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vr0, _vv, _r0v_dev);
     checkCudaErrors(cudaDeviceSynchronize());
 
-    cudaMemcpy(&r0v, _r0v_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&r0v, _r0v_dev, sizeof(double), cudaMemcpyDeviceToHost);
     checkCudaErrors(cudaDeviceSynchronize());
 
     if (r0v == 0.0) {
@@ -215,24 +215,24 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
     //    _vs(:,:,:)=_vr(:,:,:)-_calpha*_vv(:,:,:)
     myblascuda::multi << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _calpha, _vv, _vt);
     checkCudaErrors(cudaDeviceSynchronize());
-    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vt, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
     myblascuda::minus << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vr, _vt, _vs);
     checkCudaErrors(cudaDeviceSynchronize());
-    //    checkCudaErrors(cudaMemcpy(temp1, _vs, sizeof(CMFD_VAR) * n, cudaMemcpyDeviceToHost));
+    //    checkCudaErrors(cudaMemcpy(temp1, _vs, sizeof(double) * n, cudaMemcpyDeviceToHost));
 
     minv(cc, _vs, _vz);
     axb(diag, cc, _vz, _vt);
 
-    CMFD_VAR pts, ptt;
+    double pts, ptt;
     myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vs, _vt, _pts_dev);
     checkCudaErrors(cudaDeviceSynchronize());
 
     myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vt, _vt, _ptt_dev);
     checkCudaErrors(cudaDeviceSynchronize());
 
-    cudaMemcpy(&pts, _pts_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&ptt, _ptt_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&pts, _pts_dev, sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&ptt, _ptt_dev, sizeof(double), cudaMemcpyDeviceToHost);
     checkCudaErrors(cudaDeviceSynchronize());
 
 
@@ -264,11 +264,11 @@ void JacobiBicgSolverCuda::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SO
 
     if (r20 != 0.0) {
         r2 = 0.0;
-        checkCudaErrors(cudaMemcpy(_r2_dev, &r2, sizeof(CMFD_VAR), cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(_r2_dev, &r2, sizeof(double), cudaMemcpyHostToDevice));
         myblascuda::dot << <BLOCKS_NGXYZ, THREADS_NGXYZ >> > (n, _vt, _vt, _r2_dev);
         checkCudaErrors(cudaDeviceSynchronize());
 
-        cudaMemcpy(&r2, _r2_dev, sizeof(CMFD_VAR), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&r2, _r2_dev, sizeof(double), cudaMemcpyDeviceToHost);
         checkCudaErrors(cudaDeviceSynchronize());
 
         r2 = sqrt(r2) / r20;

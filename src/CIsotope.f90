@@ -127,6 +127,7 @@ contains
     
     subroutine calculateVariation(this, klo, af,xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmick, xdfmick, xdmmick, xddmick, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics)
@@ -135,27 +136,28 @@ contains
         real(XS_PREC)             :: af(3)
         real(XS_PREC)             ::  xdpmicn(NUM_GRP), xdfmicn(NUM_GRP), xdmmicn(NUM_GRP,3), xddmicn(NUM_GRP), &
                                 xdpmicf(NUM_GRP), xdfmicf(NUM_GRP), xdmmicf(NUM_GRP,3), xddmicf(NUM_GRP), &
+                                xdpmick(NUM_GRP), xdfmick(NUM_GRP), xdmmick(NUM_GRP,3), xddmick(NUM_GRP), &
                                 xdpmica(NUM_GRP), xdfmica(NUM_GRP), xdmmica(NUM_GRP,3), xddmica(NUM_GRP), &
                                 xdpmicd(NUM_GRP), xdfmicd(NUM_GRP), xdmmicd(NUM_GRP,3), xddmicd(NUM_GRP), &
                                 xdpmics(NUM_GRP,NUM_GRP), xdfmics(NUM_GRP,NUM_GRP), xdmmics(NUM_GRP,NUM_GRP,3), xddmics(NUM_GRP,NUM_GRP)
         integer             :: ig
 
-        call this%calculateVariation1(klo, af, 2, xdpmicn(:), xdpmicf(:), xdpmica(:), xdpmicd(:), xdpmics(:,:))
-        call this%calculateVariation1(klo, af, 4, xdfmicn(:), xdfmicf(:), xdfmica(:), xdfmicd(:), xdfmics(:,:))
-        call this%calculateVariation1(klo, af, 6, xdmmicn(:,1), xdmmicf(:,1), xdmmica(:,1), xdmmicd(:,1), xdmmics(:,:,1))
-        call this%calculateVariation1(klo, af, 7, xdmmicn(:,2), xdmmicf(:,2), xdmmica(:,2), xdmmicd(:,2), xdmmics(:,:,2))
-        call this%calculateVariation1(klo, af, 8, xdmmicn(:,3), xdmmicf(:,3), xdmmica(:,3), xdmmicd(:,3), xdmmics(:,:,3))
-        call this%calculateVariation1(klo, af,10, xddmicn(:), xddmicf(:), xddmica(:), xddmicd(:), xddmics(:,:))
+        call this%calculateVariation1(klo, af, 2, xdpmicn(:), xdpmicf(:), xdpmick(:), xdpmica(:), xdpmicd(:), xdpmics(:,:))
+        call this%calculateVariation1(klo, af, 4, xdfmicn(:), xdfmicf(:), xdfmick(:), xdfmica(:), xdfmicd(:), xdfmics(:,:))
+        call this%calculateVariation1(klo, af, 6, xdmmicn(:,1), xdmmicf(:,1),xdmmick(:,1), xdmmica(:,1), xdmmicd(:,1), xdmmics(:,:,1))
+        call this%calculateVariation1(klo, af, 7, xdmmicn(:,2), xdmmicf(:,2),xdmmick(:,2), xdmmica(:,2), xdmmicd(:,2), xdmmics(:,:,2))
+        call this%calculateVariation1(klo, af, 8, xdmmicn(:,3), xdmmicf(:,3),xdmmick(:,3), xdmmica(:,3), xdmmicd(:,3), xdmmics(:,:,3))
+        call this%calculateVariation1(klo, af,10, xddmicn(:), xddmicf(:), xddmick(:), xddmica(:), xddmicd(:), xddmics(:,:))
         
         
     end subroutine    
     
-    subroutine calculateVariation1(this, klo, af, idxdrv, xdmicn, xdmicf, xdmica, xdmicd, xdmics)
+    subroutine calculateVariation1(this, klo, af, idxdrv, xdmicn, xdmicf, xdmick, xdmica, xdmicd, xdmics)
     
         class(Isotope)     :: this
         integer             :: klo, idxdrv
         real(XS_PREC)             :: af(3)
-        real(XS_PREC)             ::  xdmicn(NUM_GRP), xdmicf(NUM_GRP), xdmica(NUM_GRP), xdmicd(NUM_GRP), xdmics(NUM_GRP,NUM_GRP)
+        real(XS_PREC)             ::  xdmicn(NUM_GRP), xdmicf(NUM_GRP), xdmick(NUM_GRP), xdmica(NUM_GRP), xdmicd(NUM_GRP), xdmics(NUM_GRP,NUM_GRP)
         integer             :: ixs,ig, igs, ige, igse
         
         ixs = XSSIG_NUF
@@ -166,12 +168,18 @@ contains
         ixs = XSSIG_FIS
         do ig=1,NUM_GRP
             xdmicf(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
+            xdmick(ig) = xdmicf(ig)*this%cappa(ig)
         enddo
         
         ixs = XSSIG_CAP
         do ig=1,NUM_GRP
             xdmica(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
             xdmica(ig) = xdmica(ig) + xdmicf(ig)
+        enddo
+        
+        ixs = XSSIG_TRS
+        do ig=1,NUM_GRP
+            xdmicd(ig) = af(1) * this%dxssig(klo,ig,idxdrv,ixs) + af(2) * this%dxssig(klo+1,ig,idxdrv,ixs) + af(3) * this%dxssig(klo+2,ig,idxdrv,ixs)
         enddo
         
         igse = 0

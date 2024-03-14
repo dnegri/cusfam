@@ -52,15 +52,15 @@
       subroutine initsfamgeom(  ng,     ndim,   part,           &
                                 nx,     ny,     nz,     nxy,     &
                                 kbc, kec, nxsl, nxel, nysl, nyel,  &
-                                ijtol, hxyz, vol, albedo)  bind(c, name="initsfamgeom")
-        use geom, only : setgeom
+                                ijtol, neibr0, hxyz, vol, albedo)  bind(c, name="initsfamgeom")
+        use geom, only : setgeom, neibr
         use sfam,    only : mallocsfam
 
         integer                         :: ng, ndim
         integer                         :: nx, ny, nz, nxy
         real                            :: part
         integer, target, intent(in)     :: nxsl(ny), nxel(ny),nysl(nx), nyel(nx)
-        integer, target, intent(in)     :: ijtol(nx,ny)
+        integer, target, intent(in)     :: ijtol(nx,ny), neibr0(4,nxy)
         real, target, intent(in)        :: hxyz(3,nxy,nz)
         real, target, intent(in)        :: vol(nxy,nz)
         real                            :: albedo(2, NDIRMAX)
@@ -122,7 +122,7 @@
                      nxs,nxe,nys,nye,nxsf,nxef,                     &
                      kbc,kec,nodel, hmesh, vol, volall, volcor, albedo)
                      
-                     
+        neibr = neibr0+1
         call mallocsfam(ng,nxy, nz, ndim)
         return
         

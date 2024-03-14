@@ -5,12 +5,12 @@
 
 BICGCMFDCuda::BICGCMFDCuda(Geometry& g, CrossSection& x) : BICGCMFD(g,x)
 {
-    //_dtil = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    //_dhat = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    //_diag = new CMFD_VAR[_g.nxyz() * _g.ng2()]{};
-    //_cc = new CMFD_VAR[_g.nxyz() * _g.ng() * NEWSBT]{};
-    //_src = new CMFD_VAR[_g.nxyz() * _g.ng()]{};
-    //_psi = new CMFD_VAR[_g.nxyz()]{};
+    //_dtil = new double[_g.nsurf() * _g.ng()]{};
+    //_dhat = new double[_g.nsurf() * _g.ng()]{};
+    //_diag = new double[_g.nxyz() * _g.ng2()]{};
+    //_cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
+    //_src = new double[_g.nxyz() * _g.ng()]{};
+    //_psi = new double[_g.nxyz()]{};
     //_epsl2 = 1.E-5;
 }
 
@@ -32,14 +32,14 @@ void BICGCMFDCuda::init()
     checkCudaErrors(cudaMalloc((void**)&_gamman_dev, sizeof(double)));
     checkCudaErrors(cudaMalloc((void**)&_errl2_dev, sizeof(float)));
 
-    checkCudaErrors(cudaMalloc((void**)&_dtil, sizeof(CMFD_VAR) * _g.nsurf() * _g.ng()));
-    checkCudaErrors(cudaMalloc((void**)&_dhat, sizeof(CMFD_VAR) * _g.nsurf() * _g.ng()));
-    checkCudaErrors(cudaMalloc((void**)&_diag, sizeof(CMFD_VAR) * _g.nxyz() * _g.ng2()));
-    checkCudaErrors(cudaMalloc((void**)&_unshifted_diag, sizeof(CMFD_VAR) * _g.nxyz() * _g.ng2()));
-    checkCudaErrors(cudaMalloc((void**)&_cc, sizeof(CMFD_VAR) * _g.ngxyz() * NEWSBT));
-    checkCudaErrors(cudaMalloc((void**)&_src, sizeof(CMFD_VAR) * _g.ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_psi, sizeof(CMFD_VAR) * _g.nxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_psid, sizeof(CMFD_VAR) * _g.nxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_dtil, sizeof(double) * _g.nsurf() * _g.ng()));
+    checkCudaErrors(cudaMalloc((void**)&_dhat, sizeof(double) * _g.nsurf() * _g.ng()));
+    checkCudaErrors(cudaMalloc((void**)&_diag, sizeof(double) * _g.nxyz() * _g.ng2()));
+    checkCudaErrors(cudaMalloc((void**)&_unshifted_diag, sizeof(double) * _g.nxyz() * _g.ng2()));
+    checkCudaErrors(cudaMalloc((void**)&_cc, sizeof(double) * _g.ngxyz() * NEWSBT));
+    checkCudaErrors(cudaMalloc((void**)&_src, sizeof(double) * _g.ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_psi, sizeof(double) * _g.nxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_psid, sizeof(double) * _g.nxyz()));
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
@@ -55,14 +55,14 @@ void BICGCMFDCuda::upddtil() {
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void upddhat(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
+__global__ void upddhat(BICGCMFDCuda& self, double* flux, double* jnet) {
     int ls = threadIdx.x + blockIdx.x * blockDim.x;
     if (ls >= self.g().nsurf()) return;
 
     self.CMFD::upddhat(ls, flux, jnet);
 }
 
-void BICGCMFDCuda::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
+void BICGCMFDCuda::upddhat(double* flux, double* jnet) {
     ::upddhat << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
     checkCudaErrors(cudaDeviceSynchronize());
 }
@@ -100,7 +100,7 @@ void BICGCMFDCuda::updls(const double& reigvs) {
 }
 
 
-__global__ void updjnet(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
+__global__ void updjnet(BICGCMFDCuda& self, double* flux, double* jnet) {
     int ls = threadIdx.x + blockIdx.x * blockDim.x;
     if (ls >= self.g().nsurf()) return;
 
@@ -108,13 +108,13 @@ __global__ void updjnet(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* jnet) {
 }
 
 
-void BICGCMFDCuda::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
+void BICGCMFDCuda::updjnet(double* flux, double* jnet)
 {
     ::updjnet << <BLOCKS_SURFACE, THREADS_SURFACE >> > (*this, flux, jnet);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
+__global__ void updpsi(BICGCMFDCuda& self, const double* flux)
 {
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
@@ -123,14 +123,14 @@ __global__ void updpsi(BICGCMFDCuda& self, const SOL_VAR* flux)
     self.CMFD::updpsi(l, flux);
 }
 
-void BICGCMFDCuda::updpsi(const SOL_VAR* flux)
+void BICGCMFDCuda::updpsi(const double* flux)
 {
     ::updpsi << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
 
-__global__ void axb(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
+__global__ void axb(BICGCMFDCuda& self, double* flux, double* aflux) {
 
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= self.g().nxyz()) return;
@@ -140,7 +140,7 @@ __global__ void axb(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
     }
 }
 
-__global__ void axb2(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
+__global__ void axb2(BICGCMFDCuda& self, double* flux, double* aflux) {
 
     int lg = threadIdx.x + blockIdx.x * blockDim.x;
     if (lg >= self.g().ngxyz()) return;
@@ -151,7 +151,7 @@ __global__ void axb2(BICGCMFDCuda& self, SOL_VAR* flux, SOL_VAR* aflux) {
 }
 
 
-__global__ void axb1(const int& nxyz, const int* neib, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, SOL_VAR* aflux) {
+__global__ void axb1(const int& nxyz, const int* neib, double* diag, double* cc, double* flux, double* aflux) {
 
     int l = threadIdx.x + blockIdx.x * blockDim.x;
     if (l >= nxyz) return;
@@ -176,14 +176,14 @@ __global__ void axb1(const int& nxyz, const int* neib, CMFD_VAR* diag, CMFD_VAR*
 }
 
 
-void BICGCMFDCuda::axb(SOL_VAR* flux, SOL_VAR* aflux)
+void BICGCMFDCuda::axb(double* flux, double* aflux)
 {
     //::axb << <BLOCKS_NODE, THREADS_NODE >> > (*this, flux, aflux);
     ::axb2 << <BLOCKS_NGXYZ, BLOCKS_NGXYZ >> > (*this, flux, aflux);
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void BICGCMFDCuda::axb1(SOL_VAR* flux, SOL_VAR* aflux)
+void BICGCMFDCuda::axb1(double* flux, double* aflux)
 {
     ::axb1 << <BLOCKS_NODE, THREADS_NODE >> > (_g.nxyz(), _g.neib(), _diag, _cc, flux, aflux);
     checkCudaErrors(cudaDeviceSynchronize());
@@ -206,7 +206,7 @@ void BICGCMFDCuda::updsrc(const double& reigvdel) {
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-__global__ void psierr(int nxyz, const CMFD_VAR* psid, const CMFD_VAR* psi, float* errl2, double* gammad, double* gamman) {
+__global__ void psierr(int nxyz, const double* psid, const double* psi, float* errl2, double* gammad, double* gamman) {
     __shared__ float errl2_cache[NTHREADSPERBLOCK];
     __shared__ double gammad_cache[NTHREADSPERBLOCK];
     __shared__ double gamman_cache[NTHREADSPERBLOCK];
@@ -217,7 +217,7 @@ __global__ void psierr(int nxyz, const CMFD_VAR* psid, const CMFD_VAR* psi, floa
     gamman_cache[threadIdx.x] = 0.0;
 
     while (l < nxyz) {
-        CMFD_VAR err = psi[l] - psid[l];
+        double err = psi[l] - psid[l];
         errl2_cache[threadIdx.x] += err*  err;
         gammad_cache[threadIdx.x] += psid[l] * psi[l];
         gamman_cache[threadIdx.x] += psi[l] * psi[l];
@@ -244,7 +244,7 @@ __global__ void psierr(int nxyz, const CMFD_VAR* psid, const CMFD_VAR* psi, floa
     }
 }
 
-void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
+void BICGCMFDCuda::wiel(const int& icy, const double* flux, double& reigvs, double& eigv, double& reigv, float& errl2) {
 
 
     updpsi(flux);
@@ -280,9 +280,9 @@ void BICGCMFDCuda::wiel(const int& icy, const SOL_VAR* flux, double& reigvs, dou
 
 }
 
-CMFD_VAR temp[12532];
+double temp[12532];
 
-void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
+void BICGCMFDCuda::drive(double& eigv, double* flux, float& errl2) {
 
     int icmfd = 0;
     double reigv = 1. / eigv;
@@ -295,12 +295,12 @@ void BICGCMFDCuda::drive(double& eigv, SOL_VAR* flux, float& errl2) {
         double reigvdel = reigv - reigvs;
         updsrc(reigvdel);
 
-        //checkCudaErrors(cudaMemcpy(temp, _src, sizeof(CMFD_VAR) * _g.ngxyz(), cudaMemcpyDeviceToHost));
+        //checkCudaErrors(cudaMemcpy(temp, _src, sizeof(double) * _g.ngxyz(), cudaMemcpyDeviceToHost));
 
-        CMFD_VAR r20 = 0.0;
+        double r20 = 0.0;
         _ls->reset(_diag, _cc, flux, _src, r20);
 
-        CMFD_VAR r2 = 0.0;
+        double r2 = 0.0;
         for (int iin = 0; iin < _nmaxbicg; ++iin) {
             //solve linear system A*phi = src
             _ls->solve(_diag, _cc, r20, flux, r2);

@@ -32,7 +32,7 @@ MKLSolver::~MKLSolver()
 
 }
 
-void MKLSolver::solve(CMFD_VAR * b, double* x)
+void MKLSolver::solve(double * b, double* x)
 {
     int error = 0;
 

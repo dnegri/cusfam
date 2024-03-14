@@ -213,13 +213,13 @@ public:
         return _pinphia[((k*_g.nxy()+la)*_g.ncellxy()*_g.ncellxy()+jpa*_g.ncellxy()+ipa)*_g.ng()+ig];
     }
 
-	void calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
+	void calhomo(const double& eigv, double* flux, double* phis, double* jnet);
 	void calpinpower();
 
-	void calphicorn(SOL_VAR* flux, SOL_VAR* phis);
-	void caltrlz(int l, int k, SOL_VAR* jnet);
+	void calphicorn(double* flux, double* phis);
+	void caltrlz(int l, int k, double* jnet);
     void calcff(int l, int k);
-    void calsol(int l, int k, SOL_VAR* jnet);
+    void calsol(int l, int k, double* jnet);
     void calsol2drhs(int l, int k, const double & reigv );
 	void calpinpower(const int& la, const int& k, const int* larot1a);
 	void applyFF(void* ff_ptr, float * burn);
@@ -227,7 +227,7 @@ public:
     double& pow3da(int la, int k) {return _pow3da[k * _g.nxya() + la]; };
     double& peaka(int la, int k) { return _peaka[k * _g.nxya() + la]; };
 
-    void expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet);
+    void expflux13(int l, int k, double* flux, double* phis, double* jnet);
 
 	double getFxy();
 	double getFq();

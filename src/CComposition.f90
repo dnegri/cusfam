@@ -45,6 +45,9 @@ contains
             call this%iso(i)%calculateReference(klo, af, xsmicd(:,i), xsmica(:,i), xsmicn(:,i), xsmicf(:,i), xsmick(:,i), xsmics(:,:,i))
         enddo
         
+        i = ID_XSE
+        call this%iso(i)%calculateReference(klo, af, xsmicd(:,i), xsmica(:,i), xsmicn(:,i), xsmicf(:,i), xsmick(:,i), xsmics(:,:,i))
+        
         call quad1(this%nvarcr, this%xsbucr(:), burn, klo, af)
         do i = ID_DEL1, ID_DEL3
             call this%iso(i)%calculateReference(klo, af, xsmicd(:,i), xsmica(:,i), xsmicn(:,i), xsmicf(:,i), xsmick(:,i), xsmics(:,:,i))
@@ -54,6 +57,7 @@ contains
     
     subroutine calculateVariation(this, burn,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmick, xdfmick, xdmmick, xddmick, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )
@@ -61,6 +65,7 @@ contains
         real(XS_PREC)             :: burn
         real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
                                 xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmick(NUM_GRP,NISO), xdfmick(NUM_GRP,NISO), xdmmick(NUM_GRP,3,NISO), xddmick(NUM_GRP,NISO), &
                                 xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
                                 xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
                                 xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
@@ -72,19 +77,30 @@ contains
         do i = 1, NDEP
             call this%iso(i)%calculateVariation(klo, af, xdpmicn(:,i), xdfmicn(:,i), xdmmicn(:,:,i), xddmicn(:,i), &
                                                          xdpmicf(:,i), xdfmicf(:,i), xdmmicf(:,:,i), xddmicf(:,i), &
+                                                         xdpmick(:,i), xdfmick(:,i), xdmmick(:,:,i), xddmick(:,i), &
                                                          xdpmica(:,i), xdfmica(:,i), xdmmica(:,:,i), xddmica(:,i), &
                                                          xdpmicd(:,i), xdfmicd(:,i), xdmmicd(:,:,i), xddmicd(:,i), &
                                                          xdpmics(:,:,i), xdfmics(:,:,i), xdmmics(:,:,:,i), xddmics(:,:,i))
         enddo
+
+        i = ID_XSE
+        call this%iso(i)%calculateVariation(klo, af, xdpmicn(:,i), xdfmicn(:,i), xdmmicn(:,:,i), xddmicn(:,i), &
+                                                        xdpmicf(:,i), xdfmicf(:,i), xdmmicf(:,:,i), xddmicf(:,i), &
+                                                        xdpmick(:,i), xdfmick(:,i), xdmmick(:,:,i), xddmick(:,i), &
+                                                        xdpmica(:,i), xdfmica(:,i), xdmmica(:,:,i), xddmica(:,i), &
+                                                        xdpmicd(:,i), xdfmicd(:,i), xdmmicd(:,:,i), xddmicd(:,i), &
+                                                        xdpmics(:,:,i), xdfmics(:,:,i), xdmmics(:,:,:,i), xddmics(:,:,i))
         
         call quad1(this%nvar2cr, this%dxsbucr(:), burn, klo, af)
         do i = ID_DEL1, ID_DEL3
             call this%iso(i)%calculateVariation(klo, af, xdpmicn(:,i), xdfmicn(:,i), xdmmicn(:,:,i), xddmicn(:,i), &
                                                          xdpmicf(:,i), xdfmicf(:,i), xdmmicf(:,:,i), xddmicf(:,i), &
+                                                         xdpmick(:,i), xdfmick(:,i), xdmmick(:,:,i), xddmick(:,i), &
                                                          xdpmica(:,i), xdfmica(:,i), xdmmica(:,:,i), xddmica(:,i), &
                                                          xdpmicd(:,i), xdfmicd(:,i), xdmmicd(:,:,i), xddmicd(:,i), &
                                                          xdpmics(:,:,i), xdfmics(:,:,i), xdmmics(:,:,:,i), xddmics(:,:,i))
         enddo
+
         
     end subroutine    
 

@@ -110,19 +110,19 @@ public:
     __host__ __device__ int& iptyp(const int& step, const int& ichn) { return _reactype[_ihvys[ichn] + step]; };
     __host__ __device__ const float& fyld(const ISO_FP& fpiso, const int& fiso) { return FPYLD[fiso*NFP + fpiso]; };
 
-    __host__ void eqxe(const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm);
-    __host__ __device__ void eqxe(const int& l, const XS_VAR* xsmica, const XS_VAR* xsmicf, const SOL_VAR* flux, const float& fnorm);
+    __host__ void eqxe(const double* xsmica, const double* xsmicf, const double* flux, const float& fnorm);
+    __host__ __device__ void eqxe(const int& l, const double* xsmica, const double* xsmicf, const double* flux, const float& fnorm);
 
-    __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt, const float* power);
-	__host__ void dynxesm(const float& tsec, const XEType& xeopt, const SMType& smopt, const XS_VAR* xsmica, const XS_VAR* xsmicf, const float* power, const SOL_VAR* flux, const float& fnorm);
-    __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& power, float* ati, float* atd, float* atavg);
+    __host__ void dep(const float& tsec, const XEType& xeopt, const SMType& smopt, const float& xeamp, const float* power);
+	__host__ void dynxesm(const float& tsec, const XEType& xeopt, const SMType& smopt, const float& xeamp, const double* xsmica, const double* xsmicf, const float* power, const double* flux, const float& fnorm);
+    __host__ __device__ void dep(const int& l, const float& tsec, const XEType& xeopt, const SMType& smopt, const float& xeamp, const float& power, float* ati, float* atd, float* atavg);
     __host__ __device__ void deph(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depsm(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
-    __host__ __device__ void depxe(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
+    __host__ __device__ void depxe(const int& l, const float& tsec, const float& xeamp, const float* ati, float* atd, float* atavg);
     __host__ __device__ void depp(const int& l, const float& tsec, const float* ati, float* atd, float* atavg);
 
-    __host__ void pickData(const XS_VAR* xsmica, const XS_VAR* xsmicf, const XS_VAR* xsmic2n, const SOL_VAR* flux, const float& fnorm);
-    __host__ __device__ void pickData(const int& l, const XS_VAR* xsmica, const XS_VAR* xsmicf, const XS_VAR* xsmic2n, const SOL_VAR* flux, const float& fnorm);
+    __host__ void pickData(const double* xsmica, const double* xsmicf, const double* xsmic2n, const double* flux, const float& fnorm);
+    __host__ __device__ void pickData(const int& l, const double* xsmica, const double* xsmicf, const double* xsmic2n, const double* flux, const float& fnorm);
 
 	void updateB10Abundance(const float& b10ap);
 	__host__ void updateH2ODensity(const float* dm, const float& ppm);

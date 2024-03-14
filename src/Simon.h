@@ -14,8 +14,16 @@
 #include "Depletion.h"
 #include "CrossSection.h"
 #include "Feedback.h"
+#include "JIArray.h"
+#include "ShapeMatch.h"
 
 namespace py = pybind11;
+
+enum ShapeMatchOption {
+    SHAPE_NO,
+    SHAPE_HOLD,
+    SHAPE_MATCH
+};
 
 enum CriticalOption {
     KEFF,
@@ -59,16 +67,19 @@ typedef struct _SimonResult {
 
 
 typedef struct _SteadyOption {
-    CriticalOption   searchOption;
-    bool feedtf;
-    bool feedtm;
-    XEType xenon;
-    float tin;
-    double eigvt;
+    CriticalOption   searchOption = CriticalOption::KEFF;
+    ShapeMatchOption shpmtch = ShapeMatchOption::SHAPE_NO;
+    bool feedtf = true;
+    bool feedtm = true;
+    XEType xenon = XEType::XE_EQ;
+	SMType samarium = SMType::SM_TR;
+	float tin = 290.0;
+    double eigvt = 1.0;
     int maxiter = 100;
 	float epsiter = 1.E-5;
-	float ppm;
-	float plevel;
+	float ppm = 500.0;
+	float plevel = 1.0;
+    float b10a = 0.0;
 } SteadyOption ;
 
 typedef struct _DepletionOption {
@@ -76,6 +87,7 @@ typedef struct _DepletionOption {
 	XEType xe;
 	SMType sm;
 	float  tsec;
+	float  xeamp = 1.0;
 } DepletionOption;
 
 class Simon : public Managed {
@@ -86,6 +98,7 @@ protected:
     Depletion* _d;
     Feedback* _f;
 	ControlRod* _r;
+    ShapeMatch* _shapeMatch;
 
 	void* _tset_ptr;
 	void* _ff_ptr;
@@ -103,12 +116,14 @@ protected:
 	float _pload;
 	float _pload0;
 
-    SOL_VAR* _flux;
-    SOL_VAR* _jnet;
-	SOL_VAR* _phis;
+    double* _flux;
+    double* _jnet;
+	double* _phis;
+    double1 _powshp;
 
     double _reigv;
     double _eigv;
+    double _eigvc;
     double _fnorm;
 
     float _ppm;
@@ -123,7 +138,7 @@ protected:
     bool _feed_tm;
 
 	//FIXME volcore should be defined in Geometry
-	GEOM_VAR _volcore;
+	double _volcore;
 
 
 public:
@@ -140,7 +155,7 @@ public:
 
 	__host__ void setRodPosition(const char* rodid, const float& position);
 
-	__host__ virtual void setBurnup(const char* dir_burn, const float& burnup);
+	__host__ virtual void setBurnup(const char* dir_burn, const float& burnup, SteadyOption& option);
 	__host__ virtual void setSMR(const char* dir_burn, const float& burnup);
 	__host__ virtual void saveSMR(const char* dir_burn, const float& burnup);
 	__host__ virtual void setBurnupPoints(const std::vector<double> & burnups);
@@ -168,10 +183,10 @@ public:
 	__host__ inline float& pow1d(const int& k) { return _pow1d[k]; };
 	__host__ inline float& pow2d(const int& l2d) { return _pow2d[l2d]; };
 	__host__ inline float& pow2da(const int& l2da) { return _pow2da[l2da]; };
-	__host__ inline SOL_VAR& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
-    __host__ inline SOL_VAR& jnet(const int& ig, const int& ls) { return _jnet[ls*_g->ng()+ig]; };
-    __host__ inline SOL_VAR* flux() { return _flux; };
-    __host__ inline SOL_VAR* jnet() { return _jnet; };
+	__host__ inline double& flux(const int& ig, const int& l) { return _flux[l*_g->ng()+ig]; };
+    __host__ inline double& jnet(const int& ig, const int& ls) { return _jnet[ls*_g->ng()+ig]; };
+    __host__ inline double* flux() { return _flux; };
+    __host__ inline double* jnet() { return _jnet; };
 	__host__ inline float& asi() { return _asi; };
 	__host__ inline float& ppm() { return _ppm; };
 	__host__ inline double& eigv() { return _eigv; };
@@ -192,6 +207,7 @@ public:
 
 	void generateResults();
 
+    void setPowerShape(const vector<double>& hzshp, const vector<double>& powshp);
 
 };
 

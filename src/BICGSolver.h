@@ -6,16 +6,16 @@ class BICGSolver {
 private:
     Geometry &_g;
 
-    CMFD_VAR _calpha
+    double _calpha
     , _cbeta
     , _crho
     , _comega;
 
-    SOL_VAR *_vy
+    double *_vy
     , *_vz;
 
 
-    CMFD_VAR *_vr
+    double *_vr
     , *_vr0
     , *_vp
     , *_vv
@@ -30,7 +30,7 @@ private:
     , *_s3dd
     ;
 
-    CMFD_VAR *_del
+    double *_del
     , *_ainvd
     , *_ainvl
     , *_ainvu
@@ -44,25 +44,25 @@ public:
 
     virtual ~BICGSolver();
 
-    void reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src, CMFD_VAR &r20);
-    double reset(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *src);
+    void reset(double *diag, double *cc, double *phi, double *src, double &r20);
+    double reset(const int& ig, const int& l, double *diag, double *cc, double *phi, double *src);
 
-    void sol1d(const int &j, const int &k, CMFD_VAR *b, CMFD_VAR *x);
+    void sol1d(const int &j, const int &k, double *b, double *x);
 
-    void sol2d(CMFD_VAR *cc, const int &k, CMFD_VAR *b, CMFD_VAR *x);
+    void sol2d(double *cc, const int &k, double *b, double *x);
 
-    void minv(CMFD_VAR *cc, CMFD_VAR *b, SOL_VAR *x);
+    void minv(double *cc, double *b, double *x);
 
     void abi1d(const int &j, const int &k);
 
     void facilu1d(const int &j, const int &k);
 
-    void facilu(CMFD_VAR *diag, CMFD_VAR *cc);
+    void facilu(double *diag, double *cc);
 
-    void solve(CMFD_VAR *diag, CMFD_VAR *cc, CMFD_VAR &r20, SOL_VAR *phi, CMFD_VAR &r2);
+    void solve(double *diag, double *cc, double &r20, double *phi, double &r2);
 
-    void axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi, CMFD_VAR *aphi);
-    double axb(const int& ig, const int& l, CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR *phi);
+    void axb(double *diag, double *cc, double *phi, double *aphi);
+    double axb(const int& ig, const int& l, double *diag, double *cc, double *phi);
 
 };
 

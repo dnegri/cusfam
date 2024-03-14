@@ -2,7 +2,7 @@
 #include "Geometry.h"
 
 static const int LEN_ROD_NAME = 5;
-static const int MAX_ROD_TYPE = 73;
+static const int MAX_ROD_TYPE = 100;
 static const float EPS_ROD_IN = 0.01;
 
 
@@ -19,6 +19,7 @@ public:
     virtual ~ControlRod();
 	
 	void initialize(const int& ncea, const int* iabs, const char* idcea[], const int* ceamap);
+	void setDefaultPosition();
 
     void setPosition(const char* rodid, const float& pos);
 

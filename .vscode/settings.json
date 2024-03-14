@@ -1,0 +1,11 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "files.associations": {
+        "*.f90": "FortranFreeForm",
+        "__node_handle": "cpp",
+        "complex": "cpp",
+        "valarray": "cpp",
+        "cmath": "cpp",
+        "new": "cpp"
+    }
+}

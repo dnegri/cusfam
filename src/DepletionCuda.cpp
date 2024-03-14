@@ -97,7 +97,7 @@ __global__ void dep(DepletionCuda& self, float tsec)
 
 }
 
-__global__ void eqxe(DepletionCuda& self, const float* xsmica, const float* xsmicf, const SOL_VAR* flux, float fnorm)
+__global__ void eqxe(DepletionCuda& self, const float* xsmica, const float* xsmicf, const double* flux, float fnorm)
 {
 
 	if (self.xeopt() != XEType::XE_EQ) return;
@@ -110,7 +110,7 @@ __global__ void eqxe(DepletionCuda& self, const float* xsmica, const float* xsmi
 	self.Depletion::eqxe(l, xsmica, xsmicf, flux, fnorm);
 }
 
-__global__ void pickData(DepletionCuda& self, const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, float fnorm) {
+__global__ void pickData(DepletionCuda& self, const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, float fnorm) {
 
 	int l = threadIdx.x + blockIdx.x * blockDim.x;
 	if (l >= self.g().nxyz()) return;
@@ -134,7 +134,7 @@ void DepletionCuda::dep(const float& tsec)
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void DepletionCuda::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR* flux, const float& fnorm)
+void DepletionCuda::eqxe(const float* xsmica, const float* xsmicf, const double* flux, const float& fnorm)
 {
 
 	if (xeopt() != XEType::XE_EQ) return;
@@ -143,7 +143,7 @@ void DepletionCuda::eqxe(const float* xsmica, const float* xsmicf, const SOL_VAR
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void DepletionCuda::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const SOL_VAR* flux, const float& fnorm) {
+void DepletionCuda::pickData(const float* xsmica, const float* xsmicf, const float* xsmic2n, const double* flux, const float& fnorm) {
 
 	::pickData << <BLOCKS_NODE, THREADS_NODE >> > (*this, xsmica, xsmicf, xsmic2n, flux, fnorm);
 	checkCudaErrors(cudaDeviceSynchronize());

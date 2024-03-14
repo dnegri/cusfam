@@ -8,11 +8,11 @@ Geometry::~Geometry()
 {
 }
 
-void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
+void Geometry::setBoundaryCondition(int symopt, int symang, float* albedo)
 {
-	_symopt = *symopt;
-	_symang = *symang;
-	_albedo = new GEOM_VAR[LR*NDIRMAX];
+	_symopt = symopt;
+	_symang = symang;
+	_albedo = new double[LR*NDIRMAX];
 	for (int idir = 0; idir < NDIRMAX; idir++)
 	{
 		for (int l = 0; l < LR; l++)
@@ -24,23 +24,24 @@ void Geometry::setBoundaryCondition(int* symopt, int* symang, float* albedo)
 	_part = _symang / 360.0;
 }
 
-void Geometry::initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_) {
-	_ng = *ng_;
-	_nx = *nx_;
-	_ny = *ny_;
-	_nz = *nz_;
-	_nxy = *nxy_;
+void Geometry::initDimension(int ng_, int nxy_, int nz_, int nx_, int ny_, int nsurf_, int ndivxy_) {
+    _ndivxy = ndivxy_;
+	_ng = ng_;
+	_nx = nx_;
+	_ny = ny_;
+	_nz = nz_;
+	_nxy = nxy_;
 	_nxyz = _nxy * _nz;
-	_nsurf = *nsurf_;
+	_nsurf = nsurf_;
 	_ng2 = _ng * _ng;
 	_ngxyz = _nxyz * _ng;
 	_ngxy = _nxy * _ng;
 	_kbc = 1;
 	_kec = _nz - 1;
 
-	_ndivxy = 2;
 	_ncellxy = 16;
 	_ncellfa = 236;
+    _ndivxy2 = ndivxy_*ndivxy_;
 
 }
 
@@ -86,9 +87,9 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 	}
 	int nxyz6 = NEWSBT * _nxyz;
 	_neib = new int[nxyz6];
-	_hmesh = new GEOM_VAR[nxyz6];
+	_hmesh = new double[NDIRMAX*_nxyz];
 	_lktosfc = new int[nxyz6];
-	_vol = new GEOM_VAR[_nxyz];
+	_vol = new double[_nxyz];
 
 	for (int k = 0; k < _nz; k++)
 	{
@@ -135,8 +136,8 @@ void Geometry::initIndex(int* nxs_, int* nxe_, int* nys_, int* nye_, int * ijtol
 		_hzcore  += hmesh(ZDIR, l);
 	}
 
-	_hz = new GEOM_VAR[_nz];
-	for (int k = 1; k < _nz; k++)
+	_hz = new double[_nz];
+	for (int k = 0; k < _nz; k++)
 	{
 		int l = k * _nxy;
 		hz(k) = hmesh(ZDIR, l);
@@ -248,10 +249,10 @@ void Geometry::initAssemblyIndex(int nxyfa_, int ncellfa_, int * latol_, int * l
 	_nxyfa = nxyfa_;
 	_ncellfa = ncellfa_;
 
-	int nsub = (_part == 1 ? 0 : 1);
+	int nsub = (_part == 1 || _ndivxy == 1 ? 0 : 1);
 
-	_nya = (_ny + nsub) / 2;
-	_nxa = (_nx + nsub) / 2;
+	_nya = (_ny + nsub) / _ndivxy;
+	_nxa = (_nx + nsub) / _ndivxy;
 
 	_nxsa = new int[_nya] {};
 	_nxea = new int[_nya] {};
@@ -261,15 +262,15 @@ void Geometry::initAssemblyIndex(int nxyfa_, int ncellfa_, int * latol_, int * l
 	_nxya = 0;
 	for (int ja = 0; ja < _nya; ja++) {
 		int j = ja * 2;
-		nxsa(ja) = (nxs(j) + nsub) / 2;
-		nxea(ja) = (nxe(j) + nsub) / 2;
+		nxsa(ja) = (nxs(j) + nsub) / _ndivxy;
+		nxea(ja) = (nxe(j) + nsub) / _ndivxy;
 		_nxya += nxea(ja) - nxsa(ja);
 	}
 
 	for (int ia = 0; ia < _nxa; ia++) {
 		int i = ia * 2;
-		nysa(ia) = (nys(i) + nsub) / 2;
-		nyea(ia) = (nye(i) + nsub) / 2;
+		nysa(ia) = (nys(i) + nsub) / _ndivxy;
+		nyea(ia) = (nye(i) + nsub) / _ndivxy;
 	}
 
 	_ijtola = new int[_nxa * _nya];
@@ -283,11 +284,11 @@ void Geometry::initAssemblyIndex(int nxyfa_, int ncellfa_, int * latol_, int * l
 	}
 
 	_ltola = new int[_nxy] {};
-    _latol = new int[_nxya*NEWS] {};
-    _larot = new int[_nxya*NEWS] {};
+    _latol = new int[_nxya*_ndivxy2] {};
+    _larot = new int[_nxya*_ndivxy2] {};
 	fill(_ltola, _ltola + _nxy, -1);
-    copy(latol_, latol_ + _nxya*NEWS, _latol);
-    copy(larot_, larot_ + _nxya*NEWS, _larot);
+    copy(latol_, latol_ + _nxya*_ndivxy2, _latol);
+    copy(larot_, larot_ + _nxya*_ndivxy2, _larot);
 
 	for (int la = 0; la < _nxya; la++)
 	{
@@ -298,14 +299,14 @@ void Geometry::initAssemblyIndex(int nxyfa_, int ncellfa_, int * latol_, int * l
 	}
 
 
-	_vola = new GEOM_VAR[_nxya*_nz]{};
+	_vola = new double[_nxya*_nz]{};
 
 	for (int j = 0; j < _ny; j++) {
-		int ja = (j + nsub) / 2;
-        int ji = (j + nsub) % 2;
+		int ja = (j + nsub) / _ndivxy;
+        int ji = (j + nsub) % _ndivxy;
 		for (int i = nxs(j); i < nxe(j); i++){
-			int ia = (i + nsub) / 2;
-            int ii = (i + nsub) % 2;
+			int ia = (i + nsub) / _ndivxy;
+            int ii = (i + nsub) % _ndivxy;
 
 			int l = ijtol(i, j);
 			int la = ijtola(ia, ja);

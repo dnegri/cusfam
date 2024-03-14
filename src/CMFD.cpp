@@ -20,12 +20,12 @@ CMFD::~CMFD() {
 void CMFD::init()
 {
     _epsl2 = 1.E-5;
-    _dtil = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    _dhat = new CMFD_VAR[_g.nsurf() * _g.ng()]{};
-    _diag = new CMFD_VAR[_g.nxyz() * _g.ng2()]{};
-    _cc = new CMFD_VAR[_g.nxyz() * _g.ng() * NEWSBT]{};
-    _src = new CMFD_VAR[_g.nxyz() * _g.ng()]{};
-    _psi = new CMFD_VAR[_g.nxyz()]{};
+    _dtil = new double[_g.nsurf() * _g.ng()]{};
+    _dhat = new double[_g.nsurf() * _g.ng()]{};
+    _diag = new double[_g.nxyz() * _g.ng2()]{};
+    _cc = new double[_g.nxyz() * _g.ng() * NEWSBT]{};
+    _src = new double[_g.nxyz() * _g.ng()]{};
+    _psi = new double[_g.nxyz()]{};
 }
 
 void CMFD::upddtil(const int& ls)
@@ -53,7 +53,7 @@ void CMFD::upddtil(const int& ls)
 	}
 }
 
-void CMFD::upddhat(const int &ls, SOL_VAR* flux, SOL_VAR* jnet) {
+void CMFD::upddhat(const int &ls, double* flux, double* jnet) {
     int ll = _g.lklr(LEFT,ls);
     int lr = _g.lklr(RIGHT,ls);
     int idirl = _g.idirlr(LEFT,ls);
@@ -116,7 +116,7 @@ void CMFD::setEpsl2(float epsl2) {
     _epsl2 = epsl2;
 }
 
-void CMFD::updpsi(const int& l, const SOL_VAR* flux) {
+void CMFD::updpsi(const int& l, const double* flux) {
 
     _psi[l] = 0.0;
 

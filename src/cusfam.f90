@@ -11,10 +11,11 @@ contains
 
     subroutine setTHPressure(press)   bind(C, name="setTHPressure")
         real(4)    :: press
+
         if(.not.associated(stable)) then
             allocate(stable)
         endif
-        
+
         call stable%reset(dble(press))
     end subroutine
     

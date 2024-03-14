@@ -25,6 +25,7 @@ Feedback::~Feedback()
 
 void Feedback::initDelta(const float& ppm) {
 
+#pragma omp parallel for 
     for (int l = 0; l < _g.nxyz(); ++l)
     {
         dppm(l) = ppm * dm(l)/dm0(l) - ppm0(l);
@@ -170,6 +171,7 @@ void Feedback::updateTin(const float& tin)
     _steam.getEnthalpy(tin, _hin);
     _steam.getDensity(_hin, _din);
 
+#pragma omp parallel for 
 	for (int l = 0; l < _g.nxyz(); l++)
 	{
 		_tf[l] = _tin + KELVIN;

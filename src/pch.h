@@ -1,6 +1,7 @@
 ﻿#ifndef PCH_H_
 #define PCH_H_
 
+#include <chrono>
 #include <array>
 #include <map>
 #include <numeric>
@@ -9,6 +10,7 @@
 #include <iostream>
 #include <cstring>
 #include "plog/Log.h"
+#include "fmt/core.h"
 
 using namespace std;
 
@@ -206,15 +208,5 @@ enum PROP_TYPE {
     PROP_SPCH
 };
 
-#define var3(var,ig,l,k)        var[(k*_nxy+l)*_ng+ig]
-#define var4(var,igs,igd,l,k)   var[((k*_nxy+l)*_ng+igs)*_ng+igd]
-
-#define NODAL_VAR double
-
-#define CMFD_VAR    double
-#define SOL_VAR     double
-#define GEOM_VAR    double
-#define XS_VAR		double
-#define PPR_VAR		double
 
 #endif /* PCH_H_ */

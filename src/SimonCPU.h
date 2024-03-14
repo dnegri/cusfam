@@ -20,9 +20,9 @@ private:
     BICGCMFD* _cmfd;
 	PinPower* _ppr;
     float _crit_xenon = 1.E-4;
-    float _crit_nodal = 1.E-1;
+    float _crit_nodal = 1.E-5;
     float _crit_flux = 1.E-5;
-	float _crit_eigv = 1.E-6;
+	float _crit_eigv = 5.E-6;
 	float _crit_tm = 1.E-3;
 	float _crit_tf = 1.E-3;
 	float _crit_ppm = 1.E-1;
@@ -35,7 +35,7 @@ public:
 
     inline BICGCMFD& cmfd() { return *_cmfd; }
     
-	void setBurnup(const char* dir_burn, const float& burnup) override;    
+	void setBurnup(const char* dir_burn, const float& burnup, SteadyOption& option) override;
 	void initialize(const char* dbfile) override;
     void runKeff(const int& nmaxout) override;
     void runECP(const int& nmaxout, const double& eigvt) override;
@@ -43,6 +43,7 @@ public:
     void runXenonTransient(const DepletionOption& option) override;
     void normalize() override;
 
+    void runShapeMatch(const SteadyOption& condition);
     void runSteady(const SteadyOption& condition) override;
 	void runSteadySfam(const SteadyOption& condition) ;
 	void runPinPower();

@@ -5,41 +5,13 @@
 #include "mat2g.h"
 #include "myblas.h"
 
-#define diag(igs, ige, l) diag[l*_g->ng2()+ige*_g->ng()+igs]
+#define diag(igs, ige, l)   diag[l*_g->ng2()+ige*_g->ng()+igs]
 #define cc(lr, idir, ig, l) cc[l*_g->ng()*NDIRMAX*LR+ig*NDIRMAX*LR+idir*LR+lr]
-#define src(ig, l) src[l*_g->ng()+ig]
-#define aflux(ig, l) aflux[l*_g->ng()+ig]
-#define b(ig, l) b[l*_g->ng()+ig]
-#define x(ig, l) x[l*_g->ng()+ig]
+#define src(ig, l)      src[l*_g->ng()+ig]
+#define aflux(ig, l)    aflux[l*_g->ng()+ig]
+#define b(ig, l)        b[l*_g->ng()+ig]
+#define x(ig, l)        x[l*_g->ng()+ig]
 #define flux(ig, l) flux[l*_g->ng()+ig]
-#define b1d(ig, l)   b1d[(l*_g->ng())+ig]
-#define x1d(ig, l)   x1d[(l*_g->ng())+ig]
-#define b01d(ig, l)  _b01d[(l*_g->ng())+ig]
-#define s1dl(ig, l)  _s1dl[(l*_g->ng())+ig]
-#define b03d(ig, l)  _b03d[(l*_g->ng())+ig]
-#define s3d(ig, l)  _s3d[(l*_g->ng())+ig]
-#define s3dd(ig, l)  _s3dd[(l*_g->ng())+ig]
-
-
-#define vr(ig, l)   _vr[(l*_g->ng())+ig]
-#define vr0(ig, l)  _vr0[(l*_g->ng())+ig]
-#define vp(ig, l)   _vp[(l*_g->ng())+ig]
-#define vv(ig, l)   _vv[(l*_g->ng())+ig]
-#define vs(ig, l)   _vs[(l*_g->ng())+ig]
-#define vt(ig, l)   _vt[(l*_g->ng())+ig]
-#define vy(ig, l)   _vy[(l*_g->ng())+ig]
-#define vz(ig, l)   _vz[(l*_g->ng())+ig]
-#define y1d(ig, l)   _y1d[(l*_g->ng())+ig]
-#define b1i(ig, l)   _b1i[(l*_g->ng())+ig]
-
-#define del(igs, ige, l)  _del[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define ainvd(igs, ige, l)    _ainvd[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define ainvl(igs, ige, l)    _ainvl[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define ainvu(igs, ige, l)    _ainvu[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define au(igs, ige, l)   _au[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define delinv(igs, ige, l)   _delinv[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define al(igs, ige, l)       _al[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
-#define deliau(igs, ige, l)   _deliau[(l*_g->ng2())+(ige)*_g->ng()+(igs)]
 
 
 JacobiBicgSolver::JacobiBicgSolver(Geometry& g) {
@@ -52,16 +24,16 @@ JacobiBicgSolver::JacobiBicgSolver(Geometry& g) {
     _comega = 0.0;
 
 
-    _vz = new SOL_VAR[_g->ng() * _g->nxyz()]{};
-    _vy = new SOL_VAR[_g->ng() * _g->nxyz()]{};
+    _vz = new double[_g->ng() * _g->nxyz()]{};
+    _vy = new double[_g->ng() * _g->nxyz()]{};
 
-    _vr = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _vr0 = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _vp = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _vv = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _vs = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _vt = new CMFD_VAR[_g->ng() * _g->nxyz()]{};
-    _delinv = new CMFD_VAR[_g->ng2() * _g->nxyz()]{};
+    _vr = new double[_g->ng() * _g->nxyz()]{};
+    _vr0 = new double[_g->ng() * _g->nxyz()]{};
+    _vp = new double[_g->ng() * _g->nxyz()]{};
+    _vv = new double[_g->ng() * _g->nxyz()]{};
+    _vs = new double[_g->ng() * _g->nxyz()]{};
+    _vt = new double[_g->ng() * _g->nxyz()]{};
+    _delinv = new double[_g->ng2() * _g->nxyz()]{};
 }
 
 JacobiBicgSolver::~JacobiBicgSolver() {
@@ -73,14 +45,15 @@ JacobiBicgSolver::~JacobiBicgSolver() {
     delete _vt;
     delete _vy;
     delete _vz;
+    delete _delinv;
 }
 
-CMFD_VAR JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src) {
+double JacobiBicgSolver::reset(const int& l, double* diag, double* cc, double* flux, double* src) {
 
-    CMFD_VAR r = 0.0;
+    double r = 0.0;
     for (int ig = 0; ig < _g->ng(); ig++)
     {
-        CMFD_VAR aflux = axb(ig, l, diag, cc, flux);
+        double aflux = axb(ig, l, diag, cc, flux);
         vr(ig, l) = src(ig, l) - aflux;
         vr0(ig, l) = vr(ig, l);
         vp(ig, l) = 0.0;
@@ -91,13 +64,14 @@ CMFD_VAR JacobiBicgSolver::reset(const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL
     return r;
 }
 
-void JacobiBicgSolver::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* src, CMFD_VAR& r20) {
+void JacobiBicgSolver::reset(double* diag, double* cc, double* flux, double* src, double& r20) {
 
     _calpha = 1;
     _crho = 1;
     _comega = 1;
 
     r20 = 0;
+
 	#pragma omp parallel for reduction (+ : r20)
     for (int l = 0; l < _g->nxyz(); ++l) {
         r20 += reset(l, diag, cc, flux, src);
@@ -106,7 +80,7 @@ void JacobiBicgSolver::reset(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_V
     r20 = sqrt(r20);
 }
 
-void JacobiBicgSolver::minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
+void JacobiBicgSolver::minv(double* cc, double* b, double* x) {
 
 #pragma omp parallel for
     for (int k = 0; k < _g->nz(); ++k) {
@@ -117,13 +91,13 @@ void JacobiBicgSolver::minv(CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
     }
 }
 
-void JacobiBicgSolver::minv(const int & l , CMFD_VAR* cc, CMFD_VAR* b, SOL_VAR* x) {
+void JacobiBicgSolver::minv(const int & l , double* cc, double* b, double* x) {
 
     x(0, l) = delinv(0, 0, l) * b(0, l) + delinv(1, 0, l) * b(1, l);
     x(1, l) = delinv(0, 1, l) * b(0, l) + delinv(1, 1, l) * b(1, l);
 }
 
-void JacobiBicgSolver::facilu(CMFD_VAR* diag, CMFD_VAR* cc) {
+void JacobiBicgSolver::facilu(double* diag, double* cc) {
 
 #pragma omp parallel for
     for (int k = 0; k < _g->nz(); ++k) {
@@ -133,30 +107,31 @@ void JacobiBicgSolver::facilu(CMFD_VAR* diag, CMFD_VAR* cc) {
         }
     }
 }
-void JacobiBicgSolver::facilu(const int& l, CMFD_VAR* diag, CMFD_VAR* cc) {
+void JacobiBicgSolver::facilu(const int& l, double* diag, double* cc) {
 
     invmat2g(&diag(0, 0, l), &delinv(0, 0, l));
 }
 
-void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* flux, CMFD_VAR& r2) {
+void JacobiBicgSolver::solve(double* diag, double* cc, double& r20, double* flux, double& r2) {
     int n = _g->nxyz() * _g->ng();
 
     // solves the linear system by preconditioned BiCGSTAB Algorithm
-	CMFD_VAR crhod = _crho;
+	double crhod = _crho;
     _crho = myblas::dot(n, _vr0, _vr);
+
     _cbeta = _crho * _calpha / (crhod * _comega);
 
 //    _vp(:,:,:)=_vr(:,:,:)+_cbeta*(_vp(:,:,:)-_comega*_vv(:,:,:))
-    myblas::multi(n, _comega, _vv, _vt);
 
+    myblas::multi(n, _comega, _vv, _vt);
     myblas::minus(n, _vp, _vt, _vt);
     myblas::multi(n, _cbeta, _vt, _vt);
     myblas::plus(n, _vr, _vt, _vp);
 
-    minv(cc, _vp, _vy);
+     minv(cc, _vp, _vy);
     axb(diag, cc, _vy, _vv);
 
-    CMFD_VAR r0v = myblas::dot(n, _vr0, _vv);
+    double r0v = myblas::dot(n, _vr0, _vv);
 
     if (r0v == 0.0) {
         return;
@@ -171,8 +146,8 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VA
     minv(cc, _vs, _vz);
     axb(diag, cc, _vz, _vt);
 
-    CMFD_VAR pts = myblas::dot(n, _vs, _vt);
-    CMFD_VAR ptt = myblas::dot(n, _vt, _vt);
+        double pts = myblas::dot(n, _vs, _vt);
+        double ptt = myblas::dot(n, _vt, _vt);
 
     _comega = 0.0;
     if (ptt != 0.0) {
@@ -196,7 +171,7 @@ void JacobiBicgSolver::solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VA
 
 }
 
-void JacobiBicgSolver::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR* aflux) {
+void JacobiBicgSolver::axb(double* diag, double* cc, double* flux, double* aflux) {
 	#pragma omp parallel for
     for (int l = 0; l < _g->nxyz(); ++l) {
         for (int ig = 0; ig < _g->ng(); ++ig) {
@@ -205,9 +180,9 @@ void JacobiBicgSolver::axb(CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux, CMFD_VAR
     }
 }
 
-CMFD_VAR JacobiBicgSolver::axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD_VAR* cc, SOL_VAR* flux) {
+double JacobiBicgSolver::axb(const int& ig, const int& l, double* diag, double* cc, double* flux) {
 
-    CMFD_VAR ab = 0.0;
+    double ab = 0.0;
 
     for (int igs = 0; igs < _g->ng(); ++igs) {
         ab += diag(igs, ig, l) * flux(igs, l);
@@ -223,3 +198,16 @@ CMFD_VAR JacobiBicgSolver::axb(const int& ig, const int& l, CMFD_VAR* diag, CMFD
 
     return ab;
 }
+
+#undef diag
+#undef cc
+#undef src
+#undef aflux
+#undef b
+#undef x
+#undef flux
+#undef vr
+#undef vr0
+#undef vp
+#undef vv
+#undef delinv

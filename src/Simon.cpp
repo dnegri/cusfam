@@ -23,8 +23,8 @@ extern "C" {
 	void readComposition(const int* nxy, const int*nz, int* ncomp, char** names, int* comps);
 	void readDensity(const int& niso, const int& nxyz, float* dnst);
 	void writeDensity(const int& niso, const int& nxyz, float* dnst);
-	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
-	void writeStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigv, double* fnorm);
+	void readStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigvc, double* eigv, double* fnorm);
+	void writeStep(float* plevel, float* bucyc, float* buavg, float* efpd, double* eigvc, double* eigv, double* fnorm);
 
 	//void readBoundary(int* symopt, int* symang, float* albedo);
 	//void readNXNY(const int* nx, const int* ny, float* val);
@@ -40,21 +40,22 @@ extern "C" {
 	//void readXSSDTM(const int* niso, const int* nxyz, float* xs);
 
 
-	void calculateReference(void* tset_ptr, const int& icomp, const XS_VAR& burn, const XS_VAR* xsmicd, const XS_VAR* xsmica, const XS_VAR* xsmicn,
-		const XS_VAR* xsmicf, const XS_VAR* xsmick, const XS_VAR* xsmics, const XS_VAR* xsmic2n, const XS_VAR* xehfp);
+	void calculateReference(void* tset_ptr, const int& icomp, const double& burn, const double* xsmicd, const double* xsmica, const double* xsmicn,
+		const double* xsmicf, const double* xsmick, const double* xsmics, const double* xsmic2n, const double* xehfp);
 
-	void calculateVariation(void* tset_ptr, const int& icomp, const XS_VAR& burn, const XS_VAR& b10wp,
-		const XS_VAR*xdpmicn, const XS_VAR*xdfmicn, const XS_VAR* xdmmicn, const XS_VAR* xddmicn,
-		const XS_VAR* xdpmicf, const XS_VAR* xdfmicf, const XS_VAR* xdmmicf, const XS_VAR* xddmicf,
-		const XS_VAR* xdpmica, const XS_VAR* xdfmica, const XS_VAR* xdmmica, const XS_VAR* xddmica,
-		const XS_VAR* xdpmicd, const XS_VAR* xdfmicd, const XS_VAR* xdmmicd, const XS_VAR* xddmicd,
-		const XS_VAR* xdpmics, const XS_VAR* xdfmics, const XS_VAR* xdmmics, const XS_VAR* xddmics);
+	void calculateVariation(void* tset_ptr, const int& icomp, const double& burn, const double& b10wp,
+		const double*xdpmicn, const double*xdfmicn, const double* xdmmicn, const double* xddmicn,
+		const double* xdpmicf, const double* xdfmicf, const double* xdmmicf, const double* xddmicf,
+		const double* xdpmick, const double* xdfmick, const double* xdmmick, const double* xddmick,
+		const double* xdpmica, const double* xdfmica, const double* xdmmica, const double* xddmica,
+		const double* xdpmicd, const double* xdfmicd, const double* xdmmicd, const double* xddmicd,
+		const double* xdpmics, const double* xdfmics, const double* xdmmics, const double* xddmics);
 
-	void calculateReflector(void* tset_ptr, const int & irefl, const XS_VAR& b10wp,
-		const XS_VAR * xsmica, const XS_VAR * xsmicd, const XS_VAR * xsmics,
-		const XS_VAR * xdpmica, const XS_VAR * xdmmica, const XS_VAR * xddmica,
-		const XS_VAR * xdpmicd, const XS_VAR * xdmmicd, const XS_VAR * xddmicd,
-		const XS_VAR * xdpmics, const XS_VAR * xdmmics, const XS_VAR * xddmics);
+	void calculateReflector(void* tset_ptr, const int & irefl, const double& b10wp,
+		const double * xsmica, const double * xsmicd, const double * xsmics,
+		const double * xdpmica, const double * xdmmica, const double * xddmica,
+		const double * xdpmicd, const double * xdmmicd, const double * xddmicd,
+		const double * xdpmics, const double * xdmmics, const double * xddmics);
 
 }
 
@@ -154,8 +155,8 @@ void Simon::initialize(const char* dbfile) {
 	readConstantI(NEWS*ncorn, lctol);
 	readConstantI(NEWS*nxy, ltolc);
 
-	_g->setBoundaryCondition(&symopt, &symang, albedo);
-	_g->initDimension(&ng, &nxy, &nz, &nx, &ny, &nsurf);
+	_g->setBoundaryCondition(symopt, symang, albedo);
+	_g->initDimension(ng, nxy, nz, nx, ny, nsurf, ndivxy);
 	_g->initIndex(nxs, nxe, nys, nye, ijtol, neibr, hmesh);
 	_g->initAssemblyIndex(nxyfa, ncellfa, latol, larot);
 	_g->initCorner(ncorn, lctol, ltolc);
@@ -169,10 +170,11 @@ void Simon::initialize(const char* dbfile) {
 	readString(_r->ncea(), LEN_ROD_NAME, _r->idcea());
 	readConstantI(_r->ncea(), _r->abstype());
 	readConstantI(nxy, _r->ceamap());
-
 	for (int l = 0; l < nxy; l++) _r->cea(l) = _r->cea(l) - 1;
 
-	_x = new CrossSection(ng, nxy, nxyz);
+	_r->setDefaultPosition();
+
+	_x = new CrossSection(ng, nxy, nz, _g->kec()*nxy);
 
 	_d = new Depletion(*_g);
 	_d->init();
@@ -223,9 +225,9 @@ void Simon::initialize(const char* dbfile) {
 	_pow2da = new float[_g->nxya()]{};
 	_pow3da = new float[_g->nz()*_g->nxya()]{};
 
-	_flux = new SOL_VAR[_g->ngxyz()]{};
-	_jnet = new SOL_VAR[_g->nsurf() * _g->ng()]{};
-	_phis = new SOL_VAR[_g->nsurf() * _g->ng()]{};
+	_flux = new double[_g->ngxyz()]{};
+	_jnet = new double[_g->nsurf() * _g->ng()]{};
+	_phis = new double[_g->nsurf() * _g->ng()]{};
 
 	closedb();
 
@@ -236,6 +238,9 @@ void Simon::initialize(const char* dbfile) {
 	delete[] ijtol; 
 	delete[] neibr;
 	delete[] hmesh;
+
+    //_shapeMatch = new ShapeMatch(*_g, *_x);
+    alloc(_powshp,  _g->nz());
 }
 
 void Simon::readTableSet(const char * tsetfile)
@@ -273,6 +278,7 @@ void Simon::updateBurnup()
 			calculateVariation(_tset_ptr, _g->comp(l), _d->burn(l), rb10wp,
 				_x->xdpmicn(l), _x->xdfmicn(l), _x->xdmmicn(l), _x->xddmicn(l),
 				_x->xdpmicf(l), _x->xdfmicf(l), _x->xdmmicf(l), _x->xddmicf(l),
+				_x->xdpmick(l), _x->xdfmick(l), _x->xdmmick(l), _x->xddmick(l),
 				_x->xdpmica(l), _x->xdfmica(l), _x->xdmmica(l), _x->xddmica(l),
 				_x->xdpmicd(l), _x->xdfmicd(l), _x->xdmmicd(l), _x->xddmicd(l),
 				_x->xdpmics(l), _x->xdfmics(l), _x->xdmmics(l), _x->xddmics(l));
@@ -288,13 +294,13 @@ void Simon::updateBurnup()
 		}
 	}
 
-	_x->updateMacroXS(&(_d->dnst(0, 0)));
-	_x->updateXS(&(_d->dnst(0, 0)), &(_f->dppm(0)), &(_f->dtf(0)), &(_f->dtm(0)));
+	_x->updateMacroXS(_d->dnst());
+	_x->updateXS(_d->dnst(), _f->dppm(), _f->dtf(), _f->dtm());
 
 
 }
 
-void Simon::setBurnup(const char* dir_burn, const float& burnup) {
+void Simon::setBurnup(const char* dir_burn, const float& burnup, SteadyOption& option) {
 
 	int i = 0;
 	for (; i < _nstep; ++i) {
@@ -315,7 +321,7 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 	opendb(&length, dbfile);
 	 
 	float bucyc, buavg, efpd;
-	readStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
+	readStep(&_pload, &bucyc, &buavg, &efpd, &_eigvc, &_eigv, &_fnorm);
 
 	_reigv = 1. / _eigv;
 
@@ -330,26 +336,24 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 	readConstantF(_g->nxyz(), _d->burn());
 	readConstantF(_g->nxyz(), _power);
 
-	double* temp = new double[_g->ngxyz()];
-	readConstantD(_g->ngxyz(), temp);
-	std::copy_n(temp, _g->ngxyz(), _flux);
-	delete[] temp;
+	readConstantD(_g->ngxyz(), _flux);
+	std::copy_n(_flux, _g->ngxyz(), _flux);
 
-	//float data[100];
-	//readConstantF(3, data);
-	//_press = data[0];::
-	//_tin = data[1];
-	//_ppm = data[2];
-
-	//readNXYZ(&(_g->nxyz()), &(_f->tf(0)));
-	//readNXYZ(&(_g->nxyz()), &(_f->tm(0)));
-	//readNXYZ(&(_g->nxyz()), &(_f->dm(0)));
-
+	//FIXME
+	readConstantF(1, &_press);
+	readConstantF(1, &_tin);
+	readConstantF(1, &_ppm);
+    option.ppm = _ppm;
+    option.tin = _tin;
+    option.eigvt = _eigvc;
 
 	//_f->updatePressure(_press);
 	//_f->updateTin(_tin);
+
+	//readConstantF(_g->nxyz(), _f->tf());
+	//readConstantF(_g->nxyz(), _f->tm());
+	//readConstantF(_g->nxyz(), _f->dm());
 	//_f->initDelta(_ppm);
-	//_d->updateH2ODensity(_f->dm(), _ppm);
 
 
 	//readXS(&NISO, &(_g->nxyz()), &(_x->xsmicd0(0, 0, 0)));
@@ -393,9 +397,6 @@ void Simon::setBurnup(const char* dir_burn, const float& burnup) {
 
 	closedb();
 	printf("Finished reading burn file : %s\n", dbfile);
-
-	_f->updatePressure(155.13);
-
 }
 
 
@@ -411,7 +412,7 @@ void Simon::setSMR(const char* dir_burn, const float& burnup) {
 	opendb(&length, dbfile);
 
 	float bucyc, buavg, efpd;
-	readStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
+	readStep(&_pload, &bucyc, &buavg, &efpd, &_eigvc, &_eigv, &_fnorm);
 
 	_reigv = 1. / _eigv;
 
@@ -450,7 +451,7 @@ void Simon::saveSMR(const char* dir_burn, const float& burnup) {
 	opendb(&length, dbfile);
 
 	float bucyc, buavg, efpd;
-	writeStep(&_pload, &bucyc, &buavg, &efpd, &_eigv, &_fnorm);
+	writeStep(&_pload, &bucyc, &buavg, &efpd, &_eigvc, &_eigv, &_fnorm);
 	   
 	writeDensity(NISO, _g->nxyz(), _d->dnst());
 	
@@ -537,8 +538,8 @@ void Simon::generateResults()
 	}
 
 	//FIXME volcore should be given by Geometry.
-	GEOM_VAR volcore = 0.0;
-	GEOM_VAR hzcore = _g->hzcore();
+	double volcore = 0.0;
+	double hzcore = _g->hzcore();
 
 	for (int l = 0; l < _g->nxyz(); l++)
 	{
@@ -568,11 +569,55 @@ void Simon::generateResults()
 	}
 
 
-
 	l = 0;
 	for (int k = 0; k < _g->nz(); k++) {
 		pow1d(k) = pow1d(k) / _pload / _g->hmesh(ZDIR, l) * hzcore;
 		l += _g->nxy();
+	}
+
+}
+
+void Simon::setPowerShape(const vector<double>& hzshp, const vector<double>& powshp) {
+
+	int k0 = 0;
+	double hightg = 0.0;
+	double hights = 0.0;
+	int nzshp = hzshp.size();
+
+	for (int k = _g->kbc(); k < _g->kec(); k++)
+	{
+		hightg += _g->hz(k);
+		if (hightg <= hights) continue;
+
+		for (int kshp = k0; kshp < nzshp; kshp++)
+		{
+			hights += hzshp.at(kshp);
+
+			if (hightg >= hights) {
+				_powshp(k) += powshp.at(kshp);
+			}
+			else {
+				double excrat = (hights - hightg) / hzshp.at(kshp);
+				_powshp(k) += (1.0 - excrat) * powshp.at(kshp);
+				double highte = hightg;
+
+				for (int ke = k+1; ke < _g->kec(); ke++)
+				{
+					highte += _g->hz(ke);
+
+					if (highte <= hights) {
+						_powshp(ke) = powshp.at(kshp) * _g->hz(ke) / hzshp.at(kshp);
+						excrat = (hights - highte) / hzshp.at(kshp);
+					}
+					else {
+						_powshp(ke) = excrat * powshp.at(kshp);
+						break;
+					}
+				}
+				k0 = kshp + 1;
+				break;
+			}
+		}
 	}
 
 }

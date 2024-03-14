@@ -478,6 +478,7 @@ contains
     
     subroutine calculateVariation(this, icomp, burn,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmick, xdfmick, xdmmick, xddmick, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )
@@ -486,12 +487,14 @@ contains
         real(XS_PREC)             :: burn
         real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
                                 xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmick(NUM_GRP,NISO), xdfmick(NUM_GRP,NISO), xdmmick(NUM_GRP,3,NISO), xddmick(NUM_GRP,NISO), &
                                 xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
                                 xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
                                 xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
         
         call this%comps(icomp)%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmick, xdfmick, xdmmick, xddmick, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )
@@ -576,6 +579,7 @@ contains
     
     subroutine calculateVariation1(tsetptr, icomp, burn, rb10wp,   xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                                 xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                                xdpmick, xdfmick, xdmmick, xddmick, &
                                                 xdpmica, xdfmica, xdmmica, xddmica, &
                                                 xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                                 xdpmics, xdfmics, xdmmics, xddmics )  bind(c, name="calculateVariation")
@@ -584,6 +588,7 @@ contains
         real(XS_PREC)             :: burn, rb10wp
         real(XS_PREC)             ::  xdpmicn(NUM_GRP,NISO), xdfmicn(NUM_GRP,NISO), xdmmicn(NUM_GRP,3,NISO), xddmicn(NUM_GRP,NISO), &
                                 xdpmicf(NUM_GRP,NISO), xdfmicf(NUM_GRP,NISO), xdmmicf(NUM_GRP,3,NISO), xddmicf(NUM_GRP,NISO), &
+                                xdpmick(NUM_GRP,NISO), xdfmick(NUM_GRP,NISO), xdmmick(NUM_GRP,3,NISO), xddmick(NUM_GRP,NISO), &
                                 xdpmica(NUM_GRP,NISO), xdfmica(NUM_GRP,NISO), xdmmica(NUM_GRP,3,NISO), xddmica(NUM_GRP,NISO), &
                                 xdpmicd(NUM_GRP,NISO), xdfmicd(NUM_GRP,NISO), xdmmicd(NUM_GRP,3,NISO), xddmicd(NUM_GRP,NISO), &
                                 xdpmics(NUM_GRP,NUM_GRP,NISO), xdfmics(NUM_GRP,NUM_GRP,NISO), xdmmics(NUM_GRP,NUM_GRP,3,NISO), xddmics(NUM_GRP,NUM_GRP,NISO)
@@ -595,6 +600,7 @@ contains
         c =>tset%comps(icomp)
         call c%calculateVariation(burn, xdpmicn, xdfmicn, xdmmicn, xddmicn, &
                                         xdpmicf, xdfmicf, xdmmicf, xddmicf, &
+                                        xdpmick, xdfmick, xdmmick, xddmick, &
                                         xdpmica, xdfmica, xdmmica, xddmica, &
                                         xdpmicd, xdfmicd, xdmmicd, xddmicd, &
                                         xdpmics, xdfmics, xdmmics, xddmics )

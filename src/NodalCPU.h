@@ -11,12 +11,12 @@ public:
 
     virtual ~NodalCPU();
 
-    inline SOL_VAR& jnet(const int& ig, const int& lks) { return _jnet[lks * ng() + ig]; };
-    inline SOL_VAR& flux(const int& ig, const int& lk) { return _flux[lk * ng() + ig]; };
+    inline double& jnet(const int& ig, const int& lks) { return _jnet[lks * ng() + ig]; };
+    inline double& flux(const int& ig, const int& lk) { return _flux[lk * ng() + ig]; };
 
     void init();
-    void reset(CrossSection& xs, const double& reigv, SOL_VAR* jnet, SOL_VAR* phif, SOL_VAR* phis);
-    void drive(SOL_VAR* jnet);
+    void reset(CrossSection& xs, const double& reigv, double* jnet, double* phif, double* phis);
+    void drive(double* jnet);
 
 };
 

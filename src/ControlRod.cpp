@@ -8,10 +8,25 @@ ControlRod::ControlRod(Geometry& g) {
     _g = &g;
 	_ceamap = new int[_g->nxy()];
 	_ratio = new float[_g->nxyz()]{};
+
 }
 
 ControlRod::~ControlRod() {
 
+}
+
+void ControlRod::setDefaultPosition()
+{
+	// top reflector insertion by default
+	for (int l2d = 0; l2d < _g->nxy(); l2d++)
+	{
+		int icea = cea(l2d);
+
+		if (icea == -1) continue;
+
+		int l = _g->kec() * _g->nxy() + l2d;
+		_ratio[l] = 1.0;
+	}
 }
 
 void ControlRod::setPosition(const char* rodid, const float& pos) {
@@ -36,7 +51,7 @@ void ControlRod::setPosition(const char* rodid, const float& pos) {
 
 		for (; k < _g->kec(); k++)
 		{
-			float hz = _g->hmesh(ZDIR, l);
+			float hz = _g->hz(k);
 			zpos += hz;
 
 			if (zpos - EPS_ROD_IN >= pos) {
@@ -50,11 +65,17 @@ void ControlRod::setPosition(const char* rodid, const float& pos) {
 			}
 		}
 
-		for (; k < _g->kec(); k++) {
+		for (++k; k < _g->kec(); k++) {
 			_ratio[l] = 1.0;
 			l += _g->nxy();
 		}
 
+		float rodLengthIn = _g->hzcore() - pos;
+		float lengthOfAbsorption = _g->hzcore(); // assumption absorption length = _g->hzcore()
+		float rodLengthOut = lengthOfAbsorption - rodLengthIn;
+
+		float ratioTopRefl = min(1.0, rodLengthOut / _g->hz(_g->kec())); // rod in ration in top reflector 
+		_ratio[l] = ratioTopRefl;
 	}
 }
 

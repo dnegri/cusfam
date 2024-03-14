@@ -21,90 +21,90 @@ PinPower::PinPower(Geometry & g, CrossSection& x) : _g(g), _x(x)
 
 	_ncell_plane = _g.ncellxy()*_g.ncellxy()*_g.nxya();
 
-	_phicorn0 = new PPR_VAR[ng* ncorn* nz];
-	_phicorn = new PPR_VAR[ng* ncorn* nz];
-	_avgjnetz = new PPR_VAR[g.ngxyz()];
-	_trlzcff = new PPR_VAR[9 * g.ngxyz()];
-	_kappa = new PPR_VAR[g.ngxyz()];
-	_qf2d = new PPR_VAR[nterm*g.ngxyz()];
-	_qc2d = new PPR_VAR[nterm*g.ngxyz()];
-	_pc2d = new PPR_VAR[nterm*g.ngxyz()];
-	_hc2d = new PPR_VAR[8* g.ngxyz()];
-	_jcornx = new PPR_VAR[4* g.ngxyz()];
-	_jcorny = new PPR_VAR[4* g.ngxyz()];
-	_clsqf01 = new PPR_VAR[g.ngxyz()];
-	_clsqf02 = new PPR_VAR[g.ngxyz()];
-	_clsqf11 = new PPR_VAR[g.ngxyz()];
-	_clsqf12 = new PPR_VAR[g.ngxyz()];
-	_clsqf21 = new PPR_VAR[g.ngxyz()];
-	_clsqf22 = new PPR_VAR[g.ngxyz()];
-	_clsqf31 = new PPR_VAR[g.ngxyz()];
-	_clsqf32 = new PPR_VAR[g.ngxyz()];
-	_clsqf41 = new PPR_VAR[g.ngxyz()];
-	_clsqf42 = new PPR_VAR[g.ngxyz()];
-	_clsqfx1y1 = new PPR_VAR[g.ngxyz()];
-	_clsqf1221 = new PPR_VAR[g.ngxyz()];
-	_clsqf1331 = new PPR_VAR[g.ngxyz()];
-	_clsqfx2y2 = new PPR_VAR[g.ngxyz()];
-	_cpc02 = new PPR_VAR[g.ngxyz()];
-	_cpc04 = new PPR_VAR[g.ngxyz()];
-	_cpc022 = new PPR_VAR[g.ngxyz()];
-	_cpc11 = new PPR_VAR[g.ngxyz()];
-	_cpc12 = new PPR_VAR[g.ngxyz()];
-	_cpc21 = new PPR_VAR[g.ngxyz()];
-	_cpc22 = new PPR_VAR[g.ngxyz()];
-	_chc6 = new PPR_VAR[g.ngxyz()];
-	_chc13j = new PPR_VAR[g.ngxyz()];
-	_chc13p = new PPR_VAR[g.ngxyz()];
-	_chc57j = new PPR_VAR[g.ngxyz()];
-	_chc57p = new PPR_VAR[g.ngxyz()];
-	_chc8j = new PPR_VAR[g.ngxyz()];
-	_chc8p = new PPR_VAR[g.ngxyz()];
-	_chc24j = new PPR_VAR[g.ngxyz()];
-	_chc24a = new PPR_VAR[g.ngxyz()];
-	_cpjxh1 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxh2 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxh5 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxh6 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxh7 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxh8 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp6 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp7 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp8 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp9 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp11 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp12 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp13 = new PPR_VAR[4* g.ngxyz()];
-	_cpjxp14 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh3 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh4 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh5 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh6 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh7 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyh8 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp2 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp3 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp4 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp9 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp10 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp12 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp13 = new PPR_VAR[4* g.ngxyz()];
-	_cpjyp14 = new PPR_VAR[4* g.ngxyz()];
+	_phicorn0 = new double[ng* ncorn* nz];
+	_phicorn = new double[ng* ncorn* nz];
+	_avgjnetz = new double[g.ngxyz()];
+	_trlzcff = new double[9 * g.ngxyz()];
+	_kappa = new double[g.ngxyz()];
+	_qf2d = new double[nterm*g.ngxyz()];
+	_qc2d = new double[nterm*g.ngxyz()];
+	_pc2d = new double[nterm*g.ngxyz()];
+	_hc2d = new double[8* g.ngxyz()];
+	_jcornx = new double[4* g.ngxyz()];
+	_jcorny = new double[4* g.ngxyz()];
+	_clsqf01 = new double[g.ngxyz()];
+	_clsqf02 = new double[g.ngxyz()];
+	_clsqf11 = new double[g.ngxyz()];
+	_clsqf12 = new double[g.ngxyz()];
+	_clsqf21 = new double[g.ngxyz()];
+	_clsqf22 = new double[g.ngxyz()];
+	_clsqf31 = new double[g.ngxyz()];
+	_clsqf32 = new double[g.ngxyz()];
+	_clsqf41 = new double[g.ngxyz()];
+	_clsqf42 = new double[g.ngxyz()];
+	_clsqfx1y1 = new double[g.ngxyz()];
+	_clsqf1221 = new double[g.ngxyz()];
+	_clsqf1331 = new double[g.ngxyz()];
+	_clsqfx2y2 = new double[g.ngxyz()];
+	_cpc02 = new double[g.ngxyz()];
+	_cpc04 = new double[g.ngxyz()];
+	_cpc022 = new double[g.ngxyz()];
+	_cpc11 = new double[g.ngxyz()];
+	_cpc12 = new double[g.ngxyz()];
+	_cpc21 = new double[g.ngxyz()];
+	_cpc22 = new double[g.ngxyz()];
+	_chc6 = new double[g.ngxyz()];
+	_chc13j = new double[g.ngxyz()];
+	_chc13p = new double[g.ngxyz()];
+	_chc57j = new double[g.ngxyz()];
+	_chc57p = new double[g.ngxyz()];
+	_chc8j = new double[g.ngxyz()];
+	_chc8p = new double[g.ngxyz()];
+	_chc24j = new double[g.ngxyz()];
+	_chc24a = new double[g.ngxyz()];
+	_cpjxh1 = new double[4* g.ngxyz()];
+	_cpjxh2 = new double[4* g.ngxyz()];
+	_cpjxh5 = new double[4* g.ngxyz()];
+	_cpjxh6 = new double[4* g.ngxyz()];
+	_cpjxh7 = new double[4* g.ngxyz()];
+	_cpjxh8 = new double[4* g.ngxyz()];
+	_cpjxp6 = new double[4* g.ngxyz()];
+	_cpjxp7 = new double[4* g.ngxyz()];
+	_cpjxp8 = new double[4* g.ngxyz()];
+	_cpjxp9 = new double[4* g.ngxyz()];
+	_cpjxp11 = new double[4* g.ngxyz()];
+	_cpjxp12 = new double[4* g.ngxyz()];
+	_cpjxp13 = new double[4* g.ngxyz()];
+	_cpjxp14 = new double[4* g.ngxyz()];
+	_cpjyh3 = new double[4* g.ngxyz()];
+	_cpjyh4 = new double[4* g.ngxyz()];
+	_cpjyh5 = new double[4* g.ngxyz()];
+	_cpjyh6 = new double[4* g.ngxyz()];
+	_cpjyh7 = new double[4* g.ngxyz()];
+	_cpjyh8 = new double[4* g.ngxyz()];
+	_cpjyp2 = new double[4* g.ngxyz()];
+	_cpjyp3 = new double[4* g.ngxyz()];
+	_cpjyp4 = new double[4* g.ngxyz()];
+	_cpjyp9 = new double[4* g.ngxyz()];
+	_cpjyp10 = new double[4* g.ngxyz()];
+	_cpjyp12 = new double[4* g.ngxyz()];
+	_cpjyp13 = new double[4* g.ngxyz()];
+	_cpjyp14 = new double[4* g.ngxyz()];
 
-    _pinpowa = new PPR_VAR[g.nz()*g.nxya()*_g.ncellxy()*_g.ncellxy()]{};
-    _pinphia = new PPR_VAR[g.ngxyz()*_g.ncellxy()*_g.ncellxy()]{};
+    _pinpowa = new double[g.nz()*g.nxya()*_g.ncellxy()*_g.ncellxy()]{};
+    _pinphia = new double[g.ngxyz()*_g.ncellxy()*_g.ncellxy()]{};
 
-    _pow3da = new PPR_VAR[g.nz() * g.nxya()]{};
-    _peaka = new PPR_VAR[g.nz() * g.nxya()]{};
+    _pow3da = new double[g.nz() * g.nxya()]{};
+    _peaka = new double[g.nz() * g.nxya()]{};
 
 
     _nrest = _g.ncellxy() % _g.ndivxy();
     _npex = _g.ncellxy() / _g.ndivxy();
     _npinxy = _npex+_nrest;
 
-    _hpini = new PPR_VAR[_npinxy*_g.ndivxy()*_g.ndivxy()];
-    _hpinj = new PPR_VAR[_npinxy*_g.ndivxy()*_g.ndivxy()];
-    _pcoeff = new PPR_VAR[nterm*_npinxy*_npinxy*_g.ndivxy()*_g.ndivxy()];
+    _hpini = new double[_npinxy*_g.ndivxy()*_g.ndivxy()];
+    _hpinj = new double[_npinxy*_g.ndivxy()*_g.ndivxy()];
+    _pcoeff = new double[nterm*_npinxy*_npinxy*_g.ndivxy()*_g.ndivxy()];
 
     double ml = 1/sqrt2;
     double vl[2], vl2[2], vr[2], vr2[2];
@@ -173,7 +173,7 @@ PinPower::~PinPower()
 {
 }
 
-void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
+void PinPower::calphicorn(double* flux, double* phis)
 {
 #pragma omp parallel for
 	for (int k = 0; k < _g.nz(); k++)
@@ -295,7 +295,7 @@ void PinPower::calphicorn(SOL_VAR* flux, SOL_VAR* phis)
 	}
 }
 
-void PinPower::calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet) {
+void PinPower::calhomo(const double& eigv, double* flux, double* phis, double* jnet) {
 
 	#pragma omp parallel for
     for (int k = 0; k < _g.nz(); ++k) {
@@ -309,7 +309,7 @@ void PinPower::calhomo(const double& eigv, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR
     }
 }
 
-void PinPower::caltrlz(int l, int k, SOL_VAR* jnet) {
+void PinPower::caltrlz(int l, int k, double* jnet) {
     auto lk = k*_g.nxy()+l;
     auto rhz = 1/_g.hmesh(ZDIR,lk);
 
@@ -331,7 +331,7 @@ void PinPower::caltrlz(int l, int k, SOL_VAR* jnet) {
 
 }
 
-void PinPower::expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jnet) {
+void PinPower::expflux13(int l, int k, double* flux, double* phis, double* jnet) {
     const static double r14 = 1./14.0;
 
     int lk = _g.nxy()*k + l;
@@ -339,7 +339,7 @@ void PinPower::expflux13(int l, int k, SOL_VAR* flux, SOL_VAR* phis, SOL_VAR* jn
         auto rxsdf=1/_x.xsdf(ig,lk);
         auto alpha=-0.5*_g.hmesh(0,lk)*rxsdf;
 
-        PPR_VAR ps[2], pd[2], js[2], jd[2];
+        double ps[2], pd[2], js[2], jd[2];
         for (int idir = 0; idir < 2; ++idir) {
             int lksl = _g.lktosfc(LEFT, idir, lk);
             int lksr = _g.lktosfc(RIGHT, idir, lk);
@@ -414,7 +414,7 @@ void PinPower::calsol2drhs(int l, int k, const double & reigv ) {
     }
 }
 
-void PinPower::calsol(int l, int k, SOL_VAR * jnet) {
+void PinPower::calsol(int l, int k, double * jnet) {
 
     auto lk = k*_g.nxy()+l;
     auto rh = 1./_g.hmesh(XDIR,lk);
@@ -624,8 +624,8 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
     double hpin0 = 2.*_g.ndivxy() / _g.ncellxy();
 
 
-    double * pinphili = new PPR_VAR[_g.ng()*_npinxy*_npinxy*_g.ndivxy()*_g.ndivxy()];
-    double * pinphisym = new PPR_VAR[_g.ng()*_npinxy*_npinxy];
+    double * pinphili = new double[_g.ng()*_npinxy*_npinxy*_g.ndivxy()*_g.ndivxy()];
+    double * pinphisym = new double[_g.ng()*_npinxy*_npinxy];
 
     for (int li = 0; li < _g.ndivxy() * _g.ndivxy(); ++li) {
         int liorg = -1;
@@ -669,7 +669,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                 vr[XDIR]=vl[XDIR]+hpin;
                 vr2[XDIR]=vr[XDIR]*vr[XDIR];
                 for (int ig = 0; ig < _g.ng(); ++ig) {
-                    PPR_VAR rdelt[2];
+                    double rdelt[2];
                     rdelt[XDIR]=1/((vl[XDIR]-vr[XDIR])*kappa(ig,lk));
                     rdelt[YDIR]=1/((vl[YDIR]-vr[YDIR])*kappa(ig,lk));
 
@@ -683,7 +683,7 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
                     auto coshyl=sqrt(sinhyl*sinhyl+1);
                     auto coshyr=sqrt(sinhyr*sinhyr+1);
 
-                    PPR_VAR hcoeff[8], coshm[2], sinhm[2];
+                    double hcoeff[8], coshm[2], sinhm[2];
 
                     hcoeff[0]=(coshxl-coshxr)*rdelt[XDIR];
                     hcoeff[1]=(sinhxl-sinhxr)*rdelt[XDIR];
@@ -832,24 +832,24 @@ void PinPower::calpinpower(const int& la, const int& k, const int* larot1a) {
 
 }
 void PinPower::printPinPower(int k) {
-    FILE * pFile = fopen("myfile.txt", "w");
+    //FILE * pFile = fopen("myfile.txt", "w");
 
-    for (int ja = 0; ja < _g.nya(); ja++)
-    {
-        for (int jpa = 0; jpa < _g.ncellxy(); jpa++)
-        {
-            for (int ia = _g.nxsa(ja); ia < _g.nxea(ja); ia++) {
-                auto la = _g.ijtola(ia, ja);
-                for (int ipa = 0; ipa < _g.ncellxy(); ipa++)
-                {
-                    fprintf(pFile, "%7.4f ", pinpowa(ipa, jpa, la, k));
-                }
-            }
-            fprintf(pFile, "\n");
-        }
-    }
+    //for (int ja = 0; ja < _g.nya(); ja++)
+    //{
+    //    for (int jpa = 0; jpa < _g.ncellxy(); jpa++)
+    //    {
+    //        for (int ia = _g.nxsa(ja); ia < _g.nxea(ja); ia++) {
+    //            auto la = _g.ijtola(ia, ja);
+    //            for (int ipa = 0; ipa < _g.ncellxy(); ipa++)
+    //            {
+    //                fprintf(pFile, "%7.4f ", pinpowa(ipa, jpa, la, k));
+    //            }
+    //        }
+    //        fprintf(pFile, "\n");
+    //    }
+    //}
 
-    fclose(pFile);
+    //fclose(pFile);
 
 }
 void PinPower::calpinpower() {
@@ -885,7 +885,7 @@ void PinPower::calpinpower() {
 }
 
 extern "C" {
-	void getFormFunction(void* ff_ptr, const XS_VAR& burn, const int& ihff, XS_VAR* hff);
+	void getFormFunction(void* ff_ptr, const double& burn, const int& ihff, double* hff);
 }
 
 void PinPower::applyFF(void* ff_ptr, float* burn) {
@@ -896,8 +896,8 @@ void PinPower::applyFF(void* ff_ptr, float* burn) {
 		for (int la = 0; la < _g.nxya(); ++la) {
 			if (_x.xskf(0, k*_g.nxy() + _g.latol(0, la)) == 0.0) continue;
 
-			XS_VAR* hffa = new XS_VAR[_g.ncellxy()*_g.ncellxy()]{};
-			XS_VAR* hff = new XS_VAR[_g.ncellxy()*_g.ncellxy()]{};
+			double* hffa = new double[_g.ncellxy()*_g.ncellxy()]{};
+			double* hff = new double[_g.ncellxy()*_g.ncellxy()]{};
 			for (int j = 0; j < _g.ndivxy(); ++j) {
 				auto jps = j * _npinxy - j * _nrest;
 				for (int i = 0; i < _g.ndivxy(); ++i) {

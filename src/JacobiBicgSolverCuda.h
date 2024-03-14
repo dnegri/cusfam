@@ -5,23 +5,23 @@
 
 class JacobiBicgSolverCuda : public JacobiBicgSolver {
 private:
-    CMFD_VAR* _crho_dev, *_r0v_dev, *_pts_dev, *_ptt_dev;
-    CMFD_VAR* _r20_dev, *_r2_dev;
+    double* _crho_dev, *_r0v_dev, *_pts_dev, *_ptt_dev;
+    double* _r20_dev, *_r2_dev;
 
 public:
     JacobiBicgSolverCuda(Geometry &g);
 
     virtual ~JacobiBicgSolverCuda();
 
-    void reset(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR*phi, CMFD_VAR *src, CMFD_VAR& r20) override;
+    void reset(double *diag, double *cc, double*phi, double *src, double& r20) override;
 
-    void minv(CMFD_VAR *cc, CMFD_VAR *b, SOL_VAR *x) override;
+    void minv(double *cc, double *b, double *x) override;
 
-    void facilu(CMFD_VAR *diag, CMFD_VAR *cc) override;
+    void facilu(double *diag, double *cc) override;
 
-    void axb(CMFD_VAR *diag, CMFD_VAR *cc, SOL_VAR*phi, CMFD_VAR *aphi) override;
+    void axb(double *diag, double *cc, double*phi, double *aphi) override;
 
-    void solve(CMFD_VAR* diag, CMFD_VAR* cc, CMFD_VAR& r20, SOL_VAR* phi, CMFD_VAR& r2) override;
+    void solve(double* diag, double* cc, double& r20, double* phi, double& r2) override;
 };
 
 

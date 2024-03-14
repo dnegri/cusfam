@@ -134,20 +134,21 @@ contains
         
     end subroutine
     
-    subroutine readstep(power, bucyc, buavg, efpd, eigv, fnorm)   bind(c, name="readStep")
+    subroutine readstep(power, bucyc, buavg, efpd, eigvc, eigv, fnorm)   bind(c, name="readStep")
         real(4)         :: power, bucyc, buavg, efpd
-        real(8)         :: eigv, fnorm
+        real(8)         :: eigvc, eigv, fnorm
         
         read(ifile) power
         read(ifile) bucyc
         read(ifile) buavg
         read(ifile) efpd
+        read(ifile) eigvc
         read(ifile) eigv
         read(ifile) fnorm
         
     end subroutine
     
-    subroutine writestep(power, bucyc, buavg, efpd, eigv, fnorm)   bind(c, name="writeStep")
+    subroutine writestep(power, bucyc, buavg, efpd, eigvc, eigv, fnorm)   bind(c, name="writeStep")
         real(4)         :: power, bucyc, buavg, efpd
         real(8)         :: eigv, fnorm
         
@@ -155,6 +156,7 @@ contains
         write(ifile) bucyc
         write(ifile) buavg
         write(ifile) efpd
+        write(ifile) eigvc
         write(ifile) eigv
         write(ifile) fnorm
         

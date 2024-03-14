@@ -59,30 +59,30 @@ void Nodal::updateConstant(const int& lk)
 		int lkd = lkd0 + idir;
 
 		for (int ig = 0; ig < ng(); ig++) {
-			NODAL_VAR kp2 = xstf(ig, lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
-			NODAL_VAR kp = sqrt(kp2);
-			NODAL_VAR kp3 = kp2 * kp;
-			NODAL_VAR kp4 = kp2 * kp2;
-			NODAL_VAR kp5 = kp2 * kp3;
-			NODAL_VAR rkp = 1 / kp;
-			NODAL_VAR rkp2 = rkp * rkp;
-			NODAL_VAR rkp3 = rkp2 * rkp;
-			NODAL_VAR rkp4 = rkp2 * rkp2;
-			NODAL_VAR rkp5 = rkp2 * rkp3;
-			NODAL_VAR sinhkp = sinh(kp);
-			NODAL_VAR coshkp = cosh(kp);
+			double kp2 = xstf(ig, lk) * hmesh(idir, lk) * hmesh(idir, lk) / (4 * xsdf(ig, lk));
+			double kp = sqrt(kp2);
+			double kp3 = kp2 * kp;
+			double kp4 = kp2 * kp2;
+			double kp5 = kp2 * kp3;
+			double rkp = 1 / kp;
+			double rkp2 = rkp * rkp;
+			double rkp3 = rkp2 * rkp;
+			double rkp4 = rkp2 * rkp2;
+			double rkp5 = rkp2 * rkp3;
+			double sinhkp = sinh(kp);
+			double coshkp = cosh(kp);
 
 			//calculate coefficient of basic functions P5and P6
-			NODAL_VAR  bfcff0 = -sinhkp * rkp;
-			NODAL_VAR  bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
-			NODAL_VAR  bfcff4 =
+			double  bfcff0 = -sinhkp * rkp;
+			double  bfcff2 = -5 * (-3 * kp * coshkp + 3 * sinhkp + kp2 * sinhkp) * rkp3;
+			double  bfcff4 =
 				-9. * (-105 * kp * coshkp - 10 * kp3 * coshkp + 105 * sinhkp + 45 * kp2 * sinhkp + kp4 * sinhkp) *
 				rkp5;
-			NODAL_VAR  bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
-			NODAL_VAR  bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
+			double  bfcff1 = -3 * (kp * coshkp - sinhkp) * rkp2;
+			double  bfcff3 = -7 * (15 * kp * coshkp + kp3 * coshkp - 15 * sinhkp - 6 * kp2 * sinhkp) * rkp4;
 
-			NODAL_VAR  oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
-			NODAL_VAR  eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
+			double  oddtemp = 1 / (sinhkp + bfcff1 + bfcff3);
+			double  eventemp = 1 / (coshkp + bfcff0 + bfcff2 + bfcff4);
 
 			//eta1, eta2
 			eta1(ig, lkd) = (kp * coshkp + bfcff1 + 6 * bfcff3) * oddtemp;
@@ -123,7 +123,7 @@ void Nodal::updateMatrix(const int& lk)
 	double det = matM(0, 0, lk) * matM(1, 1, lk) - matM(1, 0, lk) * matM(0, 1, lk);
 
 	if (abs(det) > 1.E-10) {
-		NODAL_VAR rdet = 1 / det;
+		double rdet = 1 / det;
 		matMI(0, 0, lk) = rdet * matM(1, 1, lk);
 		matMI(1, 0, lk) = -rdet * matM(1, 0, lk);
 		matMI(0, 1, lk) = -rdet * matM(0, 1, lk);
@@ -136,15 +136,15 @@ void Nodal::updateMatrix(const int& lk)
 		matMI(1, 1, lk) = 0;
 	}
 
-	NODAL_VAR  rm011 = 1. / m011;
+	double  rm011 = 1. / m011;
 
 	for (int idir = 0; idir < NDIRMAX; idir++) {
 		int lkd = lkd0 + idir;
 
-		NODAL_VAR tempz[2][2] = {};
+		double tempz[2][2] = {};
 
 		for (int igd = 0; igd < ng(); igd++) {
-			NODAL_VAR tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
+			double tau1 = m033 * (diagDI(igd, lkd) / m253(igd, lkd));
 
 			tempz[igd][igd] = tempz[igd][igd] + m231;
 
@@ -168,11 +168,11 @@ void Nodal::updateMatrix(const int& lk)
 	}
 }
 
-void Nodal::trlcffbyintg(NODAL_VAR* avgtrl3, NODAL_VAR* hmesh3, NODAL_VAR& trlcff1, NODAL_VAR& trlcff2)
+void Nodal::trlcffbyintg(double* avgtrl3, double* hmesh3, double& trlcff1, double& trlcff2)
 {
-	NODAL_VAR sh[4];
+	double sh[4];
 
-	NODAL_VAR rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
+	double rh = (1 / ((hmesh3[LEFT] + hmesh3[CENTER] + hmesh3[RIGHT]) * (hmesh3[LEFT] + hmesh3[CENTER]) *
 		(hmesh3[CENTER] + hmesh3[RIGHT])));
 	sh[0] = (2 * hmesh3[LEFT] + hmesh3[CENTER]) * (hmesh3[LEFT] + hmesh3[CENTER]);
 	sh[1] = hmesh3[LEFT] + hmesh3[CENTER];
@@ -199,7 +199,7 @@ void Nodal::caltrlcff0(const int& lk)
 {
 	int lkd0 = lk * NDIRMAX;
 
-	NODAL_VAR avgjnet[NDIRMAX];
+	double avgjnet[NDIRMAX];
 
 	for (int ig = 0; ig < ng(); ig++) {
 		for (int idir = 0; idir < NDIRMAX; idir++) {
@@ -225,8 +225,8 @@ void Nodal::caltrlcff12(const int& lk) {
 		int lkr = neib(RIGHT, idir, lk);
 
 		for (int ig = 0; ig < ng(); ig++) {
-			NODAL_VAR avgtrl3[LRC]{};
-			NODAL_VAR hmesh3[LRC]{};
+			double avgtrl3[LRC]{};
+			double hmesh3[LRC]{};
 			hmesh3[CENTER] = hmesh(idir, lk);
 			avgtrl3[CENTER] = trlcff0(ig, lkd);
 
@@ -267,7 +267,7 @@ void Nodal::calculateEven(const int& lk)
 
 	for (int idir = 0; idir < NDIRMAX; idir++) {
 		int lkd = lkd0 + idir;
-		NODAL_VAR at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
+		double at2[2][2], a[2][2], rm4464[2], bt1[2], bt2[2], b[2];
 
 		for (int igd = 0; igd < ng(); igd++) {
 			rm4464[igd] = 0.0;
@@ -275,7 +275,7 @@ void Nodal::calculateEven(const int& lk)
 			if (m264(igd, lkd) > 1.0E-6 && m264(igd, lkd) < -1.0E-6) rm4464[igd] = m044 / m264(igd, lkd);
 			//printf("m264(igd, lkd) : %12.5e\n", m264(igd, lkd));
 
-			NODAL_VAR mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
+			double mu2 = rm4464[igd] * m260(igd, lkd) * diagDI(igd, lkd);
 
 			for (int igs = 0; igs < ng(); igs++) {
 				at2[igs][igd] = m022 * rm220 * mu2 * matM(igs, igd, lk);
@@ -284,7 +284,7 @@ void Nodal::calculateEven(const int& lk)
 		}
 
 		for (int igd = 0; igd < ng(); igd++) {
-			NODAL_VAR mu1 = rm4464[igd] * m262(igd, lkd);
+			double mu1 = rm4464[igd] * m262(igd, lkd);
 			for (int igs = 0; igs < ng(); igs++) {
 				a[igs][igd] =
 					mu1 * matM(igs, igd, lk) + matM(0, igd, lk) * at2[igs][0] + matM(1, igd, lk) * at2[igs][1];
@@ -298,7 +298,7 @@ void Nodal::calculateEven(const int& lk)
 			b[ig] = m022 * trlcff2(ig, lkd) + matM(0, ig, lk) * bt1[0] + matM(1, ig, lk) * bt1[1];
 		}
 
-		NODAL_VAR rdet = (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+		double rdet = (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
 		//printf("rdet : %12.5e\n", rdet);
 
 		if (rdet != 0.0) {
@@ -347,10 +347,10 @@ void Nodal::calculateJnet1n(const int& ls, const int& lr, const float& alb)
 	int sgn = 1;
 	if (lr == RIGHT) sgn = -1;
 
-	NODAL_VAR diagDj[2]{};
+	double diagDj[2]{};
 
-	NODAL_VAR a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
-	NODAL_VAR b1[2], b2[2];
+	double a11[2][2], a12[2], a13[2], a22[2][2], a23[2], a31[2], a32[2], a33[2];
+	double b1[2], b2[2];
 
 	//1, 1
 	for (int ige = 0; ige < ng(); ige++) {
@@ -420,7 +420,7 @@ void Nodal::calculateJnet1n(const int& ls, const int& lr, const float& alb)
 		}
 	}
 
-	NODAL_VAR a[2][2] = { 0.0 };
+	double a[2][2] = { 0.0 };
 	for (int ige = 0; ige < ng(); ige++) {
 		for (int igs = 0; igs < ng(); igs++) {
 			a[igs][ige] = a13[ige] * a22[igs][ige] - a11[igs][ige] * a32[igs];
@@ -439,9 +439,9 @@ void Nodal::calculateJnet1n(const int& ls, const int& lr, const float& alb)
 		b1[ige] = b1[ige] - (a11[0][ige] * b2[0] + a11[1][ige] * b2[1]);
 	}
 
-	NODAL_VAR oddcff[3][2];
+	double oddcff[3][2];
 
-	NODAL_VAR rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+	double rdet = 1 / (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
 	a11[0][0] = rdet * a[1][1];
 	a11[1][0] = -rdet * a[1][0];
 	a11[0][1] = -rdet * a[0][1];
@@ -483,7 +483,7 @@ void Nodal::calculateJnet2n(const int& ls)
 	int lkdl = lkl * NDIRMAX + idirl;
 	int lkdr = lkr * NDIRMAX + idirr;
 
-	NODAL_VAR adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
+	double adf[2][LR], diagDj[2][LR], tempz[2][2], tempzI[2][2], zeta1[2][2], zeta2[2], bfc[2], mat1g[2][2];
 
 	for (int ig = 0; ig < ng(); ig++) {
 		adf[ig][LEFT] = xsadf(ig, lkl);
@@ -498,7 +498,7 @@ void Nodal::calculateJnet2n(const int& ls)
 	tempz[0][1] = (mu(0, 1, lkdr) + tau(0, 1, lkdr)) * adf[1][RIGHT];
 	tempz[1][1] = (mu(1, 1, lkdr) + tau(1, 1, lkdr) + 1) * adf[1][RIGHT];
 
-	NODAL_VAR rdet = 1 / (tempz[0][0] * tempz[1][1] - tempz[1][0] * tempz[0][1]);
+	double rdet = 1 / (tempz[0][0] * tempz[1][1] - tempz[1][0] * tempz[0][1]);
 	tempzI[0][0] = rdet * tempz[1][1];
 	tempzI[1][0] = -rdet * tempz[1][0];
 	tempzI[0][1] = -rdet * tempz[0][1];
@@ -547,7 +547,7 @@ void Nodal::calculateJnet2n(const int& ls)
 		tempz[1][1] * zeta1[1][1];
 
 
-	NODAL_VAR bcc[2], vec1g[2];
+	double bcc[2], vec1g[2];
 
 	for (int ig = 0; ig < ng(); ig++) {
 		bcc[ig] =
@@ -564,13 +564,13 @@ void Nodal::calculateJnet2n(const int& ls)
 	}
 
 	rdet = 1 / (mat1g[0][0] * mat1g[1][1] - mat1g[1][0] * mat1g[0][1]);
-	NODAL_VAR tmp = mat1g[0][0];
+	double tmp = mat1g[0][0];
 	mat1g[0][0] = rdet * mat1g[1][1];
 	mat1g[1][0] = -rdet * mat1g[1][0];
 	mat1g[0][1] = -rdet * mat1g[0][1];
 	mat1g[1][1] = rdet * tmp;
 
-	NODAL_VAR oddcff[3][2];
+	double oddcff[3][2];
 
 	oddcff[1][0] = zeta2[0] - (zeta1[0][0] * (mat1g[0][0] * vec1g[0] + mat1g[1][0] * vec1g[1])
 		+ zeta1[1][0] * (mat1g[0][1] * vec1g[0] + mat1g[1][1] * vec1g[1]));

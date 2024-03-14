@@ -18,7 +18,7 @@ CMFDCPU::CMFDCPU(Geometry &g, CrossSection &x) : CMFD(g, x) {
 #endif
 
     _epsl2 = 1.E-5;
-    _ncmfd = 5;
+    _ncmfd = 3;
 
     _eshift_diag = new double[g.ng2() * g.nxyz()];
     _eshift = 0.0;
@@ -36,7 +36,7 @@ void CMFDCPU::upddtil() {
     }
 }
 
-void CMFDCPU::upddhat(SOL_VAR* flux, SOL_VAR* jnet) {
+void CMFDCPU::upddhat(double* flux, double* jnet) {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::upddhat(ls, flux, jnet);
     }
@@ -95,7 +95,7 @@ void CMFDCPU::setEshift(float eshift) {
     _eshift = eshift;
 }
 
-void CMFDCPU::updjnet(SOL_VAR* flux, SOL_VAR* jnet)
+void CMFDCPU::updjnet(double* flux, double* jnet)
 {
     for (int ls = 0; ls < _g.nsurf(); ++ls) {
         CMFD::updjnet(ls, flux, jnet);
@@ -127,7 +127,7 @@ void CMFDCPU::updls(const int &l, const double &reigvs) {
     }
 }
 
-void CMFDCPU::axb(SOL_VAR *flux, SOL_VAR *aflux) {
+void CMFDCPU::axb(double *flux, double *aflux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         for (int ig = 0; ig < _g.ng(); ++ig) {
             aflux(ig, l) = CMFD::axb(ig, l, flux);
@@ -135,7 +135,7 @@ void CMFDCPU::axb(SOL_VAR *flux, SOL_VAR *aflux) {
     }
 }
 
-double CMFDCPU::wiel(const int &icy, SOL_VAR *flux, double &eigv, double &reigv, double &reigvs) {
+double CMFDCPU::wiel(const int &icy, double *flux, double &eigv, double &reigv, double &reigvs) {
     double errl2 = 0;
 
     double gamman = 0;
@@ -187,7 +187,7 @@ double CMFDCPU::wiel(const int &icy, SOL_VAR *flux, double &eigv, double &reigv,
 }
 
 
-double CMFDCPU::residual(const double &reigv, const double &reigvs, SOL_VAR *flux) {
+double CMFDCPU::residual(const double &reigv, const double &reigvs, double *flux) {
 
     double reigvdel = reigv - reigvs;
 
@@ -212,7 +212,7 @@ double CMFDCPU::residual(const double &reigv, const double &reigvs, SOL_VAR *flu
     return sqrt(r / psi2);
 }
 
-void CMFDCPU::drive(double &eigv, SOL_VAR* flux, float &errl2) {
+void CMFDCPU::drive(double &eigv, double* flux, float &errl2) {
 
     int icy = 0;
     int icmfd = 0;
@@ -261,7 +261,7 @@ void CMFDCPU::drive(double &eigv, SOL_VAR* flux, float &errl2) {
     }
 }
 
-void CMFDCPU::updpsi(const SOL_VAR* flux) {
+void CMFDCPU::updpsi(const double* flux) {
     for (int l = 0; l < _g.nxyz(); ++l) {
         CMFD::updpsi(l,flux);
     }

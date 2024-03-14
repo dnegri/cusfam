@@ -363,7 +363,8 @@ MigrationBackup/
 /.svn
 /bld/build
 .DS_Store
-/src.python/*.bak
+/python/*.bak
 /venv
-/src.python/venv
-/src.python/env
+/python/venv
+/python/env
+/python/*.so

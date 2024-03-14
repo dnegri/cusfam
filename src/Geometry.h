@@ -39,6 +39,7 @@
 class Geometry : public Managed {
 protected:
     int _ndivxy;
+    int _ndivxy2;
     int _ncellxy;
 	int _ng;
 	int _ng2;
@@ -97,22 +98,22 @@ protected:
 
 	int _symopt;
 	int _symang;
-	GEOM_VAR* _albedo;
+	double* _albedo;
 
-	GEOM_VAR* _hmesh;
-	GEOM_VAR* _hz;
-	GEOM_VAR* _vol;
-	GEOM_VAR* _vola;
+	double* _hmesh;
+	double* _hz;
+	double* _vol;
+	double* _vola;
 
-	GEOM_VAR _part;
-	GEOM_VAR _hzcore;
+	double _part;
+	double _hzcore;
 
 public:
 	Geometry();
 	virtual ~Geometry();
 
-	void setBoundaryCondition(int* symopt, int* symang, float* albedo);
-	void initDimension(int* ng_, int* nxy_, int* nz_, int* nx_, int* ny_, int* nsurf_);
+	void setBoundaryCondition(int symopt, int symang, float* albedo);
+	void initDimension(int ng_, int nxy_, int nz_, int nx_, int ny_, int nsurf_, int ndivxy_);
 	void initIndex(int* nxs, int* nxe, int* nys, int* nye, int * ijtol_, int* neibr_, float* hmesh_);
 	void initAssemblyIndex(int nxyfa, int ncellfa, int * latol_, int * larot_);
 	void initCorner(const int& ncorn, const int* lctol, const int* ltolc);
@@ -136,7 +137,7 @@ public:
 	inline int& symang() { return _symang; };
 	inline int& kbc() { return _kbc; };
 	inline int& kec() { return _kec; };
-	inline GEOM_VAR& part() { return _part; };
+	inline double& part() { return _part; };
 
 	inline const int& ng() const { return _ng; };
 	inline const int& ng2() const { return _ng2; };
@@ -157,7 +158,7 @@ public:
 	inline int& ltolc(const int& news, const int& l) const { return _ltolc[l*NEWS+ news]; }
 	inline int& lctol(const int& news, const int& lc) const { return _lctol[lc * NEWS + news]; }
 
-	const GEOM_VAR* albedo() const { return _albedo; }
+	const double* albedo() const { return _albedo; }
 	const int* neibr() const { return _neibr; }
 	const int* ijtol() const { return _ijtol; }
 	const int* nxs() const { return _nxs; }
@@ -165,9 +166,9 @@ public:
 	const int* nys() const { return _nys; }
 	const int* nye() const { return _nye; }
 	const int* neib() const { return _neib; }
-	const GEOM_VAR* hmesh() const { return _hmesh; }
+	const double* hmesh() const { return _hmesh; }
 	const int* lktosfc() const { return _lktosfc; }
-	const GEOM_VAR* vol() const { return _vol; }
+	const double* vol() const { return _vol; }
 	const int* idirlr() const { return _idirlr; }
 	const int* sgnlr() const { return _sgnlr; }
 	const int* lklr() const { return _lklr; }
@@ -208,12 +209,12 @@ public:
 	inline int& nhff() { return _nhff; };
 	char** hffnames() { return (char**)_hffnames; };
 
-	inline GEOM_VAR& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
-	inline GEOM_VAR& hz(const int& k) { return _hz[k]; };
-	inline GEOM_VAR& vol(const int& lk) { return _vol[lk]; };
-	inline GEOM_VAR& vola(const int& lka) { return _vola[lka]; };
-	inline GEOM_VAR& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
-	inline GEOM_VAR& hzcore() { return _hzcore; };
+	inline double& hmesh(const int& idir, const int& lk) { return _hmesh[lk * NDIRMAX + idir]; };
+	inline double& hz(const int& k) { return _hz[k]; };
+	inline double& vol(const int& lk) { return _vol[lk]; };
+	inline double& vola(const int& lka) { return _vola[lka]; };
+	inline double& albedo(const int& lr, const int& idir) { return _albedo[idir * LR + lr]; };
+	inline double& hzcore() { return _hzcore; };
 
 };
 

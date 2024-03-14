@@ -22,8 +22,8 @@ private:
     BICGCMFDCuda* _cmfdcuda;
     BICGCMFD* _cmfdcpu;
 
-    SOL_VAR* _flux_cuda;
-    SOL_VAR* _jnet_cuda;
+    double* _flux_cuda;
+    double* _jnet_cuda;
     float* _power_cuda;
 public:
     SimonCuda();
@@ -40,7 +40,7 @@ public:
     void runXenonTransient();
     void normalize();
 
-    SOL_VAR* flux_cuda() { return _flux_cuda; };
+    double* flux_cuda() { return _flux_cuda; };
 
 };
 

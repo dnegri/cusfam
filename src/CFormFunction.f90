@@ -16,7 +16,7 @@ module CFormFunction
         real(4), pointer   :: burn(:)
         real(4), pointer   :: hff(:,:,:)
     contains
-        procedure   init => initCFF
+        procedure   :: init => initCFF
     end type
     
     type, public   :: FormFunction
@@ -153,7 +153,7 @@ contains
         
         call c_f_pointer(ff_ptr, this)
         
-        hffname = this.hffnames(ihff)
+        hffname = this%hffnames(ihff)
         ihffref = this%indexOfFormFunction(hffname)
         
         cff => this%cff(ihffref)

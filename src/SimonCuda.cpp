@@ -32,8 +32,8 @@ void SimonCuda::initialize(const char* dbfile)
     _cmfdcpu->setNcmfd(3);
     _cmfdcpu->setEshift(0.04f);
 
-    checkCudaErrors(cudaMalloc((void**)&_flux_cuda, sizeof(SOL_VAR) * _g->ngxyz()));
-    checkCudaErrors(cudaMalloc((void**)&_power_cuda, sizeof(SOL_VAR) * _g->nxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_flux_cuda, sizeof(double) * _g->ngxyz()));
+    checkCudaErrors(cudaMalloc((void**)&_power_cuda, sizeof(double) * _g->nxyz()));
     checkCudaErrors(cudaMalloc((void**)&_jnet_cuda, sizeof(float) * _g->nsurf() * _g->ng()));
 
 
@@ -57,8 +57,8 @@ void SimonCuda::setBurnup(const float& burnup)
     _xcuda->updateMacroXS(_dcuda->dnst());
     _xcuda->updateXS(_dcuda->dnst(), _fcuda->dppm(), _fcuda->dtf(), _fcuda->dtm());
 
-    checkCudaErrors(cudaMemcpy(_flux_cuda, _flux, sizeof(SOL_VAR) * _g->ngxyz(), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(_power_cuda, _power, sizeof(SOL_VAR) * _g->nxyz(), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(_flux_cuda, _flux, sizeof(double) * _g->ngxyz(), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(_power_cuda, _power, sizeof(double) * _g->nxyz(), cudaMemcpyHostToDevice));
 
 
     //memset(&_x->xsdf(0, 0), 0, sizeof(XS_PRECISION) * _g->ngxyz());
@@ -74,7 +74,7 @@ void SimonCuda::runKeff(const int& nmaxout) {
 
     _cmfdcpu->updpsi(_flux);
     _cmfdcuda->updpsi(_flux_cuda);
-    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->psi(0), &_cmfdcuda->psi(0), sizeof(CMFD_VAR) * _g->nxyz(), cudaMemcpyDeviceToHost));
+    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->psi(0), &_cmfdcuda->psi(0), sizeof(double) * _g->nxyz(), cudaMemcpyDeviceToHost));
 
     _ppm = 1000.0;
     _fcuda->updatePPM(_ppm);
@@ -90,8 +90,8 @@ void SimonCuda::runKeff(const int& nmaxout) {
     _eigv = 1.0;
     _cmfdcuda->setls(_eigv);
     _cmfdcpu->setls(_eigv);
-    //memset(&_cmfdcpu->diag(0, 0, 0), 0, sizeof(CMFD_VAR) * _g->ng2() * _g->nxyz());
-    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->diag(0, 0, 0), &_cmfdcuda->diag(0, 0, 0), sizeof(CMFD_VAR) * _g->ng2() * _g->nxyz(), cudaMemcpyDeviceToHost));
+    //memset(&_cmfdcpu->diag(0, 0, 0), 0, sizeof(double) * _g->ng2() * _g->nxyz());
+    //checkCudaErrors(cudaMemcpy(&_cmfdcpu->diag(0, 0, 0), &_cmfdcuda->diag(0, 0, 0), sizeof(double) * _g->ng2() * _g->nxyz(), cudaMemcpyDeviceToHost));
 
     _eigv = 1.0;
     _cmfdcpu->drive(_eigv, _flux, errl2);
