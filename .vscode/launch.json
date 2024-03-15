@@ -23,20 +23,20 @@
             "processId": ""
         },
         {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/python",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "SIMON GUI",
             "type": "pythoncpp",
             "request": "launch",
             "pythonLaunchName": "Python: Current File",
             "cppAttachName": "(gdb) Attach",
             "cwd": "${workspaceFolder}/run",
-        },
-        {
-            "name": "Python: Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "cwd": "${workspaceFolder}/src.python",
-            "console": "integratedTerminal"
         }
     ]
 }

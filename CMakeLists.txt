@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(cusfam C CXX Fortran)
+project(dnegri.cusfam.main C CXX Fortran)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 find_package(OpenMP REQUIRED)
-find_package(
-  Python3
-  COMPONENTS Interpreter Development
-  REQUIRED)
+find_package(Python 3.12 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(fmt REQUIRED)
 find_package(plog REQUIRED)
@@ -60,8 +57,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELEASE
     "${CMAKE_CXX_FLAGS_RELEASE} -DJIARRAY_OFFSET=0 -fopenmp=libgomp ")
 set(CMAKE_CXX_FLAGS_DEBUG
-    " ${CMAKE_CXX_FLAGS_DEBUG} -DJIARRAY_OFFSET=0 -DJIARRAY_DEBUG -fsanitize=address"
-)
+    " ${CMAKE_CXX_FLAGS_DEBUG} -DJIARRAY_OFFSET=0 -DJIARRAY_DEBUG")
 set(CMAKE_Fortran_FLAGS
     "${CMAKE_Fortran_FLAGS} -ffree-line-length-none -finit-local-zero -frecursive -fdefault-real-8 -fdefault-double-8 -cpp -DXS_PREC=8"
 )
@@ -71,19 +67,19 @@ set_source_files_properties(${FortranSources} PROPERTIES LANGUAGE Fortran)
 
 # simon test executable
 add_executable(${PROJECT_NAME}.main ${src.nist} ${FortranSources} ${SOURCES})
+target_include_directories(${PROJECT_NAME}.main PRIVATE ${Python_INCLUDE_DIRS})
 target_link_libraries(
-  ${PROJECT_NAME}.main PRIVATE Python3::Python fmt::fmt-header-only plog::plog
-                               nist OpenMP::OpenMP_CXX)
+  ${PROJECT_NAME}.main PRIVATE fmt::fmt-header-only plog::plog nist
+                               OpenMP::OpenMP_CXX)
 
 # pybind11 method:
-pybind11_add_module(${PROJECT_NAME} ${FortranSources} ${SOURCES}
-                    ./src/python_module.cpp)
-target_link_libraries(
-  ${PROJECT_NAME} PRIVATE Python3::Python fmt::fmt-header-only plog::plog
-                          nist OpenMP::OpenMP_CXX)
+pybind11_add_module(cusfam ${FortranSources} ${SOURCES} ./src/python_module.cpp)
+target_include_directories(cusfam PRIVATE ${Python_INCLUDE_DIRS})
+target_link_libraries(cusfam PRIVATE fmt::fmt-header-only plog::plog nist
+                                     OpenMP::OpenMP_CXX)
 
 add_custom_command(
-  TARGET ${PROJECT_NAME}
+  TARGET cusfam
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}>
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:cusfam>
           ${CMAKE_CURRENT_SOURCE_DIR}/python)
